@@ -136,11 +136,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	private static $recordClasses;
 
 	private static $saveOriginRecord;
-<<<<<<< .mine
 	private static $copyOriginRecord;
-=======
 	private static $saveValueLock;
->>>>>>> .r7308
 	private static $notifyOnSaveComplete;
 
 	private static $foreignReferences = array();
