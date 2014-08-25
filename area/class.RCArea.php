@@ -33,14 +33,6 @@ class RCArea extends ElementRecord {
 		return parent::getFormValues( $fields );
 	}
 
-	public function getFormRecords( array &$records, array $fields ) {
-		if ( !in_array( 'area:RCElementInArea', $fields ) ) {
-			$fields[ ] = 'area:RCElementInArea';
-		}
-
-		return parent::getFormRecords( $records, $fields );
-	}
-
 	protected function satisfyRequireReferences() {
 		$fieldDefinitions = $this->getForeignReferences();
 		$fields = array_intersect_key( $this->fields, $fieldDefinitions );

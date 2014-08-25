@@ -43,30 +43,6 @@ class BaseDTAreaForeignReference extends BaseDTForeignReference {
 
 		return parent::getFormValue();
 	}
-
-	public function getFormRecords( array &$records ) {
-		$recordClass = $this->getRecordClass();
-
-		if ( $recordClass == 'RCElementInArea' ) {
-			$recs = $this->record->{$this->fieldName};
-
-			foreach ( $recs as $rec ) {
-				if(!in_array($rec, $records, true)){
-					$records[] = $rec;
-				}
-
-				$recordClass = $rec->class;
-
-				if ( !in_array( $rec->element, $records, true ) ) {
-					$records[ ] = $rec->element;
-				}
-
-				$rec->element->getFormRecords( $records, array_keys( $recordClass::getFormFields( $this->storage ) ) );
-			}
-		}
-
-		parent::getFormRecords( $records );
-	}
 }
 
 ?>

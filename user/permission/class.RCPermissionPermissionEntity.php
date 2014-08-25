@@ -40,12 +40,6 @@ class RCPermissionPermissionEntity extends Record {
 		return parent::getFormValues( $fields );
 	}
 
-	public function getFormRecords( array &$records, array $fields ) {
-		$fields[ ] = 'fieldPermission';
-
-		parent::getFormRecords( $records, $fields );
-	}
-
 	public function beforeDelete( array &$basket = NULL ){
 		if($this->deleted || $this->isDeleting){
 			return;

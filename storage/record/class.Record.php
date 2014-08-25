@@ -136,7 +136,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	private static $recordClasses;
 
 	private static $saveOriginRecord;
-	private static $copyOriginRecord;
 	private static $saveValueLock;
 	private static $notifyOnSaveComplete;
 
@@ -2538,7 +2537,9 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $this->values;
 	}
 
-	public function getFormValueFields( array $fields ) {
+	public function getFormValues( array $fields ) {
+		$ret = array();
+
 		$fields = array_merge( $fields, array_keys( static::getTitleFieldsCached() ) );
 
 		if ( $sortingField = static::getDataTypeFieldName( 'DTSteroidSorting' ) ) {
@@ -2548,14 +2549,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		if ( static::fieldDefinitionExists( 'primary' ) ) {
 			$fields = array_merge( $fields, array( static::FIELDNAME_PRIMARY ) );
 		}
-
-		return $fields;
-	}
-
-	public function getFormValues( array $fields ) {
-		$ret = array();
-
-		$fields = $this->getFormValueFields( $fields );
 
 		if ( $this->exists() ) {
 			$this->load( $fields );
@@ -2570,19 +2563,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $ret;
 	}
 
-	public function getFormRecords( array &$records, array $fields ) {
-		$fields = $this->getFormValueFields( $fields );
-
-		if ( $this->exists() ) {
-			$this->load( $fields );
-		}
-
-		foreach ( $fields as $field ) {
-			if ( is_subclass_of( $this->fields[ $field ], 'BaseDTRecordReference' ) || is_subclass_of( $this->fields[ $field ], 'BaseDTForeignReference' ) ) {
-				$this->fields[ $field ]->getFormRecords( $records );
-			}
-		}
-	}
 
 	public function getFieldNameOfDataType( $dataTypeClass = NULL ) {
 
@@ -2843,7 +2823,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $this->copiedRecord;
 	}
 
-	public function getCopyableReferences( array $changes = NULL, array $originRecords = NULL, array $copiedRecords = NULL ) {
+	public function getCopyableReferences( array $changes = NULL ) {
 		$records = array();
 
 		$foreignReferences = static::getForeignReferences();
@@ -2855,22 +2835,18 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 			// ignore dynamic references and widgets
 			if ( !$foreignRequired && $fieldDef[ 'dataType' ] == 'DTForeignReference' && $fieldDef[ 'requireSelf' ] && $foreignRecordClass::BACKEND_TYPE !== Record::BACKEND_TYPE_WIDGET ) {
-				$vals = $this->getFieldValue( $fieldName );
+				$vals = $this->getFieldValue($fieldName);
 
 // FIXME: why differentiate between "join records" and other records ?
 				$isJoinRecord = !$foreignRecordClass::fieldDefinitionExists( Record::FIELDNAME_PRIMARY );
 
 				foreach ( $vals as $val ) {
-					if ( in_array( $val, $originRecords, true ) ) {
-						continue;
-					}
-
 					if ( $isJoinRecord ) {
 						$missingReferences = array();
 
-						$nval = $val->copy( $changes, $missingReferences, $originRecords, $copiedRecords );
+						$nval = $val->copy( $changes, $missingReferences );
 
-						$records = array_merge( $records, $missingReferences, $originRecords, $copiedRecords );
+						$records = array_merge( $records, $missingReferences );
 					} else {
 						$nval = $val->getFamilyMember( $changes );
 
@@ -2888,28 +2864,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	public function copy( array $changes, array &$missingReferences, array &$originRecords = NULL, array &$copiedRecords = NULL, array $skipFields = NULL, array &$originValues = NULL, $originFieldName = NULL ) {
 		$isEntryPoint = !$this->isCopying;
 
-		if ( $isEntryPoint && self::$copyOriginRecord === NULL ) {
-			self::$copyOriginRecord = $this;
-			$recordsToBeCopied = array( $this );
-
-			$this->getFormRecords( $recordsToBeCopied, array_keys( $this->getFormFields( $this->storage ) ) );
-
-			foreach ( $recordsToBeCopied as $record ) {
-				Log::write(get_class($record));
-				$record->setMeta( 'doCopy', true );
-				$record->readOnly = true;
-			}
-		}
-
-		if ( self::$copyOriginRecord !== $this && !$this->getMeta( 'doCopy' ) ) {
-			$copiedRecord = $this->getFamilyMember( $changes );
-
-			if ( $copiedRecord->exists() ) {
-				$this->copiedRecord = $copiedRecord;
-				return $this->copiedRecord;
-			}
-		}
-
 		if ( !$this->isCopying ) {
 			$this->copiedIdentityValues = array();
 			$this->copiedValues = array();
@@ -2918,7 +2872,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			// make sure primary key fields are the first ones
 //			$this->copyIdentityFields = static::getPrimaryKeyFields();
 //			$this->copyIdentityFields = static::getUniqueKeyFields();
-			$this->copyIdentityFields = array_unique( array_merge( static::getPrimaryKeyFields(), static::getUniqueKeyFields() ) );
+			$this->copyIdentityFields = array_unique(array_merge(static::getPrimaryKeyFields(), static::getUniqueKeyFields()));
 
 			$this->copyIdentityFieldsBackup = $this->copyIdentityFields;
 			$this->copiedKeysForIdentity = array_keys( static::getUniqueKeys() ); // array( 'primary' );
@@ -3034,15 +2988,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$this->copyForeignFields = NULL;
 			$this->copyIdentityFields = NULL;
 			$this->copiedRecord = NULL;
-
-
-			if ( self::$copyOriginRecord === $this ) {
-				self::$copyOriginRecord = NULL;
-
-				foreach ( $recordsToBeCopied as $record ) {
-					$record->setMeta( 'doCopy', NULL );
-				}
-			}
 		}
 
 		return $copiedRecord;

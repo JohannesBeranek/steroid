@@ -272,48 +272,6 @@ abstract class BaseDTForeignReference extends DataType {
 		return $val;
 	}
 
-	public function getFormRecords( array &$records ) {
-		$val = $this->record->{$this->fieldName};
-
-		if ( empty( $val ) ) {
-			$val = NULL;
-		}
-
-		if ( $val ) {
-			$recordClass = $this->getRecordClass();
-
-			$fields = static::getForeignFormFields( $recordClass );
-
-			$foreignFieldName = $this->getForeignFieldName();
-
-			if ( ( $key = array_search( $foreignFieldName, $fields ) ) !== false ) { // remove our field
-				unset( $fields[ $key ] );
-			}
-
-			$formValues = array();
-
-			$alienRecordDefinition = $this->getOtherSelectableRecordClassDefinition( get_class( $this->record ), $recordClass );
-			$alienRecordClass = $alienRecordDefinition[ 'recordClass' ];
-
-			if ( $alienRecordDefinition[ 'recordClass' ] === NULL ) {
-				return;
-			}
-
-			$liveField = $alienRecordClass::getDataTypeFieldName( 'DTSteroidLive' );
-			$ownLiveField = $this->record->getDataTypeFieldName( 'DTSteroidLive' );
-
-			foreach ( $val as $rec ) {
-				if ( !$liveField || !$ownLiveField || ( $liveField && $ownLiveField && $rec->{$alienRecordDefinition[ 'fieldName' ]}->{$liveField} === $this->record->{$ownLiveField} ) ) {
-					if ( !in_array( $rec, $records, true ) ) {
-						$records[ ] = $rec;
-					}
-
-					$rec->getFormRecords( $records, $fields );
-				}
-			}
-		}
-	}
-
 	protected function getForeignFormFields( $recordClass = NULL ) {
 		if ( !$recordClass ) {
 			throw new InvalidArgumentException( '$recordClass must be set' );

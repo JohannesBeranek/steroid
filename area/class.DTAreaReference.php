@@ -59,22 +59,6 @@ class DTAreaReference extends BaseDTRecordReference {
 
 		return $val;
 	}
-
-	public function getFormRecords( array &$records ) {
-		$val = $this->record->getFieldValue( $this->fieldName );
-
-		if ( $val ) {
-			$fields = array_keys( $val->getFormFields( $this->storage ) );
-
-			if ( !in_array( $val, $records, true ) ) {
-				$records[ ] = $val;
-			}
-
-			$val->getFormRecords( $records, $fields );
-		}
-
-		return $val;
-	}
 	
 	protected function mayCopyReferenced() {
 		return true;

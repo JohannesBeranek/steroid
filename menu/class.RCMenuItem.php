@@ -145,10 +145,6 @@ class RCMenuItem extends BaseMenuItem {
 		return parent::getFormValues( array_merge( array( 'menu' ), array_diff( $fields, array( 'parent:RCMenuItem' ) ) ) ); // save the children!
 	}
 
-	public function getFormRecords( array &$records, array $fields ) {
-		return parent::getFormRecords( $records, array_merge( array( 'menu' ), array_diff( $fields, array( 'parent:RCMenuItem' ) ) ) ); // save the children!
-	}
-
 	public function getTitle() {
 		$title = ( $this->page && ( $this->title === '' || $this->title === NULL ) )
 				? $this->page->title
