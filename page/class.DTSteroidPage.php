@@ -69,19 +69,6 @@ class DTSteroidPage extends BaseDTRecordReference {
 		return $values;
 	}
 
-	public function getFormRecords( array &$records ) {
-		$val = $this->record->{$this->fieldName};
-
-		if ( $val ) {
-			$fields = array_keys( $val->getFormFields( $this->storage ) );
-
-			if ( !in_array( $val, $records, true ) ) {
-				$records[ ] = $val;
-			}
-
-			$val->getFormRecords( $records, $fields );
-		}
-	}
 
 	protected function deleteValueOnBeforeDelete() {
 		return true;

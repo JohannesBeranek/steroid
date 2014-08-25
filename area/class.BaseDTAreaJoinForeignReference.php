@@ -43,22 +43,6 @@ class BaseDTAreaJoinForeignReference extends BaseDTForeignReference {
 		return empty( $areas ) ? NULL : $areas;
 	}
 
-	public function getFormRecords( array &$records ) {
-		// support lazy loading
-		$joinRecords = $this->record->getFieldValue( $this->fieldName );
-
-		$rc = $this->getRecordClass();
-		$fields = array_keys( $rc::getFormFields( $this->storage ) );
-
-		foreach ( $joinRecords as $joinRecord ) {
-			if ( !in_array( $joinRecord, $records, true ) ) {
-				$records[ ] = $joinRecord;
-			}
-
-			$joinRecord->getFormRecords( $records, $fields );
-		}
-	}
-
 	public static function getFormConfig( IRBStorage $storage, $owningRecordClass, $fieldName, $fieldDef ) {
 		$fieldDef = parent::getFormConfig( $storage, $owningRecordClass, $fieldName, $fieldDef );
 

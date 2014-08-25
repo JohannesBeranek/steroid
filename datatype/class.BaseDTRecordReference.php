@@ -313,10 +313,6 @@ abstract class BaseDTRecordReference extends DataType {
 		return $ret;
 	}
 
-	public function getFormRecords( array &$records ) {
-		// nothing to do here
-	}
-
 	protected function getFormValueFields() {
 		$recordClass = $this->getRecordClass();
 

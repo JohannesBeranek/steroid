@@ -961,7 +961,7 @@ class UHBackend implements IURLHandler {
 
 	}
 
-	protected function getCopyableReferences( $recordClass = NULL, $recordPrimary = NULL, array $changes = NULL, array $originRecords = NULL, array $copiedRecords = NULL ) {
+	protected function getCopyableReferences( $recordClass = NULL, $recordPrimary = NULL, array $changes = NULL ) {
 		if ( !( $recordClass && $recordPrimary && $changes ) ) {
 			throw new InvalidArgumentException( '$recordClass, $recordPrimary and $changes must be set' );
 		}
@@ -974,7 +974,7 @@ class UHBackend implements IURLHandler {
 			throw new RecordDoesNotExistException( 'Record of class ' . $recordClass . ' with primary ' . $recordPrimary . ' does not exist' );
 		}
 
-		$tmp = $originalRecord->getCopyableReferences( $changes, $originRecords, $copiedRecords );
+		$tmp = $originalRecord->getCopyableReferences( $changes );
 
 		foreach ( $tmp as $record ) {
 			if ( $domainGroupFieldName = $record->getDataTypeFieldName( 'DTSteroidDomainGroup' ) ) {
@@ -1042,15 +1042,13 @@ class UHBackend implements IURLHandler {
 		$previewRecord = $recordClass::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $recordID ), Record::TRY_TO_LOAD );
 
 		$missingReferences = array();
-		$originRecords = array();
-		$copiedRecords = array();
 
-		$liveRecord = $previewRecord->copy( array( 'live' => DTSteroidLive::LIVE_STATUS_LIVE ), $missingReferences, $originRecords, $copiedRecords );
+		$liveRecord = $previewRecord->copy( array( 'live' => DTSteroidLive::LIVE_STATUS_LIVE ), $missingReferences );
 
 		$classes[ 'required' ] = $this->getAffectedRecordOutput( $missingReferences, $previewRecord );
 		$classes[ 'optional' ] = array();
 
-//		$classes[ 'optional' ] = $this->getAffectedRecordOutput( $this->getCopyableReferences( $recordClass, $recordID, array( 'live' => DTSteroidLive::LIVE_STATUS_LIVE ), $originRecords, $copiedRecords ), $previewRecord );
+//		$classes[ 'optional' ] = $this->getAffectedRecordOutput( $this->getCopyableReferences( $recordClass, $recordID, array( 'live' => DTSteroidLive::LIVE_STATUS_LIVE ) ), $previewRecord );
 
 // FIXME: should not be able to publish if some record in §missingReferences is marked as 'missing', as this would lead to unexpected behaviour
 		if ( $doPublish || ( empty( $classes[ 'required' ] ) && empty( $classes[ 'optional' ] ) ) ) {
