@@ -1,8 +1,18 @@
 <?php
+
 /**
- * Created by JetBrains PhpStorm.
- * User: re5et
- * Date: 25/08/14
- * Time: 13:06
- * To change this template use File | Settings | File Templates.
+ * @var string
  */
+const WEBROOT = __DIR__;
+
+/**
+ * @var string
+ */
+const STDIRNAME = 'steroid';
+
+/**
+ * @var string
+ */
+const LOCALDIRNAME = 'stlocal';
+
+require_once __DIR__ . '/' . STDIRNAME . '/stroot.php';
