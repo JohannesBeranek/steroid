@@ -1,0 +1,11 @@
+{
+	"name": "steroid",
+	"description": "base package for steroid backend",
+	"version": 0.1,
+	"dojoBuild": "steroid.profile.js",
+	"dependencies": {
+		"dojo": "current",
+		"dijit": "current",
+		"dojox": "current"
+	}
+}

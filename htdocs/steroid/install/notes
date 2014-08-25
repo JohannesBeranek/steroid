@@ -1,0 +1,18 @@
+# for bash completion:
+
+# debian:
+aptitude install bash-completion
+copy ./bash_completion /etc/bash_completion.d/steroid
+
+#--------------
+
+# osx: 
+sudo port selfupdate 
+sudo port installed | grep bash-completion || sudo port install bash-completion
+
+# AND for every user do:
+grep "^export USER_BASH_COMPLETION_DIR" ~/.bash_profile || echo "export USER_BASH_COMPLETION_DIR=~/.bash_completion.d" >> ~/.bash_profile
+grep "\. /opt/local/etc/bash_completion" ~/.bash_profile || echo -e "if [ -f /opt/local/etc/bash_completion ]; then\n\t. /opt/local/etc/bash_completion\nfi" >> ~/.bash_profile
+mkdir -p ~/.bash_completion.d
+cp ./bash_completion ~/.bash_completion.d/steroid
+if [ $SHELL != "/opt/local/bin/bash" ]; then chsh -s /opt/local/bin/bash; fi
