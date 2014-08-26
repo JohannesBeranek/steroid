@@ -335,12 +335,12 @@ class RCFile extends Record implements IFileInfo {
 	}
 
 	protected static function getDisplayedListFields() {
-		return array( 'title', 'filename', 'filetype', 'alt', 'domainGroup', 'file:RCFileTopic' );
+		return array( 'title', 'filename', 'filetype', 'alt', 'domainGroup' );
 	}
 
 	protected static function getDisplayedFilterFields() {
 		return array(
-			'domainGroup', 'filetype', 'file:RCFileTopic'
+			'domainGroup', 'filetype'
 		);
 	}
 

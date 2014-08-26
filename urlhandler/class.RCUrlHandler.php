@@ -37,11 +37,11 @@ class RCUrlHandler extends Record {
 		$records = array();
 
 		foreach($urlHandlers as $name => $urlHandler){
-			$records[] = static::get($storage, array(
+			$records[] = array(
 				'title' => $name,
 				'className' => $name,
 				'filename' => Filename::webpathize( Filename::webize( $urlHandler[ 'fullPath' ] ) )
-			), false);
+			);
 		}
 
 		return $records;

@@ -44,13 +44,13 @@ class RCLanguage extends Record {
 
 	public static function getStaticRecords(IRBStorage $storage){
 		return array(
-			static::get($storage, array(
+			array(
 				'live' => DTSteroidLive::LIVE_STATUS_PREVIEW,
 				'title' => 'English',
 				'iso639' => 'en',
 				'isDefault' => true,
 				'locale' => 'en_US.UTF-8'
-			), false)
+			)
 		);
 	}
 
