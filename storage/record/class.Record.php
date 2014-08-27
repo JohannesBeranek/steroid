@@ -98,10 +98,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	const RECORD_STATUS_LIVE = 1;
 	const RECORD_STATUS_MODIFIED = 2;
 	const RECORD_STATUS_NOT_APPLICABLE = 3;
-	
+
 	const CACHE_KEY = 'Record';
 	const CACHE_LOCK_KEY = 'Record.lock';
-	
+
 	const CACHE_KEY_FOREIGN_REFERENCES = 'recordForeignReferences';
 	const CACHE_KEY_FILES = 'recordFileIncludes';
 
@@ -218,13 +218,13 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	public $skipDelete;
 	public $skipSave;
 	public $readOnly;
-	
+
 	// Helper for performance optimizations
 	// TODO: subclasses of Record don't need these static fields, but with only static qualifier they all have their own instance
 	public static $trackedFields;
 	public static $currentPath;
 	public static $currentSavePath;
-	
+
 	public $path;
 
 	public static function addHook( $object, $hookType, $recordClasses = NULL ) {
@@ -652,7 +652,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 		return $fieldNames[ $dataType ] === false ? NULL : $fieldNames[ $dataType ];
 	}
-	
 
 
 	public static function getDefaultValues( IStorage $storage, array $fieldsToSelect, array $extraParams = NULL ) {
@@ -687,10 +686,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		if ( $ownFieldDefs === NULL ) {
 			$calledClass = get_called_class();
 
-			
-			if (function_exists('apc_fetch')) {
+
+			if ( function_exists( 'apc_fetch' ) ) {
 				$key = WEBROOT . '_ofd_' . $calledClass;
-			
+
 				$fieldDefinitions = apc_fetch( $key );
 			} else {
 				$fieldDefinitions = false;
@@ -716,7 +715,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 					}
 				}
 
-				if (isset($key)) {
+				if ( isset( $key ) ) {
 					apc_store( $key, $fieldDefinitions );
 				}
 			}
@@ -945,7 +944,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	protected static function addToEditableFormFields( $recordClass, $fieldName, &$editableFormFields ) {
 		// stub
 	}
-	
 
 
 	final protected static function getEditableFormFieldsCached() {
@@ -1131,7 +1129,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		if ( $fieldDefinitions === NULL ) {
 			$calledClass = get_called_class();
 
-			if (function_exists('apc_fetch')) {
+			if ( function_exists( 'apc_fetch' ) ) {
 				$key = WEBROOT . '_fd_' . $calledClass;
 				$fieldDefinitions = apc_fetch( $key );
 			} else {
@@ -1141,21 +1139,21 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			if ( $fieldDefinitions === false ) {
 				$fieldDefinitions = static::getFieldDefinitions();
 
-				$recordClasses = self::getRecordClasses();
+				$classes = array_merge( self::getRecordClasses(), ClassFinder::getAll( ClassFinder::CLASSTYPE_AUTHENTICATOR, true ) );
 
-				foreach ( $recordClasses as $recordClass => $recordClassFieldDefinitions ) {
-					$newFields = $recordClass::addToFieldDefinitions( $calledClass, $fieldDefinitions );
+				foreach ( $classes as $class => $classDefinition ) {
+					$newFields = $class::addToFieldDefinitions( $calledClass, $fieldDefinitions );
 
 					if ( $newFields && !empty( $newFields ) ) {
 						foreach ( $newFields as $fieldName => $fieldDef ) {
-							$fieldDef[ 'addedByRC' ] = $recordClass;
+							$fieldDef[ 'addedByClass' ] = $class;
 							$fieldDefinitions[ $fieldName ] = $fieldDef;
 						}
 					}
 
 				}
 
-				if (isset($key)) {
+				if ( isset( $key ) ) {
 					apc_store( $key, $fieldDefinitions );
 				}
 			}
@@ -1169,34 +1167,34 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$classNames = array();
 
 			if ( self::$useCache === NULL ) {
-				if ( $cacheType = Config::key('record', 'cache') ) {
-					$cache = Cache::getBestMatch($cacheType);
-					
+				if ( $cacheType = Config::key( 'record', 'cache' ) ) {
+					$cache = Cache::getBestMatch( $cacheType );
+
 					$checked = false;
 
 					if ( $cache->exists( self::CACHE_KEY ) ) {
 						try {
-							self::includeForeignReferenceCache($cache);
+							self::includeForeignReferenceCache( $cache );
 						} catch ( ErrorException $e ) { // might get a warning "exception" in case a file doesn't exist anymore - in that case we need to regenerate cache
 							if ( $e->getSeverity() === E_WARNING && $e->getFile() === __FILE__ ) {
 								// one of the included record classes doesn't exist anymore OR cache file does not exist, (re)create it
 								$cache->lock( self::CACHE_LOCK_KEY );
-								
+
 								// cache might have been recreated in the mean time - try again (this way we prevent cache being created multiple times under high load)
 								try {
-									self::includeForeignReferenceCache($cache);
+									self::includeForeignReferenceCache( $cache );
 								} catch ( ErrorException $e ) {
 									self::createForeignReferenceCache( $cache );
 								} catch ( Exception $e ) {
 									$cache->unlock( self::CACHE_LOCK_KEY );
-									
+
 									throw $e;
 								}
-								
+
 								$cache->unlock( self::CACHE_LOCK_KEY );
 							} else {
 								// rethrow
-								throw $e; 
+								throw $e;
 							}
 						}
 					} else {
@@ -1215,21 +1213,21 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 		return self::$recordClasses;
 	}
-	
+
 	final private static function includeForeignReferenceCache( $cache ) {
 		$cacheEntry = json_decode( $cache->get( self::CACHE_KEY ), true );
-		
+
 		$includeFiles = $cacheEntry[ self::CACHE_KEY_FILES ];
-		
-		foreach ($includeFiles as $file) {
+
+		foreach ( $includeFiles as $file ) {
 			include_once $file;
 			self::$useCache = true;
 			self::fillRecordClasses();
 		}
-		
+
 		self::$foreignReferences = $cacheEntry[ self::CACHE_KEY_FOREIGN_REFERENCES ];
 	}
-	
+
 	final private static function createForeignReferenceCache( $cache ) {
 		$recordClasses = ClassFinder::getAll( ClassFinder::CLASSTYPE_RECORD, false );
 
@@ -1239,12 +1237,12 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		try {
 			foreach ( $recordClasses as $recordClass ) {
 				$filename = $recordClass[ ClassFinder::CLASSFILE_KEY_FULLPATH ];
-	
+
 				include_once $filename;
-	
-				$filenames[] = $filename;
+
+				$filenames[ ] = $filename;
 			}
-			
+
 			$cacheEntry[ self::CACHE_KEY_FILES ] = $filenames;
 		} catch ( ErrorException $e ) {
 			// if we still fail here, just disable caching and go with classfinder
@@ -1261,7 +1259,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 			self::fillForeignReferences( $className );
 		}
-		
+
 		$cacheEntry[ self::CACHE_KEY_FOREIGN_REFERENCES ] = self::$foreignReferences;
 
 		$cache->set( self::CACHE_KEY, json_encode( $cacheEntry ) );
@@ -1299,10 +1297,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		// Prevents missing inclusions
 		$recordClasses = ClassFinder::getAll( ClassFinder::CLASSTYPE_RECORD, true );
 
-		if ( function_exists('apc_fetch') ) {
+		if ( function_exists( 'apc_fetch' ) ) {
 			$key = WEBROOT . '_Record::fillRecordClasses()';
-			
-			self::$recordClasses = apc_fetch( $key);
+
+			self::$recordClasses = apc_fetch( $key );
 		} else {
 			self::$recordClasses = false;
 		}
@@ -1782,7 +1780,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			}
 
 		}
-		
+
 		return false;
 	}
 
@@ -1847,7 +1845,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			}
 
 
-			if ($indexedField === false) {
+			if ( $indexedField === false ) {
 				$indexedField = in_array( $fieldName, $uniqueKeyFields, true );
 			}
 
@@ -2184,15 +2182,15 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 				self::$currentSavePath = array();
 			}
 		}
-		
-		
+
+
 		// prevent save jumping to different live or language values		
-		if ( !isset(self::$saveValueLock['DTSteroidLive']) && ( $liveFieldName = $this->getDataTypeFieldName( 'DTSteroidLive' ) ) !== NULL && $this->isReadable( $liveFieldName ) ) {
-			self::$saveValueLock['DTSteroidLive'] = $this->getFieldValue( $liveFieldName );
+		if ( !isset( self::$saveValueLock[ 'DTSteroidLive' ] ) && ( $liveFieldName = $this->getDataTypeFieldName( 'DTSteroidLive' ) ) !== NULL && $this->isReadable( $liveFieldName ) ) {
+			self::$saveValueLock[ 'DTSteroidLive' ] = $this->getFieldValue( $liveFieldName );
 		}
 
-		if ( !isset(self::$saveValueLock['DTSteroidLanguage']) && ( $languageFieldName = $this->getDataTypeFieldName( 'DTSteroidLanguage' ) ) !== NULL && $this->isReadable( $languageFieldName ) ) {
-			self::$saveValueLock['DTSteroidLanguage'] = $this->getFieldValue( $languageFieldName );
+		if ( !isset( self::$saveValueLock[ 'DTSteroidLanguage' ] ) && ( $languageFieldName = $this->getDataTypeFieldName( 'DTSteroidLanguage' ) ) !== NULL && $this->isReadable( $languageFieldName ) ) {
+			self::$saveValueLock[ 'DTSteroidLanguage' ] = $this->getFieldValue( $languageFieldName );
 		}
 
 
@@ -2224,44 +2222,44 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	}
 
 	public function save() {
-		
-		
+
+
 		// [beranek_johannes] 06.08.2014: added check for $this->currentlySaving to prevent 
 		// change in skipSave and readOnly while saving to influence saving
 		if ( !$this->currentlySaving ) {
 			if ( !empty( $this->skipSave ) || !empty( $this->readOnly ) ) {
 				return $this;
 			}
-		
+
 			if ( self::$saveValueLock !== NULL ) {
 				$primaryField = $this->getDataTypeFieldName( 'DTSteroidPrimary' );
-												
+
 				foreach ( self::$saveValueLock as $dataType => $value ) {
 					$field = $this->getDataTypeFieldName( $dataType );
-				
+
 					if ( $field !== NULL ) {
 						if ( $this->isReadable( $field ) && ( $readValue = $this->getFieldValue( $field ) ) !== NULL ) {
 							if ( $readValue !== $value ) {
 								// short circuit in case values do not match
 								return $this;
-							} 
-						} else if ($primaryField !== NULL) {
+							}
+						} else if ( $primaryField !== NULL ) {
 							// try to match via primary field value interpolation
 							$interpolatedValue = $this->fields[ $primaryField ]->interpolateValue( $dataType );
-							
-							if ($interpolatedValue !== NULL && $interpolatedValue !== $value) {
+
+							if ( $interpolatedValue !== NULL && $interpolatedValue !== $value ) {
 								// short circuit in case values do not match
 								return $this;
 							}
 						}
 					}
 				}
-				
-				
+
+
 			}
 		}
-	
-	
+
+
 		$isFirst = !$this->currentlySaving;
 
 		if ( $isFirst ) { // prevent recursion loop
@@ -2320,15 +2318,15 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$this->updateDirtyAfterSaveFields = NULL;
 			// $this->saveIsUpdate = NULL; // we keep this for after save hooks
 			$this->hasSaved = NULL;
-		
-			if (self::$saveOriginRecord === $this) {
+
+			if ( self::$saveOriginRecord === $this ) {
 				self::$saveOriginRecord = NULL;
-	
+
 				// while ( self::$notifyOnSaveComplete && ( $rec = array_shift( self::$notifyOnSaveComplete ) ) ) {
 				while ( self::$notifyOnSaveComplete && ( $rec = array_pop( self::$notifyOnSaveComplete ) ) ) {
 					$rec->notifySaveComplete();
 				}
-				
+
 				self::$notifyOnSaveComplete = NULL;
 				self::$saveValueLock = NULL;
 			}
@@ -2537,7 +2535,9 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $this->values;
 	}
 
-	public function getFormValueFields( array $fields ) {
+	public function getFormValues( array $fields ) {
+		$ret = array();
+
 		$fields = array_merge( $fields, array_keys( static::getTitleFieldsCached() ) );
 
 		if ( $sortingField = static::getDataTypeFieldName( 'DTSteroidSorting' ) ) {
@@ -2547,14 +2547,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		if ( static::fieldDefinitionExists( 'primary' ) ) {
 			$fields = array_merge( $fields, array( static::FIELDNAME_PRIMARY ) );
 		}
-
-		return $fields;
-	}
-
-	public function getFormValues( array $fields ) {
-		$ret = array();
-
-		$fields = $this->getFormValueFields( $fields );
 
 		if ( $this->exists() ) {
 			$this->load( $fields );
@@ -2569,19 +2561,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $ret;
 	}
 
-	public function getFormRecords( array &$records, array $fields ) {
-		$fields = $this->getFormValueFields( $fields );
-
-		if ( $this->exists() ) {
-			$this->load( $fields );
-		}
-
-		foreach ( $fields as $field ) {
-			if ( is_subclass_of( $this->fields[ $field ], 'BaseDTRecordReference' ) || is_subclass_of( $this->fields[ $field ], 'BaseDTForeignReference' ) ) {
-				$this->fields[ $field ]->getFormRecords( $records );
-			}
-		}
-	}
 
 	public function getFieldNameOfDataType( $dataTypeClass = NULL ) {
 
@@ -2734,14 +2713,14 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 	public function refreshField( $fieldName ) {
 		$isIndexField = $this->isIndexField( $fieldName );
-		
-		if ($this->indexed && $isIndexField) {
+
+		if ( $this->indexed && $isIndexField ) {
 			$this->removeFromIndex();
 		}
-		
+
 		$this->fields[ $fieldName ]->refresh();
-		
-		if ($isIndexField) {
+
+		if ( $isIndexField ) {
 			$this->index();
 		}
 	}
@@ -2842,7 +2821,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $this->copiedRecord;
 	}
 
-	public function getCopyableReferences( array $changes = NULL, array $originRecords = NULL, array $copiedRecords = NULL ) {
+	public function getCopyableReferences( array $changes = NULL ) {
 		$records = array();
 
 		$foreignReferences = static::getForeignReferences();
@@ -2860,16 +2839,12 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 				$isJoinRecord = !$foreignRecordClass::fieldDefinitionExists( Record::FIELDNAME_PRIMARY );
 
 				foreach ( $vals as $val ) {
-					if ( in_array( $val, $originRecords, true ) ) {
-						continue;
-					}
-
 					if ( $isJoinRecord ) {
 						$missingReferences = array();
 
-						$nval = $val->copy( $changes, $missingReferences, $originRecords, $copiedRecords );
+						$nval = $val->copy( $changes, $missingReferences );
 
-						$records = array_merge( $records, $missingReferences, $originRecords, $copiedRecords );
+						$records = array_merge( $records, $missingReferences );
 					} else {
 						$nval = $val->getFamilyMember( $changes );
 
@@ -2894,7 +2869,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$this->getFormRecords( $recordsToBeCopied, array_keys( $this->getFormFields( $this->storage ) ) );
 
 			foreach ( $recordsToBeCopied as $record ) {
-				Log::write(get_class($record));
 				$record->setMeta( 'doCopy', true );
 				$record->readOnly = true;
 			}
@@ -3033,15 +3007,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$this->copyForeignFields = NULL;
 			$this->copyIdentityFields = NULL;
 			$this->copiedRecord = NULL;
-
-
-			if ( self::$copyOriginRecord === $this ) {
-				self::$copyOriginRecord = NULL;
-
-				foreach ( $recordsToBeCopied as $record ) {
-					$record->setMeta( 'doCopy', NULL );
-				}
-			}
 		}
 
 		return $copiedRecord;
@@ -3504,7 +3469,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	public static function handleUserAlive( RBStorage $storage, IRequestInfo $requestInfo, $recordID = NULL, $editingParent = NULL ) {
 		//stub
 	}
-
 
 
 	public static function startFieldTracking( array &$fields ) {

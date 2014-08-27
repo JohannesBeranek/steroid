@@ -78,7 +78,6 @@ class CHBackend extends CLIHandler {
 		$userRecord = $this->storage->selectFirstRecord('RCUser', array('where' => array('username', '=', array($username))), false);
 
 		if($userRecord !== NULL){
-			Log::write($userRecord->getValues());
 			throw new Exception('A user with that username already exists');
 		}
 
