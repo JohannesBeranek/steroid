@@ -8,12 +8,19 @@ require_once STROOT . '/util/class.StringFilter.php';
 /**
  * @package steroid\file
  */
-class Filename {
-	public static function webize( $filename, $localDir = NULL ) {
+final class Filename {
+
+	
+	
+	
+	
+	
+	
+	final public static function getPathInsideWebrootWithLocalDir( $filename, $localDir = NULL ) {
 		if ( $localDir === NULL || substr( $filename, 0, 1 ) === '/' ) {
-			$complete = self::webrootize( $filename );
+			$complete = self::getPathInsideWebroot( $filename );
 		} else {
-			$complete = self::webrootize( rtrim( $localDir, '/' ) . '/' . $filename );
+			$complete = self::getPathInsideWebroot( rtrim( $localDir, '/' ) . '/' . $filename );
 		}
 
 		return $complete;
@@ -32,7 +39,7 @@ class Filename {
 	 *
 	 * @return string
 	 */
-	public static function webrootize( $filename ) {
+	final public static function getPathInsideWebroot( $filename ) {
 
 		$filename = StringFilter::filterFilenameWithPath( $filename );
 
@@ -55,7 +62,7 @@ class Filename {
 		return $fn;
 	}
 
-	public static function unwind( $path ) {
+	final public static function unwind( $path ) {
 		$visited = array();
 
 		$path = self::resolvePath( $path );
@@ -73,7 +80,7 @@ class Filename {
 		return $path;
 	}
 
-	public static function resolvePath( $path ) {
+	final public static function resolvePath( $path ) {
 		if ( $path === '' || $path === NULL ) {
 			return '';
 		}
@@ -101,7 +108,7 @@ class Filename {
 		return implode( '/', $pathParts );
 	}
 
-	public static function webpathize( $filename ) {
+	final public static function getPathWithoutWebroot( $filename ) {
 		if ( substr( $filename, 0, strlen( WEBROOT ) ) == WEBROOT ) {
 			return substr( $filename, strlen( WEBROOT ) );
 		}
@@ -109,7 +116,7 @@ class Filename {
 		return $filename;
 	}
 
-	public static function extensionFromMime( $contentType, $includeDot = NULL ) {
+	final public static function extensionFromMime( $contentType, $includeDot = NULL ) {
 		if ( $contentType === NULL ) {
 			return '';
 		}
@@ -141,5 +148,3 @@ class Filename {
 		return $ret;
 	}
 }
-
-?>

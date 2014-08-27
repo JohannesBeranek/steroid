@@ -160,7 +160,7 @@ class Template {
 	 */
 	public function __construct( IRBStorage $storage, $filename, $sourceDirectory = NULL ) {
 		$this->storage = $storage;
-		$this->mainTemplateFile = Filename::webize( $filename, $sourceDirectory );
+		$this->mainTemplateFile = Filename::getPathInsideWebrootWithLocalDir( $filename, $sourceDirectory );
 
 		if ( !self::$gfx ) { // don't use a new gfx instance for every template
 			self::$gfx = new GFX( new FileCache(), $storage );
@@ -553,7 +553,7 @@ class Template {
 			} catch( RestartWithDifferentTemplateException $ex ) {
 				$file = $ex->getFile();
 				
-				$this->mainTemplateFile = Filename::webize( $ex->getTemplateName(), dirname( $file ) );			
+				$this->mainTemplateFile = Filename::getPathInsideWebrootWithLocalDir( $ex->getTemplateName(), dirname( $file ) );			
 			}
 		} while (!isset($done));
 
@@ -573,7 +573,7 @@ class Template {
 	 * @param string $filename
 	 */
 	protected function path( $filename ) {
-		return Filename::webize( $filename, $this->fileContexts[ 0 ][ 'dir' ] );
+		return Filename::getPathInsideWebrootWithLocalDir( $filename, $this->fileContexts[ 0 ][ 'dir' ] );
 	}
 
 	/**
@@ -599,7 +599,7 @@ class Template {
 	public function put( $filename, array $localData = NULL ) {
 		$this->fileContexts[ 0 ][ 'contextStack' ][ 0 ][ 'output' ][ ] = ob_get_clean();
 
-		$filename = Filename::webize( $filename, $this->fileContexts[ 0 ][ 'dir' ] );
+		$filename = Filename::getPathInsideWebrootWithLocalDir( $filename, $this->fileContexts[ 0 ][ 'dir' ] );
 
 		$this->pushContext( $filename );
 
@@ -879,7 +879,7 @@ class Template {
 		$isExternal = preg_match( '/^(http(s)?:)?\/\//', $filename );
 
 		if ( !$isExternal ) {
-			$filename = Filename::webize( $filename, $this->fileContexts[ 0 ][ 'dir' ] );
+			$filename = Filename::getPathInsideWebrootWithLocalDir( $filename, $this->fileContexts[ 0 ][ 'dir' ] );
 
 			if ( !is_readable( $filename ) ) {
 				throw new RuntimeException( 'Unable to read res "' . $filename . '"' );
@@ -904,7 +904,7 @@ class Template {
 
 		// by using the filename as key again we don't double add files
 		$this->res[ $type ][ $filename ] = array(
-			'filename' => $isExternal ? $filename : Filename::webpathize( $filename ),
+			'filename' => $isExternal ? $filename : Filename::getPathWithoutWebroot( $filename ),
 			'options' => $options
 		);
 	}

@@ -530,7 +530,7 @@ class UHBackend implements IURLHandler {
 		$ret = array(
 			'name' => $themeName,
 			'label' => ucfirst( $themeName ),
-			'stylesheet' => Filename::webpathize( $directory ) . '/' . $themeName . '.css',
+			'stylesheet' => Filename::getPathWithoutWebroot( $directory ) . '/' . $themeName . '.css',
 			'id' => ( $isDijit ? 'dijit-' : 'steroid-' ) . $themeName
 		);
 
@@ -539,7 +539,7 @@ class UHBackend implements IURLHandler {
 			$stylesheetOverride = STROOT . '/res/static/css/themes/' . $ret[ 'id' ] . '-override.css';
 
 			if ( is_readable( $stylesheetOverride ) ) {
-				$ret[ 'stylesheet-override' ] = Filename::webpathize( $stylesheetOverride );
+				$ret[ 'stylesheet-override' ] = Filename::getPathWithoutWebroot( $stylesheetOverride );
 			}
 		}
 

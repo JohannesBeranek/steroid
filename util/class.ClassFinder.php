@@ -222,7 +222,7 @@ class ClassFinder {
 			$path = self::$classes[ $type ][ $className ][ self::CLASSFILE_KEY_FULLPATH ];
 		}
 
-		$path = Filename::webpathize( $path );
+		$path = Filename::getPathWithoutWebroot( $path );
 		$path = explode( '/', $path );
 
 		array_pop( $path );

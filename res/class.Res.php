@@ -34,7 +34,7 @@ class Res {
 		$mtimes = array();
 
 		foreach ($files as &$filename) {
-			$filename = Filename::webrootize($filename);			
+			$filename = Filename::getPathInsideWebroot($filename);			
 			$mtimes[] = filemtime($filename);
 		}
 		
@@ -156,7 +156,7 @@ class Res {
 			throw new SecurityException( 'Filename with invalid extension passed to res handler: "' . $file . '"' );
 		}
 			
-		$filename = Filename::webrootize( $file );
+		$filename = Filename::getPathInsideWebroot( $file );
 		$handledFiles = array();
 		
 		$source = '';
@@ -270,7 +270,7 @@ class Res {
 
 
 
-			$fn = Filename::webize($matches[2], dirname($filename));
+			$fn = Filename::getPathInsideWebrootWithLocalDir($matches[2], dirname($filename));
 			
 			if ($inline) {
 				$rp = realpath($fn);
@@ -285,7 +285,7 @@ class Res {
 			} else {
 				// TODO: do we need to call parseCSS on imports?
 				
-				$source .= '@import "/res?file=' . Filename::webpathize($fn) . '";';
+				$source .= '@import "/res?file=' . Filename::getPathWithoutWebroot($fn) . '";';
 			}
 		}
 

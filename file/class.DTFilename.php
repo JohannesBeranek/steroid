@@ -16,7 +16,7 @@ class DTFilename extends DTString {
 	// TODO: 0 byte filtering in setValue
 
 	public function beforeSave( $isUpdate ) {
-		if ( isset( $this->values[ $this->colName ] ) && !empty( $this->values[ $this->colName ] ) && !is_readable( Filename::webrootize( $this->values[ $this->colName ] ) ) ) {
+		if ( isset( $this->values[ $this->colName ] ) && !empty( $this->values[ $this->colName ] ) && !is_readable( Filename::getPathInsideWebroot( $this->values[ $this->colName ] ) ) ) {
 			throw new InvalidArgumentException( 'File "' . $this->values[ $this->colName ] . '" does not exist or is not readable' );
 		}
 
