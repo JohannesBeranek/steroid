@@ -181,8 +181,10 @@ class SteroidInstaller {
 		echo "Updating database\n";
 
 		require_once STROOT . '/storage/class.DBInfo.php';
+		
+		$dateConf = self::$conf->getSection( 'date' );
 
-		date_default_timezone_set( self::$conf->getSection( 'date' )[ 'timezone' ] );
+		date_default_timezone_set( $dateConf[ 'timezone' ] );
 
 		$dbInfo = new DBInfo( self::$storage, array() );
 
