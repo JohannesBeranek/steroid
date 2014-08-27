@@ -101,58 +101,7 @@ class CHUser extends CLIHandler {
 				echo 'Permissions have been synced.' . "\n";
 				break;
 			case 'syncdevperm':
-				$tx = $this->storage->startTransaction();
-
-				try {
-					$devPermRecord = $this->getDevPermRecord();
-
-					if ( $devPermRecord === null ) {
-						$devPermRecord = RCPermission::get( $this->storage, array( 'title' => User::PERMISSION_TITLE_DEV ), false );
-					}
-
-					// find all record classes
-					$recordClasses = ClassFinder::getAll( ClassFinder::CLASSTYPE_RECORD );
-
-					$recordClassNames = array_keys( $recordClasses );
-
-					// clean up db
-					$existingPermEntities = $this->storage->selectRecords( 'RCPermissionEntity' );
-
-					foreach ( $existingPermEntities as $existingPermEntity ) {
-						if ( !in_array( $existingPermEntity->recordClass, $recordClassNames, true ) ) {
-							$existingPermEntity->delete();
-						} else {
-							$existingPermEntity->load();
-						}
-					}
-
-					$joinRecs = array();
-
-					// add each of them to RCPermissionEntity if they don't exist there already
-					foreach ( $recordClasses as $recordClass => $definition ) {
-						$joinRec = array(
-							'permissionEntity' => array(
-								'recordClass' => $recordClass,
-								'mayWrite' => 1,
-								'restrictToOwn' => 0,
-								'isDependency' => 0
-							)
-						);
-
-						$joinRecs[ ] = $joinRec;
-
-					}
-
-
-					$devPermRecord->{'permission:RCPermissionPermissionEntity'} = $joinRecs;
-
-					$devPermRecord->save();
-
-					$tx->commit();
-				} catch ( Exception $e ) {
-					$tx->rollback();
-					throw $e;
-				}
+				$this->syncDevPerm();
 
 				echo 'Dev Permission has been synced.' . "\n";
 				break;
@@ -163,74 +112,7 @@ class CHUser extends CLIHandler {
 					return EXIT_FAILURE;
 				}
 
-				$tx = $this->storage->startTransaction();
-
-				try {
-					// check if we already have a special dev permission
-					$devPerm = $this->getDevPermRecord();
-
-					if ( $devPerm === null ) {
-						throw new LogicException( 'Must first execute syncdevperm.' );
-					}
-
-					// fetch user
-					$userRecord = RCUser::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $params[ 1 ] ) );
-
-					// connect permission to user
-					$userPermissions = $userRecord->{'user:RCDomainGroupLanguagePermissionUser'};
-					$devDomainGroups = array();
-					$devLanguages = array();
-
-					foreach ( $userPermissions as $userPermission ) {
-						if ( $userPermission->permission === $devPerm ) {
-							$devDomainGroups[ ] = $userPermission->domainGroup;
-							$devLanguages[ ] = $userPermission->language;
-						}
-					}
-
-					$allDomainGroups = $this->storage->selectRecords( 'RCDomainGroup' );
-					$allLanguages = $this->storage->selectRecords( 'RCLanguage', array( 'where' => array( RCLanguage::getDataTypeFieldName( 'DTSteroidLive' ), '=', array( DTSteroidLive::LIVE_STATUS_PREVIEW ) ) ) );
-
-					$addedDomainGroups = 0;
-					$addedLanguages = 0;
-
-					foreach ( $allDomainGroups as $dg ) {
-						foreach ( $allLanguages as $lang ) {
-							if ( !in_array( $dg, $devDomainGroups, true ) ) {
-								$userPermission = RCDomainGroupLanguagePermissionUser::get( $this->storage, array( 'domainGroup' => $dg, 'user' => $userRecord, 'permission' => $devPerm, 'language' => $lang ), false );
-								$userPermission->save();
-
-								$userPermissions[ ] = $userPermission;
-								$addedDomainGroups++;
-							}
-
-							if ( !in_array( $lang, $devLanguages, true ) ) {
-								$userPermission = RCDomainGroupLanguagePermissionUser::get( $this->storage, array( 'domainGroup' => $dg, 'user' => $userRecord, 'permission' => $devPerm, 'language' => $lang ), false );
-								$userPermission->save();
-
-								$userPermissions[ ] = $userPermission;
-								$addedLanguages++;
-							}
-						}
-					}
-
-					if ( $addedDomainGroups ) {
-						echo 'Added ' . $addedDomainGroups . ' domaingroups to user' . "\n";
-					}
-
-					if ( $addedLanguages ) {
-						echo 'Added ' . $addedLanguages . ' languages to user' . "\n";
-					}
-
-					// allow user to backend
-					$userRecord->is_backendAllowed = 1;
-					$userRecord->save();
-
-					$tx->commit();
-				} catch ( Exception $e ) {
-					$tx->rollback();
-					throw $e;
-				}
+				$userRecord = $this->makeDev($params[1]);
 
 				echo 'User with primary ' . $userRecord->{Record::FIELDNAME_PRIMARY} . ' should now have all permissions for backend.' . "\n";
 				break;
@@ -240,6 +122,138 @@ class CHUser extends CLIHandler {
 		}
 
 		return EXIT_SUCCESS;
+	}
+
+	public function syncDevPerm(){
+		$tx = $this->storage->startTransaction();
+
+		try {
+			$devPermRecord = $this->getDevPermRecord();
+
+			if ( $devPermRecord === null ) {
+				$devPermRecord = RCPermission::get( $this->storage, array( 'title' => User::PERMISSION_TITLE_DEV ), false );
+			}
+
+			// find all record classes
+			$recordClasses = ClassFinder::getAll( ClassFinder::CLASSTYPE_RECORD );
+
+			$recordClassNames = array_keys( $recordClasses );
+
+			// clean up db
+			$existingPermEntities = $this->storage->selectRecords( 'RCPermissionEntity' );
+
+			foreach ( $existingPermEntities as $existingPermEntity ) {
+				if ( !in_array( $existingPermEntity->recordClass, $recordClassNames, true ) ) {
+					$existingPermEntity->delete();
+				} else {
+					$existingPermEntity->load();
+				}
+			}
+
+			$joinRecs = array();
+
+			// add each of them to RCPermissionEntity if they don't exist there already
+			foreach ( $recordClasses as $recordClass => $definition ) {
+				$joinRec = array(
+					'permissionEntity' => array(
+						'recordClass' => $recordClass,
+						'mayWrite' => 1,
+						'restrictToOwn' => 0,
+						'isDependency' => 0
+					)
+				);
+
+				$joinRecs[ ] = $joinRec;
+
+			}
+
+
+			$devPermRecord->{'permission:RCPermissionPermissionEntity'} = $joinRecs;
+
+			$devPermRecord->save();
+
+			$tx->commit();
+		} catch ( Exception $e ) {
+			$tx->rollback();
+			throw $e;
+		}
+	}
+
+	public function makeDev($userPrimary = NULL){
+		if($userPrimary === NULL){
+			throw new Exception('userPrimary must be set');
+		}
+
+		$tx = $this->storage->startTransaction();
+
+		try {
+			// check if we already have a special dev permission
+			$devPerm = $this->getDevPermRecord();
+
+			if ( $devPerm === null ) {
+				throw new LogicException( 'Must first execute syncdevperm.' );
+			}
+
+			// fetch user
+			$userRecord = RCUser::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $userPrimary ) );
+
+			// connect permission to user
+			$userPermissions = $userRecord->{'user:RCDomainGroupLanguagePermissionUser'};
+			$devDomainGroups = array();
+			$devLanguages = array();
+
+			foreach ( $userPermissions as $userPermission ) {
+				if ( $userPermission->permission === $devPerm ) {
+					$devDomainGroups[ ] = $userPermission->domainGroup;
+					$devLanguages[ ] = $userPermission->language;
+				}
+			}
+
+			$allDomainGroups = $this->storage->selectRecords( 'RCDomainGroup' );
+			$allLanguages = $this->storage->selectRecords( 'RCLanguage', array( 'where' => array( RCLanguage::getDataTypeFieldName( 'DTSteroidLive' ), '=', array( DTSteroidLive::LIVE_STATUS_PREVIEW ) ) ) );
+
+			$addedDomainGroups = 0;
+			$addedLanguages = 0;
+
+			foreach ( $allDomainGroups as $dg ) {
+				foreach ( $allLanguages as $lang ) {
+					if ( !in_array( $dg, $devDomainGroups, true ) ) {
+						$userPermission = RCDomainGroupLanguagePermissionUser::get( $this->storage, array( 'domainGroup' => $dg, 'user' => $userRecord, 'permission' => $devPerm, 'language' => $lang ), false );
+						$userPermission->save();
+
+						$userPermissions[ ] = $userPermission;
+						$addedDomainGroups++;
+					}
+
+					if ( !in_array( $lang, $devLanguages, true ) ) {
+						$userPermission = RCDomainGroupLanguagePermissionUser::get( $this->storage, array( 'domainGroup' => $dg, 'user' => $userRecord, 'permission' => $devPerm, 'language' => $lang ), false );
+						$userPermission->save();
+
+						$userPermissions[ ] = $userPermission;
+						$addedLanguages++;
+					}
+				}
+			}
+
+			if ( $addedDomainGroups ) {
+				echo 'Added ' . $addedDomainGroups . ' domaingroups to user' . "\n";
+			}
+
+			if ( $addedLanguages ) {
+				echo 'Added ' . $addedLanguages . ' languages to user' . "\n";
+			}
+
+			// allow user to backend
+			$userRecord->is_backendAllowed = 1;
+			$userRecord->save();
+
+			$tx->commit();
+		} catch ( Exception $e ) {
+			$tx->rollback();
+			throw $e;
+		}
+
+		return $userRecord;
 	}
 
 	protected function getDevPermRecord() {

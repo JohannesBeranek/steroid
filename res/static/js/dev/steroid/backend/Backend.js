@@ -147,6 +147,11 @@ define([
 				count += me.config.wizards.length; // wizards are always /ext classes
 			}
 
+			if(count == 0){
+				me.initComplete();
+				return;
+			}
+
 			//FIXME: remove duplicate code
 			for (var type in me.config.recordClasses) {
 				for (var i in me.config.recordClasses[type]) {

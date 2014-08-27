@@ -15,6 +15,7 @@ class ClassFinder {
 	const CLASSTYPE_BACKEND_EXTENSION = 'BX';
 	const CLASSTYPE_LOGIN_EXTENSION = 'LE'; // BACKEND login extensions only!
 	const CLASSTYPE_EMAIL_PROVIDER = 'EP';
+	const CLASSTYPE_AUTHENTICATOR = 'AC';
 
 	const CLASSFILE_KEY_FULLPATH = 'fullPath';
 	const CLASSFILE_KEY_FILENAME = 'fileName';
@@ -31,7 +32,7 @@ class ClassFinder {
 
 		// TODO: populate this array dynamically (e.g. using reflection)
 		// when adding a new type, make sure to add it to this array as well!
-		$types = array( self::CLASSTYPE_CLIHANDLER, self::CLASSTYPE_DATATYPE, self::CLASSTYPE_RECORD, self::CLASSTYPE_UNITTEST, self::CLASSTYPE_URLHANDLER, self::CLASSTYPE_WIZARD, self::CLASSTYPE_BACKEND_EXTENSION, self::CLASSTYPE_LOGIN_EXTENSION );
+		$types = array( self::CLASSTYPE_AUTHENTICATOR, self::CLASSTYPE_CLIHANDLER, self::CLASSTYPE_DATATYPE, self::CLASSTYPE_RECORD, self::CLASSTYPE_UNITTEST, self::CLASSTYPE_URLHANDLER, self::CLASSTYPE_WIZARD, self::CLASSTYPE_BACKEND_EXTENSION, self::CLASSTYPE_LOGIN_EXTENSION );
 
 		foreach ( $types as $type ) {
 			self::$cache->delete( self::convertKey( $type ) );

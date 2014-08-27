@@ -677,10 +677,35 @@ class UHBackend implements IURLHandler {
 		$this->config[ 'interface' ][ 'themes' ][ 'available' ] = $themes;
 	}
 
+	protected function setAuthenticator(){
+		$conf = Config::getDefault();
+
+		$authenticators = $conf->getSection( 'authenticator' );
+		$auth = NULL;
+
+		if($authenticators !== NULL){
+			foreach($authenticators as $className => $path){
+				require_once WEBROOT . '/' . $path;
+
+				if($className::AUTH_TYPE === User::AUTH_TYPE_BE){
+					$auth = $className;
+					break;
+				}
+			}
+		}
+
+		if($auth === NULL){
+			throw new Exception('No authenticator found');
+		}
+
+		$this->config[ 'login' ][ 'class' ] = $auth;
+	}
+
 	protected function setLocalBEConf() {
 		$this->config[ 'interface' ][ 'basePath' ] = $this->urlRecord->url;
 		$this->config[ 'interface' ][ 'ajaxQuery' ] = array( self::PARAM_AJAX => 1 );
 
+		$this->setAuthenticator();
 		$this->setCurrentLanguage();
 		$this->setCurrentTheme();
 
@@ -1250,7 +1275,9 @@ class UHBackend implements IURLHandler {
 		$this->isIframe = $this->requestInfo->getGPParam( 'isIframe' );
 
 		if ( is_subclass_of( $recordClass, 'IRecord' ) ) {
-			$record = $recordClass::get( $this->storage, $this->requestInfo->getPost(), false );
+			$postData = $this->requestInfo->getPost();
+
+			$record = $recordClass::get( $this->storage, $postData, false );
 
 			$record->save();
 
@@ -2902,7 +2929,7 @@ class UHBackend implements IURLHandler {
 		return $recordClass::getOwnFieldDefinitions();
 	}
 
-	protected function getProfilePage() {
+	protected function getProfilePage() { //FIXME: remove from core!
 		$page = $this->storage->selectFirstRecord( 'RCPage', array( 'where' => array( 'domainGroup', '=', array( $this->user->getSelectedDomainGroup() ), 'AND', 'live', '=', array( DTSteroidLive::LIVE_STATUS_LIVE ), 'AND', 'template.filename', 'LIKE', array( '%profile.php' ) ) ) );
 
 		$this->ajaxSuccess( array(

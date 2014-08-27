@@ -37,11 +37,10 @@ class RCUrlHandler extends Record {
 		$records = array();
 
 		foreach($urlHandlers as $name => $urlHandler){
-			$records[] = static::get($storage, array(
+			$records[] = array(
 				'title' => $name,
 				'className' => $name,
-				'filename' => Filename::getPathWithoutWebroot( Filename::getPathInsideWebrootWithLocalDir( $urlHandler[ 'fullPath' ] ) )
-			), false);
+				'filename' => Filename::getPathWithoutWebroot( Filename::getPathInsideWebrootWithLocalDir( $urlHandler[ 'fullPath' ] ) ), false);
 		}
 
 		return $records;
