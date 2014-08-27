@@ -24,8 +24,6 @@ class SteroidInstaller {
 
 	public static function install() {
 		echo "Starting Steroid installer\n";
-		
-		//bla
 
 		self::createDirectories();
 		self::copyTemplates();
