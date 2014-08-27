@@ -1,0 +1,585 @@
+/* GENERAL */
+
+html {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: auto;
+}
+
+body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: auto;
+}
+
+.clearfix:before,
+.clearfix:after {
+	content: "";
+	display: table;
+}
+
+.clearfix:after {
+	clear: both;
+}
+
+.clearfix {
+	*zoom: 1;
+}
+
+#uiContainer {
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+}
+
+.STDetailPane {
+	background: #F1F1F1;
+}
+
+.STFieldSet {
+	background-color: #FFFFFF;
+	border-color: #E5E5E5 !important;
+	width: 500px;
+	-webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.RCPage_fs_pageContent .STFieldSet {
+	width: 100%;
+	margin: 10px 0;
+	border-left: none;
+	border-right: none;
+	border-bottom: none;
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+
+.RCPage_fs_pageContent .STFieldSet legend {
+	text-indent: 10px;
+}
+
+.STFieldSet legend {
+	color: #434343;
+}
+
+.STFieldSet.RCPage_fs_pageContent {
+	width: auto;
+	background: none;
+	border: none;
+	-webkit-box-shadow: none;
+	box-shadow: none;
+	margin-top: 30px;
+}
+
+.STFieldSet.RCPage_fs_pageContent legend {
+	font-size: 15px;
+}
+
+.dijitInputInner {
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.RCElementInArea .STFieldContainer {
+	background-color: #FFFFFF;
+	border-color: #E5E5E5 !important;
+	-webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.redactor_box {
+	margin: 0 10px;
+}
+
+.dgrid-header, .dgrid-header-row, .dgrid-footer {
+	background-color: transparent !important;
+}
+
+/* STATI */
+
+.STRecordLiveStatus_0, .STLiveStatus_0 .dijitTitlePaneTitle,
+.STRecordLiveStatus_1, .STLiveStatus_1 .dijitTitlePaneTitle,
+.STRecordLiveStatus_2, .STLiveStatus_2 .dijitTitlePaneTitle,
+.dgrid-row.dgrid-selected {
+	border-left-width: 4px;
+	border-left-style: solid;
+	background: #434343;
+	opacity: 1 !important;
+	
+	-webkit-transition: all 150ms ease-in-out;
+	-moz-transition: all 150ms ease-in-out;
+	-ms-transition: all 150ms ease-in-out;
+	-o-transition: all 150ms ease-in-out;
+	transition: all 150ms ease-in-out;
+}
+
+.STRecordLiveStatus_0:hover, .STLiveStatus_0 .dijitTitlePaneTitle:hover,
+.STRecordLiveStatus_1:hover, .STLiveStatus_1 .dijitTitlePaneTitle:hover,
+.STRecordLiveStatus_2:hover, .STLiveStatus_2 .dijitTitlePaneTitle:hover {
+	border-left-width: 10px;
+}
+
+/* RED */
+.STRecordLiveStatus_0, .STLiveStatus_0 .dijitTitlePaneTitle {
+	border-left-color: #AF000E;
+}
+
+/* GREEN */
+.STRecordLiveStatus_1, .STLiveStatus_1 .dijitTitlePaneTitle {
+	border-left-color: #006F2A;
+}
+
+/* ORANGE */
+.STRecordLiveStatus_2, .STLiveStatus_2 .dijitTitlePaneTitle {
+	border-left-color: #FFB500;
+}
+
+/* BLUE */
+.dgrid-row.dgrid-selected {
+	border-left-color: #0074A2;
+	border-left-width: 10px;
+}
+
+/* ICONS */
+
+.STForceIcon.STIconDomainGroup span {
+	background: transparent url('/steroid/res/static/img/icons/dark/domaingroup.png') no-repeat center left !important;
+	padding-left: 14px !important;
+}
+
+.STForceIcon.STIconUser span {
+	background: transparent url('/steroid/res/static/img/icons/dark/user.png') no-repeat center left !important;
+	padding-left: 19px !important;
+}
+
+.STForceIcon.STIconLogout span {
+	background: transparent url('/steroid/res/static/img/icons/dark/logout.png') no-repeat center left !important;
+	padding-left: 19px !important;
+}
+
+.STForceIcon.STModule_stats span {
+	background: transparent url('/steroid/res/static/img/icons/dark/stats.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.STForceIcon.STModule_admin span {
+	background: transparent url('/steroid/res/static/img/icons/dark/admin.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.STForceIcon.STModule_config span {
+	background: transparent url('/steroid/res/static/img/icons/dark/config.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.STForceIcon.STModule_content span {
+	background: transparent url('/steroid/res/static/img/icons/dark/content.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.STForceIcon.STModule_ext_content span {
+	background: transparent url('/steroid/res/static/img/icons/dark/ext_content.png') no-repeat center left !important;
+	padding-left: 24px !important;
+}
+
+.STForceIcon.STModule_dev span {
+	background: transparent url('/steroid/res/static/img/icons/dark/dev.png') no-repeat center left !important;
+	padding-left: 19px !important;
+}
+
+.STForceIcon.STModule_util span {
+	background: transparent url('/steroid/res/static/img/icons/dark/util.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.STForceIcon.STModule_wizard span {
+	background: transparent url('/steroid/res/static/img/icons/dark/wizard.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.STForceIcon.STAction_close span {
+	background: transparent url('/steroid/res/static/img/icons/dark/close.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.STForceIcon.STAction_deletePublish td.dijitMenuItemLabel, .STForceIcon.STAction_deleteUnpublish td.dijitMenuItemLabel {
+	background: transparent url('/steroid/res/static/img/icons/dark/close.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.STForceIcon.STAction_reset span {
+	background: transparent url('/steroid/res/static/img/icons/dark/reset.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.STForceIcon.STAction_saveRecord span {
+	background: transparent url('/steroid/res/static/img/icons/dark/save.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.STForceIcon.STAction_syncRecord span {
+	background: transparent url('/steroid/res/static/img/icons/dark/sync.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.STForceIcon.STAction_publishRecord.delayPublish span {
+	background: transparent url('/steroid/res/static/img/icons/dark/clock.png') no-repeat center left !important;
+}
+
+.STForceIcon.STAction_hideRecord.delayUnpublish span {
+	background: transparent url('/steroid/res/static/img/icons/dark/clock-red.png') no-repeat center left !important;
+}
+
+div.delayPublish .dgrid-column-0 {
+	background: transparent url('/steroid/res/static/img/icons/dark/clock.png') no-repeat center left !important;
+	background-position: 300px 5px !important;
+}
+
+div.delayUnpublish .dgrid-column-0 {
+	background: transparent url('/steroid/res/static/img/icons/dark/clock-red.png') no-repeat center left !important;
+	background-position: 300px 5px !important;
+}
+
+div.delayPublishUnpublish .dgrid-column-0 {
+	background: transparent url('/steroid/res/static/img/icons/dark/clock-both.png') no-repeat center left !important;
+	background-position: 300px 5px !important;
+}
+
+.STForceIcon.STAction_delayPublish td.dijitMenuItemLabel, .STForceIcon.STAction_delayUnpublish td.dijitMenuItemLabel {
+	background: transparent url('/steroid/res/static/img/icons/dark/clock.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.STForceIcon.STAction_hideRecord span, .STForceIcon.STAction_Unpublish td.dijitMenuItemLabel {
+	background: transparent url('/steroid/res/static/img/icons/dark/hide.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.STForceIcon.STAction_publishRecord span, .STForceIcon.STAction_Publish td.dijitMenuItemLabel {
+	background: transparent url('/steroid/res/static/img/icons/dark/publish.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.STForceIcon.STAction_deleteRecord span {
+	background: transparent url('/steroid/res/static/img/icons/dark/delete.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.STForceIcon.STAction_previewRecord span {
+	background: transparent url('/steroid/res/static/img/icons/dark/preview.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.STForceIcon.STAction_copyRecord span {
+	background: transparent url('/steroid/res/static/img/icons/dark/copy.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.STForceIcon.STAction_revertRecord span {
+	background: transparent url('/steroid/res/static/img/icons/dark/revert.png') no-repeat center left !important;
+	padding-left: 19px !important;
+}
+
+.STForceIcon.STAction_translateRecord span {
+	background: transparent url('/steroid/res/static/img/icons/dark/translate.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.STForceIcon.STAction_filter span {
+	background: transparent url('/steroid/res/static/img/icons/dark/filter.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.STForceIcon.STAction_refresh span {
+	background: transparent url('/steroid/res/static/img/icons/dark/refresh.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.STForceIcon.STToggleListButton_tree span {
+	background: transparent url('/steroid/res/static/img/icons/dark/treeview.png') no-repeat center left !important;
+	padding-left: 24px !important;
+}
+
+.STForceIcon.STToggleListButton_list span {
+	background: transparent url('/steroid/res/static/img/icons/dark/listview.png') no-repeat center left !important;
+	padding-left: 24px !important;
+}
+
+.STForceIcon.STAction_new span {
+	background: transparent url('/steroid/res/static/img/icons/dark/add.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.STDomainGroup_hasTracking .dijitMenuItemIconCell {
+	background: transparent url('/steroid/res/static/img/icons/dark/enableTracking.png') no-repeat center left !important;
+	padding-left: 20px !important;
+	display: block;
+}
+
+.STDomainGroup_noTracking .dijitMenuItemIconCell {
+	background: transparent url('/steroid/res/static/img/icons/dark/noTracking.png') no-repeat center left !important;
+	padding-left: 20px !important;
+	display: block;
+}
+
+.STDomainGroup_hasSearch {
+	padding: 8px;
+	background: transparent url('/steroid/res/static/img/icons/dark/search.png') no-repeat center left !important;
+}
+
+.STDomainGroup_noSearch {
+	padding: 8px;
+	background: transparent url('/steroid/res/static/img/icons/dark/noSearch.png') no-repeat center left !important;
+}
+
+.STIcon_previewRecord {
+	background: transparent url('/steroid/res/static/img/icons/dark/preview.png') no-repeat center left !important;
+}
+
+.STWidgetIcon_close, .STGridElement_close, .RCMenuItem .closeNode {
+	background: transparent url('/steroid/res/static/img/icons/dark/close.png') no-repeat center left !important;
+}
+
+.STWidgetIcon_copy, .STIcon_copyRecord {
+	background: transparent url('/steroid/res/static/img/icons/dark/copy.png') no-repeat center left !important;
+}
+
+.STWidgetIcon_insert, .STIcon_insertRecord {
+	background: transparent url('/steroid/res/static/img/icons/dark/insert.png') no-repeat center left !important;
+}
+
+.STWidgetIcon_pubStart {
+	background: transparent url('/steroid/res/static/img/icons/dark/clock.png') no-repeat center left !important;
+}
+
+.STWidgetIcon_pubEnd {
+	background: transparent url('/steroid/res/static/img/icons/dark/clock-red.png') no-repeat center left !important;
+}
+
+.STWidgetIcon_hide, .STIcon_hideRecord, .visibleNode {
+	background: transparent url('/steroid/res/static/img/icons/dark/hide.png') no-repeat center left !important;
+}
+
+.STWidgetIcon_publish, .STIcon_publishRecord, .visibleNode.visible {
+	background: transparent url('/steroid/res/static/img/icons/dark/publish.png') no-repeat center left !important;
+}
+
+.STIcon_syncRecord {
+	background: transparent url('/steroid/res/static/img/icons/dark/sync.png') no-repeat center left !important;
+}
+
+
+.STGenerated .dijitTitlePaneTitleFocus {
+	padding-left: 16px;
+	background: transparent url('/steroid/res/static/img/icons/dark/menuitemgenerated.png') no-repeat top left;
+}
+
+.STDetailPaneRecordClassLabel {
+	color: #DEDEDE !important;
+}
+
+.STListLabel {
+	color: #BABABA !important;
+}
+
+/* MENU WHITE ICONS */
+
+#dijit_MenuBar_0 .STForceIcon.STIconDomainGroup span {
+	background: transparent url('/steroid/res/static/img/icons/dark/domaingroup_grey.png') no-repeat center left !important;
+	padding-left: 14px !important;
+}
+
+#dijit_MenuBar_0 .STForceIcon.STIconUser span {
+	background: transparent url('/steroid/res/static/img/icons/dark/user_grey.png') no-repeat center left !important;
+	padding-left: 19px !important;
+}
+
+#dijit_MenuBar_0 .STForceIcon.STIconLogout span {
+	background: transparent url('/steroid/res/static/img/icons/dark/logout_grey.png') no-repeat center left !important;
+	padding-left: 19px !important;
+}
+
+#dijit_MenuBar_0 .STForceIcon.STModule_stats span {
+	background: transparent url('/steroid/res/static/img/icons/dark/stats_grey.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+#dijit_MenuBar_0 .STForceIcon.STModule_admin span {
+	background: transparent url('/steroid/res/static/img/icons/dark/admin_grey.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+#dijit_MenuBar_0 .STForceIcon.STModule_config span {
+	background: transparent url('/steroid/res/static/img/icons/dark/config_grey.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+#dijit_MenuBar_0 .STForceIcon.STModule_content span {
+	background: transparent url('/steroid/res/static/img/icons/dark/content_grey.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+#dijit_MenuBar_0 .STForceIcon.STModule_ext_content span {
+	background: transparent url('/steroid/res/static/img/icons/dark/ext_content_grey.png') no-repeat center left !important;
+	padding-left: 24px !important;
+}
+
+#dijit_MenuBar_0 .STForceIcon.STModule_dev span {
+	background: transparent url('/steroid/res/static/img/icons/dark/dev_grey.png') no-repeat center left !important;
+	padding-left: 19px !important;
+}
+
+#dijit_MenuBar_0 .STForceIcon.STModule_util span {
+	background: transparent url('/steroid/res/static/img/icons/dark/util_grey.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+/* RESIZE HANDLE */
+
+.dojoxResizeHandle {
+	bottom: 11px !important;
+	right: 11px !important;
+}
+
+.STWidget {
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	padding: 10px;
+}
+
+.STInlineEditableWidget {
+	background: none;
+	min-height: 40px;
+	width: 100% !important;
+}
+
+.STDTAreaJoinForeignReference {
+	border: none;
+	padding-top: 0 !important;
+}
+
+.RCPageArea {
+	padding-top: 0;
+	padding-bottom: 20px;
+}
+
+/* ========= Styling rules to affect widgets ========= */
+/*
+ .dark .dijitPopup {
+  -webkit-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+  -moz-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+}
+
+*/
+.dark .dijitTooltipDialogPopup {
+	/* exception popups: do not use a shadow on these because they aren't rectangular */
+
+	-webkit-box-shadow: none;
+	-moz-box-shadow: none;
+	box-shadow: none;
+}
+
+/* The highlight is shown in the ComboBox menu.  TODO: move to form/Common.less */
+.dark .dijitComboBoxHighlightMatch {
+	background-color: #abd6ff;
+}
+
+.dark .dijitFocusedLabel {
+	/* for checkboxes or radio buttons, hatch border around the corresponding label, to indicate focus */
+
+	outline: 1px dotted #494949;
+}
+
+/* Drag and Drop*/
+.dark .dojoDndItem {
+	border-color: rgba(0, 0, 0, 0);
+	-webkit-transition-duration: 0.25s;
+	-moz-transition-duration: 0.25s;
+	transition-duration: 0.25s;
+	-webkit-transition-property: background-color, border-color;
+	-moz-transition-property: background-color, border-color;
+	transition-property: background-color, border-color;
+}
+
+.dark .dojoDndItemOver {
+	background-color: #abd6ff;
+	background-image: url("images/standardGradient.png");
+	background-repeat: repeat-x;
+	background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+	background-image: -webkit-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+	background-image: -o-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+	background-image: linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+	_background-image: none;
+	padding: 1px;
+	border: solid 1px #759dc0;
+	color: #000000;
+}
+
+.dark .dojoDndItemAnchor, .dark .dojoDndItemSelected {
+	background-color: #cfe5fa;
+	background-image: url("images/standardGradient.png");
+	background-repeat: repeat-x;
+	background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+	background-image: -webkit-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+	background-image: -o-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+	background-image: linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+	_background-image: none;
+	padding: 1px;
+	border: solid 1px #759dc0;
+	color: #000000;
+}
+
+.dark .dojoDndItemBefore, .dark .dojoDndItemAfter {
+	border-color: #759dc0;
+}
+
+.dark table.dojoDndAvatar {
+	border: 1px solid #b5bcc7;
+	border-collapse: collapse;
+	background-color: #ffffff;
+	-webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+	-moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.dark .dojoDndAvatarHeader td {
+	height: 20px;
+	padding-left: 21px;
+}
+
+.dark.dojoDndMove .dojoDndAvatarHeader, .dark.dojoDndCopy .dojoDndAvatarHeader {
+	background-image: url("images/dnd.png");
+	background-repeat: no-repeat;
+	background-position: 2px -122px;
+}
+
+.dark .dojoDndAvatarItem td {
+	padding: 5px;
+}
+
+.dark.dojoDndMove .dojoDndAvatarHeader {
+	background-color: #f58383;
+	background-position: 2px -103px;
+}
+
+.dark.dojoDndCopy .dojoDndAvatarHeader {
+	background-color: #f58383;
+	background-position: 2px -68px;
+}
+
+.dark.dojoDndMove .dojoDndAvatarCanDrop .dojoDndAvatarHeader {
+	background-color: #97e68d;
+	background-position: 2px -33px;
+}
+
+.dark.dojoDndCopy .dojoDndAvatarCanDrop .dojoDndAvatarHeader {
+	background-color: #97e68d;
+	background-position: 2px 2px;
+}

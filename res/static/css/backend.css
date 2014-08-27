@@ -1,0 +1,1241 @@
+html, body, #uiContainer {
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+}
+
+.dijitTextBox, .dojoxListInput, .dijitSelect, .mceLayout {
+	display: block;
+	margin: 0 0 10px 10px;
+}
+
+textarea {
+	min-height: 100px;
+}
+
+.dijitTextBox {
+	width: 30em;
+	max-width: 90%;
+}
+
+.STFieldSet .dijitTextBox {
+	width: 91%;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.mceLayout {
+	height: auto !important;
+}
+
+.dojoxListInput {
+	width: 100%;
+	max-width: 300px;
+}
+
+.dojoxListInputItem {
+	max-width: 80%;
+}
+
+.dojoxListInput .dijitTextBox {
+	display: inline-block;
+	margin-bottom: 0;
+}
+
+.dojoxListInputNode {
+	overflow: hidden;
+}
+
+label {
+	display: block;
+	margin: 0 0 4px 10px;
+}
+
+.dijitButton {
+	float: right;
+}
+
+.errorMessageInline {
+	color: #b71113;
+}
+
+/* preview status row */
+.STRecordLiveStatus_0, .STLiveStatus_0 .dijitTitlePaneTitle {
+	background-color: #ffecec;
+}
+
+.STRecordLiveStatus_0:hover {
+	background-color: #fecfcf;
+}
+
+.STLiveStatus_0 input {
+	background-color: #ffecec !important;
+}
+
+/* live status row */
+.STRecordLiveStatus_1, .STLiveStatus_1 .dijitTitlePaneTitle {
+	background-color: #ecfee9;
+}
+
+.STRecordLiveStatus_1:hover {
+	background-color: #bff9b6;
+}
+
+.STLiveStatus_1 input {
+	background-color: #ecfee9 !important;
+}
+
+/* modified status row */
+.STRecordLiveStatus_2, .STLiveStatus_2 .dijitTitlePaneTitle {
+	background-color: #fff8e4;
+}
+
+.STRecordLiveStatus_2:hover {
+	background-color: #fff5a5;
+}
+
+.STLiveStatus_2 input {
+	background-color: #fff8e4 !important;
+}
+
+.dgrid-row {
+	cursor: pointer;
+}
+
+.dgrid-row.STRecordBeingEdited {
+	background-color: #DDDDDD;
+	opacity: 0.5;
+}
+
+.dgrid-row.dgrid-selected {
+	background-color: #BFD6EB;
+}
+
+.dojoxListInput > ul {
+	list-style-type: none;
+}
+
+.dojoxListInputIncomplete, .dojoxListInputError {
+	border-color: #CE5050;
+}
+
+.STWidgetPlaceholder {
+	float: left;
+	background-color: #BFD6EB;
+	border: 1px dashed grey;
+}
+
+.dropValid {
+	border: 1px solid green;
+}
+
+.dropInvalid {
+	border: 1px solid red;
+}
+
+.dijitEditorIFrameContainer {
+	height: 150px !important;
+}
+
+.dijitEditor .dijitToolbar {
+	overflow: hidden;
+}
+
+.STWidgetPreviewContainer {
+	clear: both;
+	padding: 5px;
+	border: 1px solid #B5BCC7;
+	color: grey;
+}
+
+.STDetailPaneRecordClassLabel {
+	font-family: 'Open Sans', sans-serif;
+	line-height: 80px;
+	position: absolute;
+	right: 20px;
+	top: 0px;
+	font-size: 75px;
+	color: #F3E7E7;
+}
+
+.STListLabel {
+	font-family: 'Open Sans', sans-serif;
+	position: absolute !important;
+	right: 0;
+	left: 0;
+	text-align: center;
+	font-size: 20px;
+	line-height: 22px;
+	color: #ECD6D6;
+	z-index: 0 !important;
+}
+
+.STWelcome .dijitTitlePaneContentInner {
+	padding: 0;
+}
+
+.dgrid-no-data {
+	font-size: 16px;
+	text-align: center;
+	margin-top: 100px;
+}
+
+.dgrid-loading {
+	font-size: 16px;
+	text-align: center;
+	margin-top: 100px;
+}
+
+.alertHint {
+	color: #B61012;
+	float: right;
+}
+
+.personal .dijitAccordionText {
+	color: #045AC9;
+}
+
+.dijitAccordionContainer-dijitContentPane {
+	height: auto !important;
+}
+
+.dijitAccordionContainer-dijitContentPane p {
+	margin: 0;
+}
+
+.STFilterFieldWrapper {
+	float: left;
+	margin-right: 10px;
+}
+
+.STFilterBar .dijitContentPane {
+	margin-bottom: 0 !important;
+}
+
+.STFilterBar.minimized .STFilterFieldWrapper {
+	width: 90% !important;
+}
+
+.STFilterBar.minimized .dijitContentPane {
+	overflow-y: scroll !important;
+}
+
+.STListMenu > div {
+	position: relative;
+	z-index: 10;
+}
+
+.STRadioGroup, .STCheckBoxGroup {
+	overflow: hidden;
+	margin: 0 0 10px 10px;
+}
+
+.STRadio, .STCheckBox {
+	float: left;
+	margin-right: 8px;
+}
+
+.STCheckBoxGroup label {
+	float: left;
+}
+
+.STRadio label, .STCheckBox label {
+	display: block;
+	text-align: center;
+}
+
+.STStaticInlineEdit .dijitTitlePaneTitle {
+	overflow: hidden;
+}
+
+.STStaticInlineEdit .dijitTitlePaneTitle .dijitButton {
+	float: left !important;
+	margin-right: 8px;
+}
+
+label.STInvalid, .STWidget.STInvalid > .dijitTitlePaneTitle > .dijitTitlePaneTitleFocus {
+	color: #D46464;
+}
+
+.dijitTitlePaneTitleFocus {
+	float: left;
+}
+
+.STIsDependencyLabel {
+	display: none;
+	float: left;
+	margin-left: 20px;
+}
+
+.STIsDependencyLabel.isDependency {
+	display: block;
+	color: #D46464;
+}
+
+.DTFileInput {
+	display: block;
+	margin: 0 0 10px 10px;
+}
+
+.STFileName {
+	margin: 0 0 10px 10px;
+
+	background-color: #fff;
+
+	background-image: -webkit-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), -webkit-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc);
+	background-image: -moz-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), -moz-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc);
+	background-image: -o-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), -o-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc);
+	background-image: -ms-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), -ms-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc);
+	background-image: linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc);
+
+	-webkit-background-size: 16px 16px;
+	-moz-background-size: 16px 16px;
+	background-size: 16px 16px;
+	background-position: 0 0, 8px 8px;
+
+	position: relative;
+}
+
+.STFileFieldContainer .STFileName {
+	width: 400px;
+}
+
+.STFileNameDownloadLink {
+	clear: both;
+	display: block;
+	margin: 0 0 10px 10px;
+}
+
+.dgrid .STFileName {
+	margin: 0;
+}
+
+.dijitSelectLabel {
+	padding-right: 8px;
+}
+
+#widget_dijit__editor_plugins__FormatBlockDropDown_0_select_dropdown h1, #dijitEditorBody h1 {
+	background-color: #e10078;
+	font-size: 16px;
+	font-family: 'Open Sans', sans-serif;
+	color: #fff;
+	margin: 0;
+	text-transform: uppercase;
+	padding: 5px 10px;
+	font-weight: 800;
+}
+
+#widget_dijit__editor_plugins__FormatBlockDropDown_0_select_dropdown h2, #dijitEditorBody h2 {
+	background-color: #84b414;
+	font-size: 16px;
+	color: #fff;
+	font-family: 'Open Sans', sans-serif;
+	margin: 0;
+	text-transform: uppercase;
+	padding: 5px 10px;
+	font-weight: 800;
+}
+
+#widget_dijit__editor_plugins__FormatBlockDropDown_0_select_dropdown h3, #dijitEditorBody h3 {
+	color: #e10078;
+	font-size: 16px;
+	font-family: 'Open Sans', sans-serif;
+	margin: 0;
+	text-transform: uppercase;
+	padding: 5px 10px;
+	font-weight: 700;
+}
+
+#widget_dijit__editor_plugins__FormatBlockDropDown_0_select_dropdown h4, #dijitEditorBody h4 {
+	color: #84b414;
+	font-size: 16px;
+	font-family: 'Open Sans', sans-serif;
+	margin: 0;
+	text-transform: uppercase;
+	padding: 5px 10px;
+	font-weight: 700;
+}
+
+.STWidgetPreviewContainer h1, .STWidgetPreviewContainer h2, .STWidgetPreviewContainer h3, .STWidgetPreviewContainer h4 {
+	margin: 0;
+	padding: 0;
+	font-weight: normal;
+	font-size: 12px;
+}
+
+.mceIframeContainer iframe {
+	width: 100% !important;
+}
+
+.mceToolbar * {
+	white-space: normal !important;
+}
+
+.mceToolbar tr,
+.mceToolbar td {
+	float: left !important;
+}
+
+.dojoxListInput ul, .dojoxListInput li {
+	list-style: none !important;
+}
+
+.STStaticRecord {
+	margin-right: 5px;
+}
+
+.STStaticRecord .dijitArrowNode {
+	display: none;
+}
+
+.STStaticRecord .dijitTitlePaneTitle {
+	padding: 0 0 3px;
+}
+
+.STStaticRecord .closeNode, .STStaticRecord .hideNode, .RCMenuItem .closeNode, .STClipboardWidget .closeNode, .STGridElement .closeNode {
+	float: right;
+	margin-left: 5px;
+	padding-right: 0 !important;
+	display: block !important;
+}
+
+.STStaticRecord .dijitTitlePaneTitleFocus {
+	width: 80% !important;
+	display: block !important;
+	float: left !important;
+}
+
+.STWidget .copyNode {
+	display: table-cell;
+	width: 20px;
+	float: right;
+
+}
+
+.STWidget .pubstartNode, .STWidget .pubendNode {
+	display: table-cell;
+	width: 20px;
+	float: left;
+}
+
+.isDirty {
+	border: 1px solid red !important;
+}
+
+.willSubmit {
+	font-weight: bold !important;
+	color: red !important;
+}
+
+.STRecordSelector .browseButton {
+	float: left;
+	margin: 0 0 10px 10px;
+	font-size: 12px;
+	margin-right: 5px;
+}
+
+.STResizeable {
+	position: relative;
+}
+
+.STResizeable .closeNode, .STResizeable .hideNode {
+	float: right;
+	margin-left: 5px;
+}
+
+.STResizeable .dijitContentPane {
+	padding: 0 !important;
+}
+
+.STWidget .fixed {
+	opacity: 0.5;
+}
+
+.STWidgetContainer .dijitTitlePaneContentInner, .STWidget .dijitTitlePaneContentInner {
+	padding: 10px 0 20px 0;
+}
+
+.STWidget.STClipboardWidget .dijitTitlePaneContentInner {
+	padding: 10px;
+}
+
+/*.STWidget .dijitContentPane {*/
+/*overflow: hidden;*/
+/*}*/
+
+.STWidget {
+	position: relative;
+	margin-bottom: 20px;
+	margin: 0 -1px;
+}
+
+.STWidget .closeNode {
+	display: table-cell;
+	width: 20px;
+	float: right;
+	margin: 0 !important;
+	padding-right: 20px;
+}
+
+.STWidget .hideNode, .STStaticRecord .closeNode {
+	margin-top: 3px;
+}
+
+.STWidget .hideNode {
+	margin: 0 !important;
+	float: right;
+	display: table-cell;
+	width: 20px;
+}
+
+.dijitTitlePaneTitle {
+	overflow: hidden;
+}
+
+.STRecordSelector .dijitArrowButtonContainer {
+	display: none;
+}
+
+.dijitToasterClip {
+	font-size: 16px;
+}
+
+.STQuicksearch {
+	float: left;
+	margin-top: 2px;
+}
+
+.dijitToasterContent hr {
+	margin: 10px 0;
+}
+
+.STDateTimePicker {
+	border: none;
+}
+
+.RCPermissionEntity .STCheckBoxGroup {
+	float: left;
+	width: 250px;
+}
+
+.STMenuItemContainer {
+	display: inline-block;
+	border: 1px solid gray;
+	width: 600px;
+	min-height: 2em;
+}
+
+.STMenuItemContainer .STWidgetPlaceholder {
+	clear: both;
+}
+
+.STMenuItemContainer .STMenuItemContainer {
+	width: 100%;
+}
+
+.STMenuItemContainer .STMenuItem {
+	width: 100%;
+}
+
+.STFilterPane form > div > div, .STFilterPane form > div > label {
+	float: left;
+}
+
+.childrenButton {
+	/*Menu item*/
+	float: none;
+	display: block;
+}
+
+.dgrid-row .STListAction {
+	float: left !important;
+	padding: 8px !important;
+	margin-right: 10px;
+}
+
+.closeNode, .hideNode, .copyNode, .insertNode, .pubstartNode, .pubendNode {
+	width: 16px;
+	height: 20px;
+}
+
+.STStaticRecord .insertNode {
+	float: right;
+	margin-top: 3px;
+}
+
+.visibleNode {
+	width: 16px;
+	height: 16px;
+	float: right;
+}
+
+.STDropContainer {
+	width: auto !important;
+	height: auto !important;
+}
+
+.STMenuItem .STDropContainer {
+	padding-bottom: 20px;
+}
+
+.STMenuItemContainer > .dijitTitlePaneTitle {
+	opacity: 0.7;
+}
+
+.STFieldContainer {
+	position: relative;
+	z-index: 0;
+}
+
+.STWidget.STHidden {
+	opacity: 0.7;
+}
+
+fieldset.STHidden {
+	display: none;
+}
+
+.STUserMenu_language, .STUserMenu_fullscreen, .STUserMenu_editProfile {
+	display: block;
+}
+
+.STUserMenu_language span, .STUserMenu_fullscreen span, .STUserMenu_editProfile span, .STUserMenu_theme span {
+	line-height: 24px;
+	padding: 5px;
+}
+
+.STClipboardItemContainer {
+	min-width: 200px;
+}
+
+.STClipboardItemContainer .STWidget {
+	width: 100%;
+}
+
+.dgrid-expando-icon.ui-icon-triangle-1-se, .dgrid-expando-icon.ui-icon-triangle-1-e {
+	border: 1px solid black;
+	margin-right: 10px;
+}
+
+.STWidget .dijitTitlePaneTitleFocus, .STGridElement .dijitTitlePaneTitleFocus {
+	height: 1em;
+	overflow: hidden;
+}
+
+.STClipboardItemContainer .dijitTitlePaneTitleFocus {
+	max-width: 75%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.STWidgetPanel .dijitContentPane {
+	padding: 0 !important;
+}
+
+.STWidgetPanel.fixed, .STMenuItemPanel.fixed {
+	position: fixed;
+	top: 75px;
+	z-index: 100;
+}
+
+.STCanvas.panelFixed, .STMenuItemContainer.panelFixed {
+	margin-left: 162px;
+}
+
+.STWidget .dijitTitlePaneTitle, .STGridElement .dijitTitlePaneTitle {
+	width: 100%;
+	padding: 5px;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.STWidget .dijitTitlePaneTitleFocus, .STGridElement .dijitTitlePaneTitleFocus {
+	/* display : table-cell; */
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	float: none;
+}
+
+.STGridElement .dijitTitlePaneTitleFocus {
+	width: 100%;
+}
+
+.STWidget .dijitTitlePaneTitleFocus img, .STGridElement .dijitTitlePaneTitleFocus img {
+	display: inline;
+}
+
+.STDisplayTextNode {
+	margin: 0px 10px 20px;
+	width: 380px;
+	border: 1px solid #888;
+	background-color: #e5e5e5;
+	padding: 2px;
+}
+
+.STStaticRecord .dijitTitlePaneTitle, .STClipboardWidget .dijitTitlePaneTitle {
+	display: block;
+	width: auto;
+}
+
+.STImageFocusPoint {
+	position: relative;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	z-index: 100;
+	box-shadow: 0px 0px 0px 2px rgba(0, 0, 0, 1);
+	margin: -2px -4px -5px -2px;
+	line-height: 5px;
+	font-weight: bolder;
+	padding: 0 1px;
+	float: left;
+}
+
+.STImagePreviewContainer {
+	width: 580px !important;
+}
+
+.STFileFieldContainer {
+	display: inline-block;
+}
+
+.STImagePreviewNode {
+	padding: 5px;
+	margin: 5px;
+	border: 1px solid black;
+}
+
+.dijitButton.STLoadImagePreview {
+	float: left;
+}
+
+.STImagePreviewer .dijitContentPane {
+	width: auto !important;
+}
+
+.STClipboardWidget.STWidget .dijitTitlePaneTitleFocus {
+	display: block !important;
+	float: left !important;
+}
+
+.STClipboardWidget.STWidget .STWidgetIcon_close {
+	float: right !important;
+	padding-right: 0 !important;
+}
+
+.STImageFocusDummyLabel {
+	margin: 0 0 10px 0;
+	padding: 0;
+	color: green;
+}
+
+.STFieldExtensionContainer {
+	display: none;
+}
+
+.STFieldExtensionContainer.hasChildren {
+	display: block;
+}
+
+.STFieldExtensionContainer .dijitAccordionContainer {
+	height: auto !important;
+}
+
+.STImagePreviewNode {
+	position: static !important;
+	visibility: visible !important;
+}
+
+.dijitButton.STRemoveImageFocusButton {
+	float: none;
+}
+
+.STImagePreviewEnableLabel {
+	padding-left: 20px;
+}
+
+.STAutoPreviewCheckBox {
+	margin-left: 20px !important;
+}
+
+.STAutoPreviewLabel {
+	display: inline-block;
+}
+
+.STBannerFieldContainer {
+	padding: 10px;
+}
+
+.STFilterPane .STFormField {
+	float: none !important;
+	display: none;
+}
+
+.STFilterPane .STFormField.active {
+	display: block;
+}
+
+.STFilterPane .STFilterSelectContainer {
+	height: 100%;
+	display: inline-block;
+	vertical-align: top;
+}
+
+.STFilterPane form {
+	width: auto !important;
+	display: inline-block;
+}
+
+.STFilterSelectContainer .dijitSelect {
+	display: block;
+	float: left;
+	margin-top: 18px;
+	clear: left;
+}
+
+.STGridElementPanel {
+	float: left;
+	width: 150px;
+}
+
+.STGridContainer {
+	border: 1px solid black;
+	width: 484px;
+	min-height: 50px;
+}
+
+.STGridElement {
+	position: relative;
+	border: 1px solid black;
+	float: left;
+}
+
+.STGridElement .dijitTitlePaneTitle {
+	border: none;
+}
+
+.STGridElement .dijitTitlePaneContentOuter {
+	height: 100%;
+	overflow: auto;
+}
+
+.STGridElement_close {
+	margin-right: 10px;
+}
+
+.STGridElement .STFileName {
+	display: none;
+}
+
+.STGridElement .dijitTitlePaneTitleFocus {
+	width: 85% !important;
+}
+
+.conditionallyHidden {
+	display: none;
+}
+
+.STFieldSet {
+	border: 1px solid grey;
+	margin: 10px 5px 5px;
+	padding: 15px 0 5px;
+	float: left;
+	clear: left;
+	min-width: 0px;
+}
+
+.STFieldSet.collapsed {
+	height: 0;
+	overflow: hidden;
+}
+
+.STFieldSet.collapsed > * {
+	display: none;
+}
+
+.STFieldSet.collapsed > legend {
+	display: block;
+}
+
+.STFieldSet legend {
+	cursor: pointer;
+}
+
+.STGenerated {
+	opacity: 0.5;
+}
+
+.STFieldSet legend {
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
+.STWidget .STFieldSet {
+	float: none;
+}
+
+/* fixes undroppable region in dropcontainer */
+.STDropContainer .dijitTitlePaneContentInner {
+	padding: 0;
+}
+
+.STDropContainer .STWidgetContainer.dijitContentPane {
+	padding: 20px 0 20px 0 !important;
+}
+
+.STReadOnly {
+	opacity: 0.5;
+}
+
+.STReadOnly .STReadOnly {
+	opacity: 1;
+}
+
+.STWidgetIcon_copy, .STWidgetIcon_close {
+	float: right;
+	position: relative;
+	top: 2px;
+}
+
+.STWidgetIcon_close {
+	margin-left: 10px;
+}
+
+.STWidgetContainer .STWidgetIcon_close {
+	margin-right: 10px;
+}
+
+.STWidget .dijitTitlePaneTextNode {
+	width: 70%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.STInlineFieldPermissionEditor {
+	clear: left;
+}
+
+.STFieldPermissionCheckBoxContainer .dijitCheckBox {
+	float: left;
+	clear: left;
+	margin-right: 10px;
+}
+
+.STFieldSelector {
+	width: 50%;
+}
+
+.RCPermissionEntity {
+	height: auto !important;
+	border: 1px dotted black;
+	margin-bottom: 10px;
+	padding: 20px 0 0;
+	background-color: rgb(241, 241, 241);
+}
+
+.RCPermissionEntity .STLabel_enabled {
+	font-weight: bold;
+}
+
+.RCFieldPermission {
+	clear: left;
+}
+
+.STPermissionTabContainer {
+	height: auto !important;
+}
+
+.RCPermissionEntity.non-editable {
+	display: none;
+}
+
+.RCElementInArea .dijitTitlePaneTitleFocus {
+	overflow: hidden;
+	width: 65%;
+	height: 14px;
+	text-overflow: ellipsis
+}
+
+.RCPersonPersonList .dijitTitlePaneTitleFocus {
+	width: auto;
+}
+
+.STLocationCidMap {
+	height: 300px;
+}
+
+.RCPage_fs_pageContent {
+	float: none;
+	position: relative;
+	top: 10px;
+}
+
+.RCElementInArea .STFieldSet {
+	float: none;
+}
+
+.RCElementInArea .STFieldContainer {
+	padding-top: 5px;
+}
+
+.STContentLength_warn {
+	color: #AA6103;
+}
+
+.STContentLength_crit {
+	color: #D46464;
+}
+
+.STReferenceDialog .tableContainer-labelCell {
+	vertical-align: top;
+}
+
+.STOverlay {
+	z-index: 900;
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	background-color: rgba(255, 255, 255, 0.8);
+}
+
+.STOverlay.hidden {
+	display: none;
+}
+
+#spinningSquaresG {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-top: -15px;
+	margin-left: -120px;
+	width: 240px;
+	height: 29px;
+}
+
+.spinningSquaresG {
+	position: absolute;
+	top: 0;
+	background-color: #022DAD;
+	width: 29px;
+	height: 29px;
+	-moz-animation-name: bounce_spinningSquaresG;
+	-moz-animation-duration: 1.8s;
+	-moz-animation-iteration-count: infinite;
+	-moz-animation-direction: linear;
+	-moz-transform: scale(.3);
+	-webkit-animation-name: bounce_spinningSquaresG;
+	-webkit-animation-duration: 1.8s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-direction: linear;
+	-webkit-transform: scale(.3);
+	-ms-animation-name: bounce_spinningSquaresG;
+	-ms-animation-duration: 1.8s;
+	-ms-animation-iteration-count: infinite;
+	-ms-animation-direction: linear;
+	-ms-transform: scale(.3);
+	-o-animation-name: bounce_spinningSquaresG;
+	-o-animation-duration: 1.8s;
+	-o-animation-iteration-count: infinite;
+	-o-animation-direction: linear;
+	-o-transform: scale(.3);
+	animation-name: bounce_spinningSquaresG;
+	animation-duration: 1.8s;
+	animation-iteration-count: infinite;
+	animation-direction: linear;
+	transform: scale(.3);
+}
+
+#spinningSquaresG_1 {
+	left: 0;
+	-moz-animation-delay: 0.72s;
+	-webkit-animation-delay: 0.72s;
+	-ms-animation-delay: 0.72s;
+	-o-animation-delay: 0.72s;
+	animation-delay: 0.72s;
+}
+
+#spinningSquaresG_2 {
+	left: 30px;
+	-moz-animation-delay: 0.9s;
+	-webkit-animation-delay: 0.9s;
+	-ms-animation-delay: 0.9s;
+	-o-animation-delay: 0.9s;
+	animation-delay: 0.9s;
+}
+
+#spinningSquaresG_3 {
+	left: 60px;
+	-moz-animation-delay: 1.08s;
+	-webkit-animation-delay: 1.08s;
+	-ms-animation-delay: 1.08s;
+	-o-animation-delay: 1.08s;
+	animation-delay: 1.08s;
+}
+
+#spinningSquaresG_4 {
+	left: 90px;
+	-moz-animation-delay: 1.26s;
+	-webkit-animation-delay: 1.26s;
+	-ms-animation-delay: 1.26s;
+	-o-animation-delay: 1.26s;
+	animation-delay: 1.26s;
+}
+
+#spinningSquaresG_5 {
+	left: 120px;
+	-moz-animation-delay: 1.44s;
+	-webkit-animation-delay: 1.44s;
+	-ms-animation-delay: 1.44s;
+	-o-animation-delay: 1.44s;
+	animation-delay: 1.44s;
+}
+
+#spinningSquaresG_6 {
+	left: 150px;
+	-moz-animation-delay: 1.62s;
+	-webkit-animation-delay: 1.62s;
+	-ms-animation-delay: 1.62s;
+	-o-animation-delay: 1.62s;
+	animation-delay: 1.62s;
+}
+
+#spinningSquaresG_7 {
+	left: 180px;
+	-moz-animation-delay: 1.8s;
+	-webkit-animation-delay: 1.8s;
+	-ms-animation-delay: 1.8s;
+	-o-animation-delay: 1.8s;
+	animation-delay: 1.8s;
+}
+
+#spinningSquaresG_8 {
+	left: 210px;
+	-moz-animation-delay: 1.98s;
+	-webkit-animation-delay: 1.98s;
+	-ms-animation-delay: 1.98s;
+	-o-animation-delay: 1.98s;
+	animation-delay: 1.98s;
+}
+
+@-moz-keyframes bounce_spinningSquaresG {
+	0% {
+		-moz-transform: scale(1);
+		background-color: #022DAD;
+	}
+
+	100% {
+		-moz-transform: scale(.3) rotate(90deg);
+		background-color: #FFFFFF;
+	}
+
+}
+
+@-webkit-keyframes bounce_spinningSquaresG {
+	0% {
+		-webkit-transform: scale(1);
+		background-color: #022DAD;
+	}
+
+	100% {
+		-webkit-transform: scale(.3) rotate(90deg);
+		background-color: #FFFFFF;
+	}
+
+}
+
+@-ms-keyframes bounce_spinningSquaresG {
+	0% {
+		-ms-transform: scale(1);
+		background-color: #022DAD;
+	}
+
+	100% {
+		-ms-transform: scale(.3) rotate(90deg);
+		background-color: #FFFFFF;
+	}
+
+}
+
+@-o-keyframes bounce_spinningSquaresG {
+	0% {
+		-o-transform: scale(1);
+		background-color: #022DAD;
+	}
+
+	100% {
+		-o-transform: scale(.3) rotate(90deg);
+		background-color: #FFFFFF;
+	}
+
+}
+
+@keyframes bounce_spinningSquaresG {
+	0% {
+		transform: scale(1);
+		background-color: #022DAD;
+	}
+
+	100% {
+		transform: scale(.3) rotate(90deg);
+		background-color: #FFFFFF;
+	}
+
+}
+
+.dijitAccordionContainer.STWidgetPanel, .STMenuItemPanel {
+	background: none;
+	width: 150px !important;
+	border: none;
+	padding: 0 5px 5px 0;
+	width: auto;
+	min-width: 100px;
+	max-width: 200px;
+	height: auto;
+	float: left;
+}
+
+/* -> standard */
+.RCPage_fs_pageContent .dijitContentPane.panelFixed {
+	padding-left: 165px;
+}
+
+/* dark override */
+.dark .RCPage_fs_pageContent .dijitContentPane.panelFixed {
+	padding-left: 163px;
+}
+
+/* BLUR #uiContainer ON DIALOG OPEN */
+#uiContainer {
+	-webkit-transition: -webkit-filter 500ms linear;
+	-moz-transition: -moz-filter 500ms linear;
+	-o-transition: -o-filter 500ms linear;
+	-ms-transition: -ms-filter 500ms linear;
+	transition: filter 500ms linear;
+}
+
+body #uiContainer {
+	-webkit-filter: none;
+	-moz-filter: none;
+	-o-filter: none;
+	-ms-filter: none;
+	filter: none;
+}
+
+body.STDialogOpen #uiContainer {
+	-webkit-filter: blur(5px);
+	-moz-filter: blur(5px);
+	-o-filter: blur(5px);
+	-ms-filter: blur(5px);
+	filter: blur(5px);
+}
+
+/* default background color, so blur does not make list panel entries shine through */
+.STDetailPane {
+	background-color: #FFFFFF;
+}
+
