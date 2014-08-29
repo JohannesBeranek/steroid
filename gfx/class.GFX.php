@@ -593,7 +593,7 @@ class GFX {
 	}
 
 	public function getFontMetrics($font, $size, $text, $weight = NULL, $letterSpacing = NULL, $multiline = NULL) {
-		$fontFile = Filename::webize($font, $this -> localDir);
+		$fontFile = Filename::getPathInsideWebrootWithLocalDir($font, $this -> localDir);
 
 		$hash = md5(json_encode(array($fontFile, $size, $text, $weight, $multiline)));
 		$key = 'GFX_getFontMetrics_' . $hash;
@@ -785,7 +785,7 @@ class GFX {
 		}
 
 		if (isset($params['src']) && is_string($params['src'])) {// src might still be array
-			$_image_path = Filename::webize($filename, $this -> localDir);
+			$_image_path = Filename::getPathInsideWebrootWithLocalDir($filename, $this -> localDir);
 
 			// GD Only, as Imagick supports pretty much every image type anyway
 			if (!$this -> useImagick) {
@@ -874,7 +874,7 @@ class GFX {
 				throw new Exception('GFX: You need to provide font param as well if you want to render text.');
 			}
 
-			$params['font'] = Filename::webize($params['font'], $this -> localDir);
+			$params['font'] = Filename::getPathInsideWebrootWithLocalDir($params['font'], $this -> localDir);
 
 			$hashParams['text'] = $params['text'];
 			$hashParams['font'] = $params['font'];
