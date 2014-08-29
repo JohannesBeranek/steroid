@@ -48,7 +48,7 @@ abstract class DataType implements IDataType {
 
 
 	public static function addBackendJSExtension( $file, $recordClass, $field, $priority ) {
-		$file = Filename::webrootize( $file );
+		$file = Filename::getPathInsideWebroot( $file );
 
 		if ( !is_readable( $file ) ) {
 			throw new Exception( 'Unable to read file ' . $file );
