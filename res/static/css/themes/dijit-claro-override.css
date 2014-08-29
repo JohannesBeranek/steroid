@@ -1,0 +1,282 @@
+/* dijit claro theme override */
+/* --------------------------------------- claro ---------------------------- */
+.claro .STForceIcon.STIconDomainGroup span {
+	background: transparent url('/steroid/res/static/img/icons/claro/domaingroup.png') no-repeat center left !important;
+	padding-left: 14px !important;
+}
+
+.claro .STForceIcon.STIconUser span {
+	background: transparent url('/steroid/res/static/img/icons/claro/user.png') no-repeat center left !important;
+	padding-left: 19px !important;
+}
+
+.claro .STForceIcon.STIconLogout span {
+	background: transparent url('/steroid/res/static/img/icons/claro/logout.png') no-repeat center left !important;
+	padding-left: 19px !important;
+}
+
+.claro .STForceIcon.STModule_stats span {
+	background: transparent url('/steroid/res/static/img/icons/claro/stats.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.claro .STForceIcon.STModule_admin span {
+	background: transparent url('/steroid/res/static/img/icons/claro/admin.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.claro .STForceIcon.STModule_config span {
+	background: transparent url('/steroid/res/static/img/icons/claro/config.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.claro .STForceIcon.STModule_content span {
+	background: transparent url('/steroid/res/static/img/icons/claro/content.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.claro .STForceIcon.STModule_ext_content span {
+	background: transparent url('/steroid/res/static/img/icons/claro/ext_content.png') no-repeat center left !important;
+	padding-left: 24px !important;
+}
+
+.claro .STForceIcon.STModule_dev span {
+	background: transparent url('/steroid/res/static/img/icons/claro/dev.png') no-repeat center left !important;
+	padding-left: 19px !important;
+}
+
+.claro .STForceIcon.STModule_util span {
+	background: transparent url('/steroid/res/static/img/icons/claro/util.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.claro .STForceIcon.STModule_wizard span {
+	background: transparent url('/steroid/res/static/img/icons/claro/wizard.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.claro .STForceIcon.STAction_close span {
+	background: transparent url('/steroid/res/static/img/icons/claro/close.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.claro .STForceIcon.STAction_deletePublish td.dijitMenuItemLabel, .claro .STForceIcon.STAction_deleteUnpublish td.dijitMenuItemLabel {
+	background: transparent url('/steroid/res/static/img/icons/claro/close.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.claro .STForceIcon.STAction_reset span {
+	background: transparent url('/steroid/res/static/img/icons/claro/reset.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.claro .STForceIcon.STAction_saveRecord span {
+	background: transparent url('/steroid/res/static/img/icons/claro/save.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.claro .STForceIcon.STAction_syncRecord span {
+	background: transparent url('/steroid/res/static/img/icons/claro/sync.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.claro .STForceIcon.STAction_publishRecord.delayPublish span {
+	background: transparent url('/steroid/res/static/img/icons/claro/clock.png') no-repeat center left !important;
+}
+
+.claro .STForceIcon.STAction_hideRecord.delayUnpublish span {
+	background: transparent url('/steroid/res/static/img/icons/claro/clock-red.png') no-repeat center left !important;
+}
+
+.claro div.delayPublish .dgrid-column-0 {
+	background: transparent url('/steroid/res/static/img/icons/claro/clock.png') no-repeat center left !important;
+	background-position: 300px 5px !important;
+}
+
+.claro div.delayUnpublish .dgrid-column-0 {
+	background: transparent url('/steroid/res/static/img/icons/claro/clock-red.png') no-repeat center left !important;
+	background-position: 300px 5px !important;
+}
+
+.claro div.delayPublishUnpublish .dgrid-column-0 {
+	background: transparent url('/steroid/res/static/img/icons/claro/clock-both.png') no-repeat center left !important;
+	background-position: 300px 5px !important;
+}
+
+.claro .STForceIcon.STAction_delayPublish td.dijitMenuItemLabel, .claro .STForceIcon.STAction_delayUnpublish td.dijitMenuItemLabel {
+	background: transparent url('/steroid/res/static/img/icons/claro/clock.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.claro .STForceIcon.STAction_hideRecord span, .claro .STForceIcon.STAction_Unpublish td.dijitMenuItemLabel {
+	background: transparent url('/steroid/res/static/img/icons/claro/hide.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.claro .STForceIcon.STAction_publishRecord span, .claro .STForceIcon.STAction_Publish td.dijitMenuItemLabel {
+	background: transparent url('/steroid/res/static/img/icons/claro/publish.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.claro .STForceIcon.STAction_deleteRecord span {
+	background: transparent url('/steroid/res/static/img/icons/claro/delete.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.claro .STForceIcon.STAction_previewRecord span {
+	background: transparent url('/steroid/res/static/img/icons/claro/preview.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.claro .STForceIcon.STAction_copyRecord span {
+	background: transparent url('/steroid/res/static/img/icons/claro/copy.png') no-repeat center left !important;
+	padding-left: 22px !important;
+}
+
+.claro .STForceIcon.STAction_revertRecord span {
+	background: transparent url('/steroid/res/static/img/icons/claro/revert.png') no-repeat center left !important;
+	padding-left: 19px !important;
+}
+
+.claro .STForceIcon.STAction_translateRecord span {
+	background: transparent url('/steroid/res/static/img/icons/claro/translate.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.claro .STForceIcon.STAction_filter span {
+	background: transparent url('/steroid/res/static/img/icons/claro/filter.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.claro .STForceIcon.STAction_refresh span {
+	background: transparent url('/steroid/res/static/img/icons/claro/refresh.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.claro .STForceIcon.STToggleListButton_tree span {
+	background: transparent url('/steroid/res/static/img/icons/claro/treeview.png') no-repeat center left !important;
+	padding-left: 24px !important;
+}
+
+.claro .STForceIcon.STToggleListButton_list span {
+	background: transparent url('/steroid/res/static/img/icons/claro/listview.png') no-repeat center left !important;
+	padding-left: 24px !important;
+}
+
+.claro .STForceIcon.STAction_new span {
+	background: transparent url('/steroid/res/static/img/icons/claro/add.png') no-repeat center left !important;
+	padding-left: 20px !important;
+}
+
+.claro .STForceIcon.dijitMenuItem .dijitMenuItemIconCell img {
+	width: 20px;
+	height: 20px;
+	margin-top: 3px;
+}
+
+.claro .STDomainGroup_hasTracking .dijitMenuItemIconCell {
+	background: transparent url('/steroid/res/static/img/icons/claro/enableTracking.png') no-repeat center left !important;
+	padding-left: 20px !important;
+	display: block;
+}
+
+.claro .STDomainGroup_noTracking .dijitMenuItemIconCell {
+	background: transparent url('/steroid/res/static/img/icons/claro/noTracking.png') no-repeat center left !important;
+	padding-left: 20px !important;
+	display: block;
+}
+
+.claro .STDomainGroup_hasSearch {
+	padding: 8px;
+	background: transparent url('/steroid/res/static/img/icons/claro/search.png') no-repeat center left !important;
+}
+
+.claro .STDomainGroup_noSearch {
+	padding: 8px;
+	background: transparent url('/steroid/res/static/img/icons/claro/noSearch.png') no-repeat center left !important;
+}
+
+.claro .STIcon_previewRecord {
+	background: transparent url('/steroid/res/static/img/icons/claro/preview.png') no-repeat center left !important;
+}
+
+.claro .STWidgetIcon_close, .claro .STGridElement_close, .claro .RCMenuItem .closeNode {
+	background: transparent url('/steroid/res/static/img/icons/claro/close.png') no-repeat center left !important;
+}
+
+.claro .STWidgetIcon_copy, .claro .STIcon_copyRecord {
+	background: transparent url('/steroid/res/static/img/icons/claro/copy.png') no-repeat center left !important;
+}
+
+.claro .STWidgetIcon_insert, .claro .STIcon_insertRecord {
+	background: transparent url('/steroid/res/static/img/icons/claro/insert.png') no-repeat center left !important;
+}
+
+.claro .STWidgetIcon_pubStart {
+	background: transparent url('/steroid/res/static/img/icons/claro/clock.png') no-repeat center left !important;
+}
+
+.claro .STWidgetIcon_pubEnd {
+	background: transparent url('/steroid/res/static/img/icons/claro/clock-red.png') no-repeat center left !important;
+}
+
+.claro .STWidgetIcon_hide, .claro  .STIcon_hideRecord, .visibleNode {
+	background: transparent url('/steroid/res/static/img/icons/claro/hide.png') no-repeat center left !important;
+}
+
+.claro  .STWidgetIcon_publish, .claro .STIcon_publishRecord, .visibleNode.visible {
+	background: transparent url('/steroid/res/static/img/icons/claro/publish.png') no-repeat center left !important;
+}
+
+.claro .STIcon_syncRecord {
+	background: transparent url('/steroid/res/static/img/icons/claro/sync.png') no-repeat center left !important;
+}
+
+.claro .STGenerated .dijitTitlePaneTitleFocus {
+	padding-left: 16px;
+	background: transparent url('/steroid/res/static/img/icons/claro/menuitemgenerated.png') no-repeat top left;
+}
+
+.claro .dijitAccordionArrow {
+	background: url("../../js/dev/dijit/themes/claro/images/spriteArrows.png") no-repeat -14px top;
+	width: 7px;
+	height: 8px;
+	margin-top: -1px;
+}
+
+.claro .dijitAccordionTitleSelected .dijitAccordionArrow {
+	background: url("../../js/dev/dijit/themes/claro/images/spriteArrows.png") no-repeat;
+	margin-top: -1px;
+}
+
+.claro .dijitAccordionContainer.STWidgetPanel, .claro .STMenuItemPanel {
+	width: 150px !important;
+	border: 1px solid #b7b7b7 !important;
+}
+
+.claro .dijitMenuBar {
+	border: none;
+	background-image: none;
+}
+
+.claro .STForceIcon.dijitMenuItem .dijitMenuItemIconCell img {
+	width: 20px;
+	height: 20px;
+	margin-top: 3px;
+}
+
+.claro .dijitMenuItemActive {
+	border: none;
+	background-image: none;
+}
+
+.claro .dijitMenuBar .dijitMenuItemHover,
+.claro .dijitMenuBar .dijitMenuItemSelected {
+	border: none;
+	background-image: none;
+	margin: 0;
+}
+
+.claro .dijitMenuItem {
+	margin: 0;
+}

@@ -1,0 +1,21 @@
+define({
+	BTSubmit: 'Senden',
+	BTSubmit_invalid: 'Ungültig',
+	BTClose: 'Schließen',
+	BTReset: 'Zurücksetzen',
+	BTsaveRecord: 'Speichern',
+	BTpublishRecord: 'Speichern und Veröffentlichen',
+	BTpublishOnly: 'Veröffentlichen',
+	BTdeleteRecord: 'Löschen',
+	BTsyncRecord: 'Synchronisieren',
+	BTtranslateRecord: 'Übersetzen',
+	BThideRecord: 'Verstecken',
+	BTpreviewRecord: 'Vorschau',
+	BTrevertRecord: 'Auf Liveversion zurücksetzen',
+	BTcopyRecord: 'Kopieren',
+    BTNowUnpublish: 'Jetzt verstecken',
+    BTLaterUnpublish: 'Später verstecken',
+    BTNowPublish: 'Jetzt veröffentlichen',
+    BTLaterPublish: 'Später veröffentlichen',
+	filterPaneLabel: 'Filter'
+});

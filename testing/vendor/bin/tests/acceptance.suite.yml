@@ -1,0 +1,24 @@
+# Codeception Test Suite Configuration
+
+# suite for acceptance tests.
+
+class_name: AcceptanceTester
+modules:
+    enabled:
+        - WebDriver
+        - AcceptanceHelper
+    config:
+        WebDriver:
+            capabilities:
+                unexpectedAlertBehaviour: 'ignore'
+env:
+    pIE10:
+        modules:
+            config:
+                WebDriver:
+                    browser: 'internet explorer'
+    pGTI9300:
+        modules:
+            config:
+                WebDriver:
+                    browser: 'GT-I9300'
