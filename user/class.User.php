@@ -69,6 +69,9 @@ class User {
 
 	const DEFAULT_LANGUAGE = 'en';
 
+	const AUTH_TYPE_BE = 'be';
+	const AUTH_TYPE_FE = 'fe';
+
 	public static $permissionPriority = array(
 		self::PERMISSION_TITLE_ADMIN,
 		self::PERMISSION_TITLE_MASTER,
@@ -352,7 +355,10 @@ class User {
 
 	public function authenticateWithData( $authReturn ) {
 		try {
-			static::setSessionData( 'data', $authReturn[ 'data' ] );
+			if(isset($authReturn['data'])){
+				static::setSessionData( 'data', $authReturn[ 'data' ] );
+			}
+
 			$this->record = $authReturn[ 'record' ];
 
 			$this->authenticated = true;
@@ -559,9 +565,19 @@ class User {
 				switch ( $type ) {
 					case self::SELECTED_LANGUAGE:
 						$item = $this->storage->selectFirstRecord( 'RCLanguage', array( 'where' => array( Record::FIELDNAME_PRIMARY, '=', array( $itemPrimary ) ) ) );
+
+						if ( $item === NULL ) {
+							$perm = $this->storage->selectFirstRecord( 'RCDomainGroupLanguagePermissionUser', array( 'where' => array( 'user', '=', array( $this->record ) ) ) );
+							$item = $perm->language;
+						}
 						break;
 					case self::SELECTED_DOMAIN_GROUP:
 						$item = $this->storage->selectFirstRecord( 'RCDomainGroup', array( 'where' => array( Record::FIELDNAME_PRIMARY, '=', array( $itemPrimary ) ) ) );
+
+						if($item === NULL){
+							$perm = $this->storage->selectFirstRecord( 'RCDomainGroupLanguagePermissionUser', array( 'where' => array( 'user', '=', array( $this->record ) ) ) );
+							$item = $perm->domainGroup;
+						}
 						break;
 					default:
 						return NULL;
