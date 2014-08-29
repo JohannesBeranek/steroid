@@ -115,7 +115,7 @@ function run( $argv ) {
 		if ( preg_match( '/^\/([^\/\.]+\.php)(\/.*)?$/', $_SERVER[ 'SCRIPT_NAME' ], $matches ) ) {
 			require_once STROOT . '/file/class.Filename.php';
 
-			$fn = Filename::webize( $matches[ 1 ], LOCALROOT . '/res/exposed_scripts' );
+			$fn = Filename::getPathInsideWebrootWithLocalDir( $matches[ 1 ], LOCALROOT . '/res/exposed_scripts' );
 
 			if ( is_readable( $fn ) ) {
 				if ( !empty( $matches[ 2 ] ) ) {
