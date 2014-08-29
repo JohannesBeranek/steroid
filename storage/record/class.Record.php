@@ -1131,7 +1131,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		if ( $fieldDefinitions === NULL ) {
 			$calledClass = get_called_class();
 
-			if (function_exists('apc_fetch')) {
+			if ( function_exists( 'apc_fetch' ) ) {
 				$key = WEBROOT . '_fd_' . $calledClass;
 				$fieldDefinitions = apc_fetch( $key );
 			} else {
@@ -1141,21 +1141,21 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			if ( $fieldDefinitions === false ) {
 				$fieldDefinitions = static::getFieldDefinitions();
 
-				$recordClasses = self::getRecordClasses();
+				$classes = array_merge( self::getRecordClasses(), ClassFinder::getAll( ClassFinder::CLASSTYPE_AUTHENTICATOR, true ) );
 
-				foreach ( $recordClasses as $recordClass => $recordClassFieldDefinitions ) {
-					$newFields = $recordClass::addToFieldDefinitions( $calledClass, $fieldDefinitions );
+				foreach ( $classes as $class => $classDefinition ) {
+					$newFields = $class::addToFieldDefinitions( $calledClass, $fieldDefinitions );
 
 					if ( $newFields && !empty( $newFields ) ) {
 						foreach ( $newFields as $fieldName => $fieldDef ) {
-							$fieldDef[ 'addedByRC' ] = $recordClass;
+							$fieldDef[ 'addedByClass' ] = $class;
 							$fieldDefinitions[ $fieldName ] = $fieldDef;
 						}
 					}
 
 				}
 
-				if (isset($key)) {
+				if ( isset( $key ) ) {
 					apc_store( $key, $fieldDefinitions );
 				}
 			}

@@ -45,6 +45,10 @@ class Config {
 		return $config;
 	}
 	
+	public static function getDefault(){
+		return self::loadNamed( LOCALROOT . '/localconf.ini.php', 'localconf' );
+	}
+	
 	/**
 	 * get config by identifier
 	 * 

@@ -51,11 +51,7 @@ class SteroidInstaller {
 
 		echo "Do you want to create a new admin user? (y/n): ";
 
-		$fr = fopen( "php://stdin", "r" );
-
-		$input = fgets( $fr, 128 );
-		$confirm = trim( $input );
-		fclose( $fr );
+		$confirm = self::getInput();
 
 		if($confirm == 'n'){
 			return;
@@ -69,19 +65,11 @@ class SteroidInstaller {
 
 		echo "Please enter the first name for the admin account (defaults to username): ";
 
-		$fr = fopen( "php://stdin", "r" );
-
-		$input = fgets( $fr, 128 );
-		$firstname = trim( $input ) ? : NULL;
-		fclose( $fr );
+		$firstname = self::getInput();
 
 		echo "Please enter the last name for the admin account (defaults to username): ";
 
-		$fr = fopen( "php://stdin", "r" );
-
-		$input = fgets( $fr, 128 );
-		$lastname = trim( $input ) ? : NULL;
-		fclose( $fr );
+		$lastname = self::getInput();
 
 		$password = static::askForPassword();
 
@@ -95,11 +83,7 @@ class SteroidInstaller {
 	protected static function askForUsername() {
 		echo "Please enter a username for the admin account (default admin): ";
 
-		$fr = fopen( "php://stdin", "r" );
-
-		$input = fgets( $fr, 128 );
-		$username = trim( $input );
-		fclose( $fr );
+		$username = self::getInput();
 
 		if ( empty( $username ) ) {
 			$username = 'admin';
@@ -118,11 +102,7 @@ class SteroidInstaller {
 	protected static function askForPassword() {
 		echo "Please enter a password for the admin account: ";
 
-		$fr = fopen( "php://stdin", "r" );
-
-		$input = fgets( $fr, 128 );
-		$password = trim( $input );
-		fclose( $fr );
+		$password = self::getInput();
 
 		if ( empty( $password ) ) {
 			static::askForPassword();
@@ -146,11 +126,7 @@ class SteroidInstaller {
 				echo ' with primary domain ' . $domain->domain . ". Do you want to create a new one? (y/n): ";
 			}
 
-			$fr = fopen( "php://stdin", "r" );
-
-			$input = fgets( $fr, 128 );
-			$confirm = trim( $input );
-			fclose( $fr );
+			$confirm = self::getInput();
 
 			if ( $confirm == 'n' ) {
 				$createUrl = false;
@@ -165,11 +141,7 @@ class SteroidInstaller {
 
 			echo "Please enter the primary domain including backend url for this installation (e.g. http://your.doma.in/backend): ";
 
-			$fr = fopen( "php://stdin", "r" );
-
-			$input = fgets( $fr, 128 );
-			$input = trim( $input );
-			fclose( $fr );
+			$input = self::getInput();
 
 			$CHBackend->createUrl( parse_url( $input ) );
 
@@ -193,22 +165,18 @@ class SteroidInstaller {
 
 	protected static function setupLocalconf() {
 		require_once STROOT . '/base.php';
-
+		
 		self::$conf = Config::getDefault();
 
 		self::$storage = getStorage( self::$conf );
 		self::$storage->init();
-		//TODO
+		
 		return;
 
 		echo "Setting up local database\n\n";
 		echo "Enter host name or leave empty for default ('localhost'): ";
 
-		$fr = fopen( "php://stdin", "r" );
-
-		$input = fgets( $fr, 128 );
-		$input = trim( $input );
-		fclose( $fr );
+		$input = self::getInput();
 
 		if ( $input == '' ) {
 			$input = 'localhost';
@@ -290,6 +258,16 @@ class SteroidInstaller {
 			echo "Failed! Please check that the Steroid core files are complete and readable\n";
 			exit;
 		}
+	}
+	
+	protected static function getInput(){
+		$fr = fopen( "php://stdin", "r" );
+
+		$input = fgets( $fr, 128 );
+		$input = trim( $input );
+		fclose( $fr );
+		
+		return $input;
 	}
 }
 
