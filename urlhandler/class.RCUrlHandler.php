@@ -40,7 +40,7 @@ class RCUrlHandler extends Record {
 			$records[] = static::get($storage, array(
 				'title' => $name,
 				'className' => $name,
-				'filename' => Filename::webpathize( Filename::webize( $urlHandler[ 'fullPath' ] ) )
+				'filename' => Filename::getPathWithoutWebroot( Filename::webize( $urlHandler[ 'fullPath' ] ) )
 			), false);
 		}
 

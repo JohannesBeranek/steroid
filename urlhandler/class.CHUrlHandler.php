@@ -36,7 +36,7 @@ class CHUrlHandler extends CLIHandler {
 				// make sure existing are in db
 				foreach ($uhs as $uh) {
 					$uhclass = $uh[ClassFinder::CLASSFILE_KEY_CLASSNAME];
-					$uhpath = Filename::webpathize($uh[ClassFinder::CLASSFILE_KEY_FULLPATH]);
+					$uhpath = Filename::getPathWithoutWebroot($uh[ClassFinder::CLASSFILE_KEY_FULLPATH]);
 					
 					
 					if (!( $uhRecord = $this->storage->selectFirstRecord( 'RCUrlHandler', array( 'where' => array( 'className', '=', array( $uhclass ) ) ) ) ) ) {

@@ -54,7 +54,7 @@ abstract class DataType implements IDataType {
 			throw new Exception( 'Unable to read file ' . $file );
 		}
 
-		$webFilename = Filename::webpathize( $file );
+		$webFilename = Filename::getPathWithoutWebroot( $file );
 
 		self::$backendJSExtensions[ $recordClass ][ $field ][ $priority ] = $webFilename;
 	}

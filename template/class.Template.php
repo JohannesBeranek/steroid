@@ -904,7 +904,7 @@ class Template {
 
 		// by using the filename as key again we don't double add files
 		$this->res[ $type ][ $filename ] = array(
-			'filename' => $isExternal ? $filename : Filename::webpathize( $filename ),
+			'filename' => $isExternal ? $filename : Filename::getPathWithoutWebroot( $filename ),
 			'options' => $options
 		);
 	}
