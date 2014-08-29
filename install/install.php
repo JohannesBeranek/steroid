@@ -24,6 +24,8 @@ class SteroidInstaller {
 
 	public static function install() {
 		echo "Starting Steroid installer\n";
+		
+		umask(0002);
 
 		self::createDirectories();
 		self::copyTemplates();
@@ -212,7 +214,7 @@ class SteroidInstaller {
 			throw new Exception( 'No path specified' );
 		}
 
-		if ( chmod( __DIR__ . $path, 0755 ) ) {
+		if ( chown( __DIR__ . $path, 'www-data' ) ) {
 			echo "Path " . __DIR__ . $path . " is writable\n";
 		} else {
 			echo "Path " . __DIR__ . $path . " is NOT writable, aborting\n";
