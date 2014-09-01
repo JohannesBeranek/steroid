@@ -31,17 +31,21 @@ class RCUrlHandler extends Record {
 		);
 	}
 
-	public static function getStaticRecords(IRBStorage $storage){
+	public static function getStaticRecords(RBStorage $storage){
 		$urlHandlers = ClassFinder::getAll(ClassFinder::CLASSTYPE_URLHANDLER);
 
 		$records = array();
 
 		foreach($urlHandlers as $name => $urlHandler){
-			$records[] = static::get($storage, array(
-				'title' => $name,
-				'className' => $name,
-				'filename' => Filename::getPathWithoutWebroot( Filename::getPathInsideWebrootWithLocalDir( $urlHandler[ 'fullPath' ] ) )
-			), false);
+			$existing = $storage->selectFirstRecord('RCUrlHandler', array('where' => array('className', '=', array($name))));
+			
+			if(!$existing){
+				$records[] = static::get($storage, array(
+					'title' => $name,
+					'className' => $name,
+					'filename' => Filename::getPathWithoutWebroot( Filename::getPathInsideWebrootWithLocalDir( $urlHandler[ 'fullPath' ] ) )
+				), false);	
+			}
 		}
 
 		return $records;

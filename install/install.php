@@ -114,6 +114,7 @@ class SteroidInstaller {
 	}
 
 	protected static function createBackendUrl() {
+		require_once STROOT . '/domaingroup/class.RCDomainGroup.php';
 		require_once STROOT . '/datatype/class.DTSteroidReturnCode.php';
 
 		$domainGroup = self::$storage->selectFirstRecord( 'RCDomainGroup', array( 'where' => array( 'parent', '=', NULL ) ), false );
@@ -152,6 +153,14 @@ class SteroidInstaller {
 	}
 
 	protected static function checkDatabase() {
+		echo "Perform database synchronisation? (y/n): \n";
+		
+		$input = self::getInput();
+		
+		if($input == 'n'){
+			return;
+		}
+		
 		echo "Updating database\n";
 
 		require_once STROOT . '/storage/class.DBInfo.php';
@@ -214,7 +223,7 @@ class SteroidInstaller {
 			throw new Exception( 'No path specified' );
 		}
 
-		if ( chown( __DIR__ . $path, 'www-data' ) ) {
+		if ( chown( __DIR__ . $path, posix_getuid() ) ) {
 			echo "Path " . __DIR__ . $path . " is writable\n";
 		} else {
 			echo "Path " . __DIR__ . $path . " is NOT writable, aborting\n";

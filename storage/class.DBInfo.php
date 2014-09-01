@@ -191,10 +191,12 @@ class DBInfo {
 				$className = $recordClassFile[ ClassFinder::CLASSFILE_KEY_CLASSNAME ];
 
 				$records = $className::getStaticRecords( $this->storage );
+				
+				if($records && count($records)){
+					$summary[$className] = count($records);
 
-				$summary[$className] = count($records);
-
-				$recordsToInsert = array_merge( $recordsToInsert,  $records);
+					$recordsToInsert = array_merge( $recordsToInsert,  $records);	
+				}
 			}
 
 			foreach ( $recordsToInsert as $record ) {

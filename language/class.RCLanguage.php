@@ -42,7 +42,13 @@ class RCLanguage extends Record {
 		);
 	}
 
-	public static function getStaticRecords(IRBStorage $storage){
+	public static function getStaticRecords(RBStorage $storage){
+		$existing = $storage->selectFirstRecord('RCLanguage', array('where' => array('isDefault', '=', array(1))));
+		
+		if($existing){
+			return NULL;
+		}
+		
 		return array(
 			static::get($storage, array(
 				'live' => DTSteroidLive::LIVE_STATUS_PREVIEW,

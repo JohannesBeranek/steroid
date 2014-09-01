@@ -3134,7 +3134,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		}
 	}
 
-	public static function getStaticRecords( IRBStorage $storage ) {
+	public static function getStaticRecords( RBStorage $storage ) {
 		return array();
 	}
 
