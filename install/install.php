@@ -200,7 +200,7 @@ class SteroidInstaller {
 		echo "\nCreating directories\n";
 
 		foreach ( self::$directories as $dir ) {
-			if ( is_dir( __DIR__ . $dir ) && is_writable( __DIR__ . $dir ) ) {
+			if ( is_dir( __DIR__ . $dir )) {
 				echo "Directory already exists: " . __DIR__ . $dir . "\n";
 
 				self::ensurePermissions( $dir );
