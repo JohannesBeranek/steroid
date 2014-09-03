@@ -8,6 +8,7 @@ class UTDB extends PHPUnit_Framework_TestCase {
 
 	static $testColumnName = 'testColumn';
 	static $testString = 'testString';
+	static $testColumnType = 'VARCHAR(255)';
 
 	protected static $DB = NULL;
 
@@ -103,7 +104,7 @@ class UTDB extends PHPUnit_Framework_TestCase {
 
 class columnDefinition {
 	public function getCreate(){
-		return 'VARCHAR(255)';
+		return UTDB::$testColumnType;
 	}
 }
 
