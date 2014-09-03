@@ -27,7 +27,18 @@ class CHUnitTest extends CLIHandler {
 	 */
 	protected $usedClasses = array();
 
+	protected $doCoverage = false;
+
 	public function performCommand( $called, $command, array $params ) {
+		foreach($params as $param){
+			switch($param){
+				case '-c':
+				case '--coverage':
+					$this->doCoverage = true;
+					break;
+			}
+		}
+
 		$this->allTestClasses = ClassFinder::getAll( ClassFinder::CLASSTYPE_UNITTEST, true );
 
 		echo static::COLOR_DESCRIPTION . "\nResolving dependencies\n" . static::COLOR_DEFAULT;
@@ -46,7 +57,16 @@ class CHUnitTest extends CLIHandler {
 
 			echo static::COLOR_DESCRIPTION . "\n\n" . 'Executing test class ' . static::COLOR_CLASSNAME . $className . "\n" . static::COLOR_DEFAULT;
 
-			$cmd = escapeshellcmd( STROOT . '/unittest/phpunit.phar' ) . ' --bootstrap ' . escapeshellarg( WEBROOT . '/steroid/unittest/bootstrap.php' ) . ' ' . escapeshellarg( $this->allTestClasses[$className][ 'fullPath' ] );
+			$cmd = escapeshellcmd( STROOT . '/unittest/phpunit.phar' ) . ' --bootstrap ' . escapeshellarg( WEBROOT . '/steroid/unittest/bootstrap.php' );
+
+			if ( $this->doCoverage ) {
+				$cmd .= ' --coverage-html '. escapeshellarg( STROOT . '/unittest/reports/' . $className );
+			}
+
+			//TODO: delete existing reports
+			//TODO: generate php reports and merge them into a single html: http://stackoverflow.com/questions/10167775/aggregating-code-coverage-from-several-executions-of-phpunit
+
+			$cmd .= ' ' . escapeshellarg( $this->allTestClasses[$className][ 'fullPath' ] );
 
 			$descriptorspec = array(
 				0 => array( "pipe", "r" ), // stdin is a pipe that the child will read from
@@ -108,6 +128,9 @@ class CHUnitTest extends CLIHandler {
 			ST::PRODUCT_NAME . ' unittest command' => array(
 				'usage:' => array(
 					'unittest' => 'run all tests of all available test classes'
+				),
+				'options:' => array(
+					'-c, --coverage' => 'generate coverage report(s)'
 				)
 			)
 		) );
