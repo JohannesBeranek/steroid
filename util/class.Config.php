@@ -51,7 +51,7 @@ class Config {
 		return $value;
 	}
 	
-	final private function getKeyLineString( $value ) {
+	final private function getKeyLineString( $key, $value ) {
 		$keyString = '';
 		
 		if ( is_array( $value ) ) {
@@ -77,7 +77,7 @@ class Config {
 		$sectionPos = strpos( $this->fileContent, $sectionString );
 		
 		if ( $sectionPos === false ) {
-			$this->fileContent .= "\n\n" . $sectionString . "\n" . $this->getKeyLineString( $value );
+			$this->fileContent .= "\n\n" . $sectionString . "\n" . $this->getKeyLineString( $key, $value );
 		} else {
 			// commented section
 			if ( $sectionPos > 0 && $this->fileContent[$sectionPos - 1] === ';') {
