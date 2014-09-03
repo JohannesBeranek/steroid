@@ -52,8 +52,6 @@ class Config {
 	}
 	
 	final private function getKeyLineString( $key, $value ) {
-		$keyString = '';
-		
 		if ( is_array( $value ) ) {
 			$keyParts = array();
 			
@@ -63,7 +61,7 @@ class Config {
 			
 			$keyString = implode( "\n", $keyParts );
 		} else {
-			$key . " = " . $this->escapeValueForIni( $value );
+			$keyString = $key . " = " . $this->escapeValueForIni( $value );
 		}
 		
 		return $keyString;
