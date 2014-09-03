@@ -19,6 +19,8 @@ class File {
 			if ( $contents === false ) {
 				throw new Exception( 'Unable to read anything from file "' . $filename . '"' );
 			}
+			
+			return $contents;
 		});
 	}
 	
@@ -41,6 +43,8 @@ class File {
 			if ( $contents === false ) {
 				throw new Exception( 'Unable to parse ini from file "' . $filename . '"' );
 			}
+			
+			return $contents;
 		});
 	}
 	

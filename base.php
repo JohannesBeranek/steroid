@@ -83,13 +83,9 @@ function run( $argv ) {
 	}
 
 	$storage = getStorage( $conf );
-
-	$conf->setKey( 'storage', 'instance', $storage );
 	
 	// separate storage connection for log so we can have live logging even during transactions
 	$logStorage = getStorage( $conf );
-	
-	$conf->setKey( 'log', 'storage', $logStorage );
 
 	Log::init( $logStorage );
 	set_exception_handler( array( 'Log', 'write' ) );
