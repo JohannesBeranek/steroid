@@ -6,3 +6,4 @@
 /res/static/js/dev/util
 /res/static/js/dev/xstyle
 .DS_Store
+/unittest/reports
