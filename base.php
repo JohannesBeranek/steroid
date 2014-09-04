@@ -1,4 +1,21 @@
 <?php
+/**
+ * Entry point
+ *
+ * Depending on php_sapi_name() either STCLI or STWeb is instanced and run.
+ *
+ * const is used instead of define(), as define is invoked on runtime and thus
+ * apc will not cache classes and functions (opcode cache would still work) ;
+ * using const instead fixes this problem, but as PHP can't interpret concatenated
+ * constant expressions as constant value, STROOT and LOCALROOT need to be defined
+ * in their respective directories, as __DIR__ is a compile time constant.
+ *
+ *
+ *
+ * @package steroid
+ */
+
+
 if ( !isset( $_SERVER[ 'REQUEST_TIME_FLOAT' ] ) ) { // php < 5.4
 	$_SERVER[ 'REQUEST_TIME_FLOAT' ] = microtime( true );
 }
@@ -66,13 +83,9 @@ function run( $argv ) {
 	}
 
 	$storage = getStorage( $conf );
-
-	$conf->setKey( 'storage', 'instance', $storage );
 	
 	// separate storage connection for log so we can have live logging even during transactions
 	$logStorage = getStorage( $conf );
-	
-	$conf->setKey( 'log', 'storage', $logStorage );
 
 	Log::init( $logStorage );
 	set_exception_handler( array( 'Log', 'write' ) );
