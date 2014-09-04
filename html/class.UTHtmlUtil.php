@@ -3,26 +3,13 @@
 * @package steroid\html
 */
 
-require_once STROOT . '/unittest/class.UnitTest.php';
 require_once STROOT . '/html/class.HtmlUtil.php';
 
 /**
 * @package steroid\html
 */
-class UTHtmlUtil extends UnitTest {
-	public static function getAvailableTests() {
-		$tests = array();	
-			
-		for ($i = 0, $len = count(self::$testSetsValid); $i < $len; $i++) {
-			$tests[] = 'isValid-' . $i;
-		}
-		
-		for ($i = 0, $len = count(self::$testSetsFilter); $i < $len; $i++) {
-			$tests[] = 'filter-' . $i;
-		}
-		
-		return $tests;
-	}
+class UTHtmlUtil extends PHPUnit_Framework_TestCase {
+	static $dependencies = array();
 	
 	protected static $testSetsValid = array(
 		array(
@@ -98,6 +85,18 @@ class UTHtmlUtil extends UnitTest {
 			'description' => 'HTML div tag with 2 closing tags, div is allowed'
 		),
 		array(
+			'data' => '<div><span></div>',
+			'allowed' => array( 'div', 'span' ),
+			'expected' => false,
+			'description' => 'HTML span tag not closed correctly'
+		),
+		array(
+			'data' => '<div></span></div>',
+			'allowed' => array( 'div', 'span' ),
+			'expected' => false,
+			'description' => 'HTML span tag not opened correctly'
+		),
+		array(
 			'data' => '<div><div></div>',
 			'allowed' => array( 'div' ),
 			'expected' => false,
@@ -151,33 +150,30 @@ class UTHtmlUtil extends UnitTest {
 		)
 	);
 	
-	public static function executeTest( IStorage $storage, $testName ) {
-		$p = explode('-', $testName);	
-		$testFunc = $p[0];
-		$testNum = $p[1];
-		
-		switch ($testFunc) {
-			case 'isValid':
-				$testSets = self::$testSetsValid;
-				$res = HtmlUtil::isValid($testSets[ $testNum ][ 'data' ], $testSets[ $testNum ][ 'allowed' ]);		
-			break;
-			case 'filter':
-				$testSets = self::$testSetsFilter;
-				$res = HtmlUtil::filter($testSets[ $testNum ][ 'data' ], $testSets[ $testNum ][ 'allowed' ]);
-			break;
-			default:
-				throw new Exception( 'Valid tests: isValid, filter');
-		}
-
-		
-		$result = array(
-			'success' => $res === $testSets[ $testNum ][ 'expected' ],
-			'expected' => $testSets[ $testNum ][ 'expected' ],
-			'actual' => $res,
-			'description' => $testSets[ $testNum ][ 'description' ] . ' ' . HtmlUtil::getAndClearLastInvalidMessage()
+	public function testHTML() {
+		$testSets = array(
+			'valid' => static::$testSetsValid,
+			'filter' => static::$testSetsFilter
 		);
-		
-		return $result;
+
+		foreach($testSets as $type => $set){
+			switch ( $type ) {
+				case 'valid':
+					foreach ( $set as $conf ) {
+						$res = HtmlUtil::isValid( $conf[ 'data' ], $conf[ 'allowed' ] );
+
+						$this->assertEquals($conf['expected'], $res);
+					}
+					break;
+				case 'filter':
+					foreach ( $set as $conf ) {
+						$res = HtmlUtil::filter( $conf[ 'data' ], $conf[ 'allowed' ] );
+
+						$this->assertEquals( $conf[ 'expected' ], $res );
+					}
+					break;
+			}
+		}
 	}
 	
 
