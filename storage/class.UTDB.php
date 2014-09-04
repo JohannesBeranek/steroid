@@ -17,20 +17,7 @@ class UTDB extends PHPUnit_Framework_TestCase {
 			return;
 		}
 
-		$conf = testCommons::getTestingLocalconf();
-
-		$dbConfig = $conf->getSection( 'DB' );
-		$filestoreConfig = $conf->getSection( 'filestore' );
-
-		static::$DB = new DB(
-			$dbConfig[ 'host' ], $dbConfig[ 'username' ], $dbConfig[ 'password' ], $dbConfig[ 'database' ],
-			( $filestoreConfig !== NULL && isset( $filestoreConfig[ 'path' ] ) ) ? $filestoreConfig[ 'path' ] : NULL,
-			isset( $dbConfig[ 'default_engine' ] ) ? $dbConfig[ 'default_engine' ] : NULL,
-			isset( $dbConfig[ 'default_charset' ] ) ? $dbConfig[ 'default_charset' ] : NULL,
-			isset( $dbConfig[ 'default_collation' ] ) ? $dbConfig[ 'default_collation' ] : NULL
-		);
-
-		static::$DB->init();
+		static::$DB = testCommons::getTestingStorage(testCommons::STORAGE_TYPE_DB);
 	}
 
 	public function testCreateTable(){

@@ -30,10 +30,10 @@ if ( function_exists( 'mb_internal_encoding' ) ) {
 // defines LOCALROOT
 require_once WEBROOT . '/' . LOCALDIRNAME . '/localroot.php';
 
-
-
 require_once WEBROOT . '/' . STDIRNAME . '/stroot.php';
 
+
+require_once STROOT . '/util/class.SteroidException.php';
 require_once STROOT . '/exception_error_handler.php';
 
 require_once STROOT . '/util/class.Config.php';
