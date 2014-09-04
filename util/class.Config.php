@@ -128,10 +128,6 @@ class Config {
 		return self::loadNamed( LOCALROOT . '/localconf.ini.php', 'localconf' );
 	}
 	
-	public static function getDefault(){
-		return self::loadNamed( LOCALROOT . '/localconf.ini.php', 'localconf' );
-	}
-	
 	/**
 	 * get config by identifier
 	 * 
