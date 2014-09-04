@@ -54,17 +54,16 @@ class CHUnitTest extends CLIHandler {
 		}
 
 		foreach ( $this->usedClasses as $className ) {
-
 			echo static::COLOR_DESCRIPTION . "\n\n" . 'Executing test class ' . static::COLOR_CLASSNAME . $className . "\n" . static::COLOR_DEFAULT;
 
-			$cmd = escapeshellcmd( STROOT . '/unittest/phpunit.phar' ) . ' --bootstrap ' . escapeshellarg( WEBROOT . '/steroid/unittest/bootstrap.php' );
+			$cmd = escapeshellcmd( STROOT . '/unittest/phpunit.phar' ) . ' --verbose --bootstrap ' . escapeshellarg( WEBROOT . '/steroid/unittest/bootstrap.php' );
 
 			if ( $this->doCoverage ) {
-				$cmd .= ' --coverage-html '. escapeshellarg( STROOT . '/unittest/reports/' . $className );
+				$cmd .= ' --coverage-html '. escapeshellarg( STROOT . '/unittest/reports/' . $className);
 			}
 
 			//TODO: delete existing reports
-			//TODO: generate php reports and merge them into a single html: http://stackoverflow.com/questions/10167775/aggregating-code-coverage-from-several-executions-of-phpunit
+			//TODO: generate php reports and merge them into a single html report:
 
 			$cmd .= ' ' . escapeshellarg( $this->allTestClasses[$className][ 'fullPath' ] );
 
@@ -97,6 +96,33 @@ class CHUnitTest extends CLIHandler {
 
 			echo $out;
 		}
+
+
+		//TODO: get this to work. maybe needs explicit whitelisting in phpunit configuration xml?
+//		if($this->doCoverage){
+//			require_once( STROOT . '/unittest/phpunit.phar');
+//
+//			foreach($this->usedClasses as $className){
+//				$coverage = include STROOT . '/unittest/reports/' . $className;
+//				$report = $coverage->getReport();
+//
+//				var_dump($coverage->getData());
+//
+//				if ( isset( $codeCoverage ) ) {
+//					$codeCoverage->filter()->addFilesToWhitelist( $coverage->filter()->getWhitelist() );
+//					$codeCoverage->merge( $coverage );
+//				} else {
+//					$codeCoverage = $coverage;
+//				}
+//
+//				unset($coverage);
+//			}
+//
+//			$writer = new PHP_CodeCoverage_Report_HTML();
+//
+//			$writer->process( $codeCoverage, STROOT . '/unittest/coverage' );
+//		}
+		// merge reports
 
 		return EXIT_SUCCESS;
 	}
