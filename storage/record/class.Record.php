@@ -1139,7 +1139,19 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			if ( $fieldDefinitions === false ) {
 				$fieldDefinitions = static::getFieldDefinitions();
 
-				$classes = array_merge( self::getRecordClasses(), ClassFinder::getAll( ClassFinder::CLASSTYPE_AUTHENTICATOR, true ) );
+				$classes = self::getRecordClasses();
+
+				$conf = Config::getDefault();
+				$authenticators = $conf->getSection('authenticator');
+
+				foreach($authenticators as $auth => $path){
+					require_once(WEBROOT . '/' . $path);
+
+					if($auth::AUTH_TYPE === User::AUTH_TYPE_BE){
+						$classes[$auth] = $path;
+						break;
+					}
+				}
 
 				foreach ( $classes as $class => $classDefinition ) {
 					$newFields = $class::addToFieldDefinitions( $calledClass, $fieldDefinitions );

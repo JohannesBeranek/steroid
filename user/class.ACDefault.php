@@ -63,7 +63,9 @@ class ACDefault implements IUserAuthentication {
 
 		$ret = array(
 			'record' => $userRecord,
-			'data' => $userRecord->primary
+			'data' => array(
+				'id' => $userRecord->primary
+			)
 		);
 
 		return $ret;
