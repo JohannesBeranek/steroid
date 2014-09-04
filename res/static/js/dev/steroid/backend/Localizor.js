@@ -13,15 +13,15 @@ define([
 				keyModifier = '';
 			}
 
-			if(fieldConf.addedByRC){
-				var foreignClassConf = me.backend.getClassConfigFromClassName(fieldConf.addedByRC);
+			if(fieldConf.addedByClass){
+				var foreignClassConf = me.backend.getClassConfigFromClassName(fieldConf.addedByClass);
 
 				var i18nForeign = foreignClassConf.i18nExt;
 
 				if (i18nForeign && i18nForeign[owningRecordClass] && i18nForeign[owningRecordClass][fieldName + keyModifier]) {
 					label = i18nForeign[owningRecordClass][fieldName + keyModifier];
-				} else if (i18nForeign && i18nForeign[fieldConf.addedByRC] && i18nForeign[fieldConf.addedByRC][fieldName + keyModifier]){
-					label = i18nForeign[fieldConf.addedByRC][fieldName + keyModifier];
+				} else if (i18nForeign && i18nForeign[fieldConf.addedByClass] && i18nForeign[fieldConf.addedByClass][fieldName + keyModifier]){
+					label = i18nForeign[fieldConf.addedByClass][fieldName + keyModifier];
 				}
 			}
 

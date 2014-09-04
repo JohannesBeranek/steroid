@@ -81,8 +81,7 @@ class RCUser extends Record {
 			'zip',
 			'gender',
 			'image',
-			'is_backendAllowed',
-			'disableComments'
+			'is_backendAllowed'
 		);
 	}
 

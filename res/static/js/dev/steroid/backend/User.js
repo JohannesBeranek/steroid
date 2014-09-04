@@ -151,7 +151,10 @@ define([
 				linkElementOverride.setAttribute('href', theme['stylesheet-override']);
 
 				var linkElementOverridePost = document.getElementById('stylesheet-override-post');
-				linkElementOverridePost.parentNode.insertBefore(linkElementOverride, linkElementOverridePost);
+
+				if(linkElementOverridePost){
+					linkElementOverridePost.parentNode.insertBefore(linkElementOverride, linkElementOverridePost);
+				}
 			}
 		},
 		loadProfileEdit: function () {

@@ -65,8 +65,8 @@ define([
 		getFieldLabel: function(fieldName){
 			var me = this;
 
-			if(me.recordConfig.formFields[fieldName].addedByRC){
-				var i18n = me.backend.getClassConfigFromClassName(me.recordConfig.formFields[fieldName].addedByRC).i18nExt;
+			if(me.recordConfig.formFields[fieldName].addedByClass){
+				var i18n = me.backend.getClassConfigFromClassName(me.recordConfig.formFields[fieldName].addedByClass).i18nExt;
 
 				if(i18n && i18n[me.recordConfig.className] && i18n[me.recordConfig.className][fieldName] ){
 					return i18n[me.recordConfig.className][fieldName];

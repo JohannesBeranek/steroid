@@ -184,9 +184,6 @@ class DBInfo {
 		$tx = $this->storage->startTransaction();
 
 		try{
-			$recordsToInsert = array();
-			$summary = array();
-
 			foreach ( $this->recordClassFiles as $idx => $recordClassFile ) {
 				$className = $recordClassFile[ ClassFinder::CLASSFILE_KEY_CLASSNAME ];
 
@@ -195,17 +192,33 @@ class DBInfo {
 				if($records && count($records)){
 					$summary[$className] = count($records);
 
-					$recordsToInsert = array_merge( $recordsToInsert,  $records);	
+				$count = count($records);
+				$done = 0;
+
+				foreach($records as $values){
+					$where = array();
+
+					foreach($values as $fieldName => $value){
+						array_push($where, $fieldName, '=', array($value), 'AND');
+					}
+
+					array_pop($where);
+
+					$rec = $this->storage->selectFirstRecord($className, array('where' => $where), false);
+
+					if($rec){
+						continue;
+					}
+
+					$rec = $className::get($this->storage, $values, false);
+
+					$rec->save();
+
+					$done++;
 				}
-			}
 
-			foreach ( $recordsToInsert as $record ) {
-				$record->save();
-			}
-
-			foreach($summary as $origin => $count){
-				if($count){
-					echo CLIHandler::RESULT_COLOR_SUCCESS . "Inserted " . $count . " records by class " . $origin . "\n";
+				if ( $count ) {
+					echo CLIHandler::RESULT_COLOR_SUCCESS . "Inserted " . $done . " and skipped " . $count . " already existing records by class " . $className . "\n";
 				}
 			}
 
