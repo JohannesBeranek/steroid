@@ -178,6 +178,11 @@ class SteroidInstaller {
 		require_once STROOT . '/base.php';
 		
 		self::$conf = Config::getDefault();
+		
+		if(empty(self::$conf->getKey('DB', 'database'))){
+			echo "No database configured, aborting!\n";
+			exit;
+		}
 
 		self::$storage = getStorage( self::$conf );
 		self::$storage->init();
