@@ -23,6 +23,7 @@
 	if ( isset( $theme[ 'stylesheet-override' ] ) ): ?>
 		<link id="stylesheet-override" rel="stylesheet" href="<?= htmlspecialchars( $theme[ 'stylesheet-override' ], ENT_COMPAT, "UTF-8" ) ?>" media="screen">
 	<? endif; ?>
+	<link id="stylesheet-override-post" rel="stylesheet" href="/res?file=/stlocal/res/css/headings.css" media="screen"><? // TODO: project specific! ?>
 
 	<? if ( isset( $this->config[ 'customCSSPaths' ] ) ):
 		foreach ( $this->config[ 'customCSSPaths' ] as $path ): ?>

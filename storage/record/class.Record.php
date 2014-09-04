@@ -136,6 +136,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	private static $recordClasses;
 
 	private static $saveOriginRecord;
+	private static $copyOriginRecord;
 	private static $saveValueLock;
 	private static $notifyOnSaveComplete;
 
@@ -2874,26 +2875,26 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	public function copy( array $changes, array &$missingReferences, array &$originRecords = NULL, array &$copiedRecords = NULL, array $skipFields = NULL, array &$originValues = NULL, $originFieldName = NULL ) {
 		$isEntryPoint = !$this->isCopying;
 
-		if ( $isEntryPoint && self::$copyOriginRecord === NULL ) {
-			self::$copyOriginRecord = $this;
-			$recordsToBeCopied = array( $this );
-
-			$this->getFormRecords( $recordsToBeCopied, array_keys( $this->getFormFields( $this->storage ) ) );
-
-			foreach ( $recordsToBeCopied as $record ) {
-				$record->setMeta( 'doCopy', true );
-				$record->readOnly = true;
-			}
-		}
-
-		if ( self::$copyOriginRecord !== $this && !$this->getMeta( 'doCopy' ) ) {
-			$copiedRecord = $this->getFamilyMember( $changes );
-
-			if ( $copiedRecord->exists() ) {
-				$this->copiedRecord = $copiedRecord;
-				return $this->copiedRecord;
-			}
-		}
+//		if ( $isEntryPoint && self::$copyOriginRecord === NULL ) {
+//			self::$copyOriginRecord = $this;
+//			$recordsToBeCopied = array( $this );
+//
+//			$this->getFormRecords( $recordsToBeCopied, array_keys( $this->getFormFields( $this->storage ) ) );
+//
+//			foreach ( $recordsToBeCopied as $record ) {
+//				$record->setMeta( 'doCopy', true );
+//				$record->readOnly = true;
+//			}
+//		}
+//
+//		if ( self::$copyOriginRecord !== $this && !$this->getMeta( 'doCopy' ) ) {
+//			$copiedRecord = $this->getFamilyMember( $changes );
+//
+//			if ( $copiedRecord->exists() ) {
+//				$this->copiedRecord = $copiedRecord;
+//				return $this->copiedRecord;
+//			}
+//		}
 
 		if ( !$this->isCopying ) {
 			$this->copiedIdentityValues = array();
