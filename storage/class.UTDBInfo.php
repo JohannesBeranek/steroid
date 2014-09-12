@@ -9,7 +9,7 @@ class UTDBInfo extends PHPUnit_Framework_TestCase {
 	protected $storage;
 
 	public function testCreateTestRecordTable() {
-		$this->storage = testCommons::getTestingStorage('RBStorage');
+		$this->storage = testCommons::getTestingStorage( testCommons::STORAGE_TYPE_RBSTORAGE );
 
 		$testClass = ClassFinder::find( array( 'RTTest' ), true );
 
