@@ -31,9 +31,28 @@ class STCLI extends ST {
 	public function __construct( Config $conf, IRBStorage $storage, array $args ) {
 		parent::__construct($conf, $storage);
 		
+		
 		$this->called = array_shift( $args );
+		
+		$this->parseGlobalParams( $args );
+			
+		
 		$this->command = array_shift( $args );
 		$this->params = $args;
+	}
+	
+	final private function parseGlobalParams( array &$args ) {
+		while( $args ) {
+			switch ( $args[0] ) {
+				// some php versions have faulty gc implementations
+				case '--gc-disable':
+					gc_disable();		
+					array_shift($args);	
+				break;
+				default:
+					return;
+			}
+		}
 	}
 	
 	/**
