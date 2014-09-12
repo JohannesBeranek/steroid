@@ -69,9 +69,9 @@ class DTParentReference extends BaseDTRecordReference {
 	}
 
 	protected function _setValue( $data, $loaded, $skipRaw = false, $skipReal = false ) {
-		if(($data instanceof IRecord && $data === $this->record)
+		if($this->record->exists() && (($data instanceof IRecord && $data === $this->record)
 		|| ( ( is_string( $data ) || is_int( $data ) ) && $this->record->{Record::FIELDNAME_PRIMARY} == $data)
-		|| ( is_array( $data ) && $data[ Record::FIELDNAME_PRIMARY ] == $this->record->{Record::FIELDNAME_PRIMARY}) ){
+		|| ( is_array( $data ) && $data[ Record::FIELDNAME_PRIMARY ] == $this->record->{Record::FIELDNAME_PRIMARY}) )){
 			throw new ParentOfItselfException('Record cannot be parent of itself');
 		}
 

@@ -1,6 +1,7 @@
 <?php
 
 require_once STROOT . '/util/class.Config.php';
+require_once STROOT . '/storage/class.DBInfo.php';
 
 class testCommons {
 	const DATABASE = 'steroid_testing';
@@ -48,5 +49,15 @@ class testCommons {
 		$DB->init();
 
 		return $DB;
+	}
+
+	public static function updateTestRecordTables(RBStorage $storage, $recordClasses = array()){
+		if(empty($recordClasses)){
+			$recordClasses = ClassFinder::getAll('RT', true);
+		}
+
+		$dbInfo = new DBInfo( $storage, $recordClasses );
+
+		return $dbInfo->execute( true, true, true, false, false, true );
 	}
 }

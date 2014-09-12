@@ -18,6 +18,8 @@ class UTDB extends PHPUnit_Framework_TestCase {
 		}
 
 		static::$DB = testCommons::getTestingStorage(testCommons::STORAGE_TYPE_DB);
+
+		$this->dropAllTables();
 	}
 
 	public function testCreateTable(){
@@ -60,6 +62,14 @@ class UTDB extends PHPUnit_Framework_TestCase {
 
 
 	// HELPER METHODS
+	public function dropAllTables(){
+		$tables = $this->getTables();
+
+		foreach($tables as $table){
+			static::$DB->dropTable($table[ 'TABLE_NAME' ]);
+		}
+	}
+
 	public function createTestTable( ){
 		$colDef = new columnDefinition();
 		$keyDef = new keyDefinition();

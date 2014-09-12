@@ -9,6 +9,8 @@ require_once STROOT . '/storage/class.DBColumnDefinition.php';
 require_once STROOT . '/storage/class.DBKeyDefinition.php';
 require_once STROOT . '/util/class.ClassFinder.php';
 
+require_once STROOT . '/clihandler/class.CLIHandler.php';
+
 require_once STROOT . '/util/class.Debug.php';
 
 /**
@@ -175,6 +177,8 @@ class DBInfo {
 		if($this->insertStatic){
 			$this->insertStatic();
 		}
+
+		return $summary;
 	}
 
 	protected function insertStatic(){
