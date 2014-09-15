@@ -16,7 +16,10 @@ require_once STROOT . '/storage/record/interface.IRecordHookAfterDelete.php';
  */
 class CHDomainGroup extends CLIHandler implements IRecordHookAfterDelete {
 	public function performCommand( $called, $command, array $params ) {
-
+		if (count($params) < 1) {
+			$this->notifyError( $this->getUsageText( $called, $command, $params ) );
+			return EXIT_FAILURE;
+		}
 		
 		switch ($params[0]) {
 			case 'list':
@@ -55,7 +58,7 @@ class CHDomainGroup extends CLIHandler implements IRecordHookAfterDelete {
 		return $this->formatUsageArguments( array(
 			ST::PRODUCT_NAME . ' ' . $command . ' command' => array(
 				'usage:' => array(
-					'php ' . $called . ' COMMAND',
+					'php ' . $called . ' ' . $command . ' COMMAND' => '',
 					'available commands' => array(
 						'list' => 'list available domainGroups with primary and title',
 						'delete DOMAINGROUP_PRIMARY [DOMAINGROUP_PRIMARY ...]' => 'delete specified domaingroup'
@@ -123,6 +126,6 @@ class CHDomainGroup extends CLIHandler implements IRecordHookAfterDelete {
 	public function recordHookAfterDelete( IRBStorage $storage, IRecord $record, array &$basket = NULL ) {
 		$this->recordsDeleted ++;
 		
-		echo "\r " . str_pad(str_repeat(".", $this->recordsDeleted % 4), 5, " ", STR_PAD_RIGHT) . $this->recordsDeleted . " Records deleted";
+		echo "\r" . str_pad(str_repeat(".", $this->recordsDeleted % 5), 5, " ", STR_PAD_RIGHT) . $this->recordsDeleted . " Records deleted";
 	}
 }

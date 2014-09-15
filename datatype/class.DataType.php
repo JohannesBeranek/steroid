@@ -79,6 +79,12 @@ abstract class DataType implements IDataType {
 		$this->config = $config;
 		$this->storage = & $storage;
 	}
+	
+	public function cleanup() {
+		$this->record = NULL;
+		$this->values = NULL;
+		$this->storage = NULL;
+	}
 
 	public static function getDefaultValue( IStorage $storage, $fieldName = NULL, array $fieldConf = NULL, array $extraParams = NULL ) {
 		if ( empty( $fieldConf ) ) {
