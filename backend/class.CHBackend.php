@@ -14,6 +14,7 @@ require_once STROOT . '/url/class.RCUrl.php';
 require_once STROOT . '/language/class.RCLanguage.php';
 
 require_once STROOT . '/user/class.CHUser.php';
+require_once STROOT . '/datatype/class.DTPassword.php';
 
 /**
  * 

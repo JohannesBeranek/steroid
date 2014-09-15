@@ -153,7 +153,7 @@ define([
 						}
 
 						data.requestType = 'login';
-						data.login = me.config.login.class; // FIXME: move out of core!
+						data.login = me.config.login.class;
 
 
 						var conf = {

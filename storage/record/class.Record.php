@@ -165,6 +165,15 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 	/** @var IRecordHookAfterStartTransaction[] */
 	private static $hookAfterStartTransaction = array();
+	
+	/*
+	 * Used to determine how often 
+	 * gc_collect_cycles should be called
+	 * after a record has been deleted
+	 */
+	public static $runGCCollectCyclesAfterRecordsDeletedNum = 100;
+	
+	private static $recordsDeletedSinceLastGCCollectCycles = 0; 
 
 	/**
 	 * Shouldn't ever be directly accessed unless you REALLY REALLY know what you're doing
@@ -226,6 +235,28 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	public static $currentSavePath;
 
 	public $path;
+
+	/**
+	 * cleans up to prepare for garbage collection
+	 */
+	protected function cleanup() {
+		// correct internal state (loadedFields, values, etc)
+		foreach ( $this->fields as $field ) {
+			$field->cleanup();
+		}
+		
+			
+		$this->values = array();
+		$this->valuesLastLoaded = array();
+		
+		$this->metaData = NULL;
+					
+					
+		// disconnect fields
+		$this->fields = array();
+		
+		$this->storage = NULL;
+	}
 
 	public static function addHook( $object, $hookType, $recordClasses = NULL ) {
 		$hookTypes = (array)$hookType;
@@ -2752,17 +2783,20 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	protected function getBeforeDeleteFields() {
 		return array_keys( $this->fields );
 	}
+	
+
 
 	/**
 	 * called after the record has been deleted, calls afterDelete() on each of its fields
 	 */
 	protected function afterDelete( array &$basket = NULL ) {
-		// TODO: correct internal state (loadedFields, values, etc)
 		foreach ( $this->fields as $field ) {
 			$field->afterDelete( $basket );
 		}
 
-		// FIXME: remove from index 
+
+		
+		
 		// FIXME: move hooks to own function to make it easier to correctly override this function
 
 		// @Hook: after delete
@@ -2777,6 +2811,28 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 				$hook->recordHookAfterDelete( $this->storage, $this, $basket );
 			}
 		}
+		
+		
+		// cleanup
+		if (!$basket) {
+			// remove from index 		
+			$this->removeFromIndex();
+			
+
+			
+			$this->cleanup();
+			
+			// free mem every so often
+			self::$recordsDeletedSinceLastGCCollectCycles++; 
+		
+			if ( self::$recordsDeletedSinceLastGCCollectCycles >= self::$runGCCollectCyclesAfterRecordsDeletedNum ) {
+				gc_collect_cycles();
+				self::$recordsDeletedSinceLastGCCollectCycles = 0;
+			}
+
+		}
+		
+
 	}
 
 	public function getTitle() {
@@ -3153,7 +3209,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		}
 	}
 
-	public static function getStaticRecords( IRBStorage $storage ) {
+	public static function getStaticRecords( RBStorage $storage ) {
 		return array();
 	}
 

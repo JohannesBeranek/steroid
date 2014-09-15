@@ -26,7 +26,7 @@ interface IUserAuthentication {
 	public function setStorage( IStorage $storage );
 	
 	public function initWithData( $data );
-
+	
 	public static function addToFieldDefinitions( $recordClass, array $existingFieldDefinitions );
 }
 

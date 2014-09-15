@@ -31,9 +31,37 @@ class STCLI extends ST {
 	public function __construct( Config $conf, IRBStorage $storage, array $args ) {
 		parent::__construct($conf, $storage);
 		
+		
 		$this->called = array_shift( $args );
+		
+		$this->parseGlobalParams( $args );
+			
+		
 		$this->command = array_shift( $args );
 		$this->params = $args;
+	}
+	
+	final private function parseGlobalParams( array &$args ) {
+		while( $args ) {
+			switch ( $args[0] ) {
+				// some php versions have faulty gc implementations
+				case '--gc-disable':
+					gc_disable();		
+					array_shift($args);	
+					echo "gc_disabe()\n";
+				break;
+				case '--mem-limit':
+					array_shift($args);
+					if ( is_numeric($args[0]) ) {
+						$memLimit = array_shift($args);
+						ini_set('memory_limit', $memLimit);
+						echo "ini_set('memory_limit', " . $memLimit . ")\n";
+					}
+				break;
+				default:
+					return;
+			}
+		}
 	}
 	
 	/**

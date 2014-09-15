@@ -24,6 +24,8 @@ class SteroidInstaller {
 
 	public static function install() {
 		echo "Starting Steroid installer\n";
+		
+		umask(0002);
 
 		self::createDirectories();
 		self::copyTemplates();
@@ -51,11 +53,7 @@ class SteroidInstaller {
 
 		echo "Do you want to create a new admin user? (y/n): ";
 
-		$fr = fopen( "php://stdin", "r" );
-
-		$input = fgets( $fr, 128 );
-		$confirm = trim( $input );
-		fclose( $fr );
+		$confirm = self::getInput();
 
 		if($confirm == 'n'){
 			return;
@@ -69,19 +67,11 @@ class SteroidInstaller {
 
 		echo "Please enter the first name for the admin account (defaults to username): ";
 
-		$fr = fopen( "php://stdin", "r" );
-
-		$input = fgets( $fr, 128 );
-		$firstname = trim( $input ) ? : NULL;
-		fclose( $fr );
+		$firstname = self::getInput();
 
 		echo "Please enter the last name for the admin account (defaults to username): ";
 
-		$fr = fopen( "php://stdin", "r" );
-
-		$input = fgets( $fr, 128 );
-		$lastname = trim( $input ) ? : NULL;
-		fclose( $fr );
+		$lastname = self::getInput();
 
 		$password = static::askForPassword();
 
@@ -95,11 +85,7 @@ class SteroidInstaller {
 	protected static function askForUsername() {
 		echo "Please enter a username for the admin account (default admin): ";
 
-		$fr = fopen( "php://stdin", "r" );
-
-		$input = fgets( $fr, 128 );
-		$username = trim( $input );
-		fclose( $fr );
+		$username = self::getInput();
 
 		if ( empty( $username ) ) {
 			$username = 'admin';
@@ -118,11 +104,7 @@ class SteroidInstaller {
 	protected static function askForPassword() {
 		echo "Please enter a password for the admin account: ";
 
-		$fr = fopen( "php://stdin", "r" );
-
-		$input = fgets( $fr, 128 );
-		$password = trim( $input );
-		fclose( $fr );
+		$password = self::getInput();
 
 		if ( empty( $password ) ) {
 			static::askForPassword();
@@ -132,6 +114,7 @@ class SteroidInstaller {
 	}
 
 	protected static function createBackendUrl() {
+		require_once STROOT . '/domaingroup/class.RCDomainGroup.php';
 		require_once STROOT . '/datatype/class.DTSteroidReturnCode.php';
 
 		$domainGroup = self::$storage->selectFirstRecord( 'RCDomainGroup', array( 'where' => array( 'parent', '=', NULL ) ), false );
@@ -146,11 +129,7 @@ class SteroidInstaller {
 				echo ' with primary domain ' . $domain->domain . ". Do you want to create a new one? (y/n): ";
 			}
 
-			$fr = fopen( "php://stdin", "r" );
-
-			$input = fgets( $fr, 128 );
-			$confirm = trim( $input );
-			fclose( $fr );
+			$confirm = self::getInput();
 
 			if ( $confirm == 'n' ) {
 				$createUrl = false;
@@ -165,11 +144,7 @@ class SteroidInstaller {
 
 			echo "Please enter the primary domain including backend url for this installation (e.g. http://your.doma.in/backend): ";
 
-			$fr = fopen( "php://stdin", "r" );
-
-			$input = fgets( $fr, 128 );
-			$input = trim( $input );
-			fclose( $fr );
+			$input = self::getInput();
 
 			$CHBackend->createUrl( parse_url( $input ) );
 
@@ -178,6 +153,14 @@ class SteroidInstaller {
 	}
 
 	protected static function checkDatabase() {
+		echo "Perform database synchronisation? (y/n): \n";
+		
+		$input = self::getInput();
+		
+		if($input == 'n'){
+			return;
+		}
+		
 		echo "Updating database\n";
 
 		require_once STROOT . '/storage/class.DBInfo.php';
@@ -193,22 +176,23 @@ class SteroidInstaller {
 
 	protected static function setupLocalconf() {
 		require_once STROOT . '/base.php';
-
+		
 		self::$conf = Config::getDefault();
+		
+		if(empty(self::$conf->getKey('DB', 'database'))){
+			echo "No database configured, aborting!\n";
+			exit;
+		}
 
 		self::$storage = getStorage( self::$conf );
 		self::$storage->init();
-		//TODO
+		
 		return;
 
 		echo "Setting up local database\n\n";
 		echo "Enter host name or leave empty for default ('localhost'): ";
 
-		$fr = fopen( "php://stdin", "r" );
-
-		$input = fgets( $fr, 128 );
-		$input = trim( $input );
-		fclose( $fr );
+		$input = self::getInput();
 
 		if ( $input == '' ) {
 			$input = 'localhost';
@@ -221,7 +205,7 @@ class SteroidInstaller {
 		echo "\nCreating directories\n";
 
 		foreach ( self::$directories as $dir ) {
-			if ( is_dir( __DIR__ . $dir ) && is_writable( __DIR__ . $dir ) ) {
+			if ( is_dir( __DIR__ . $dir )) {
 				echo "Directory already exists: " . __DIR__ . $dir . "\n";
 
 				self::ensurePermissions( $dir );
@@ -244,7 +228,7 @@ class SteroidInstaller {
 			throw new Exception( 'No path specified' );
 		}
 
-		if ( chmod( __DIR__ . $path, 0755 ) ) {
+		if ( chown( __DIR__ . $path, posix_getuid() ) ) {
 			echo "Path " . __DIR__ . $path . " is writable\n";
 		} else {
 			echo "Path " . __DIR__ . $path . " is NOT writable, aborting\n";
@@ -290,6 +274,16 @@ class SteroidInstaller {
 			echo "Failed! Please check that the Steroid core files are complete and readable\n";
 			exit;
 		}
+	}
+	
+	protected static function getInput(){
+		$fr = fopen( "php://stdin", "r" );
+
+		$input = fgets( $fr, 128 );
+		$input = trim( $input );
+		fclose( $fr );
+		
+		return $input;
 	}
 }
 

@@ -24,7 +24,7 @@ class Config {
 	 * Write current file content with possibly updated values
 	 */
 	public function write( $filename ) {
-		File::putContents( $filename, $contents );
+		File::putContents( $filename, $this->fileContent );
 	}
 	
 	public function refresh() {
@@ -37,8 +37,70 @@ class Config {
 		return array_key_exists( $section, $this->conf ) ? $this->conf[ $section ] : NULL;
 	}
 	
-	public function setKey( $section, $key, $value ) {		
+	final private function escapeValueForIni( $value ) {
+		if (is_bool($value)) {
+			$value = $value ? 'true' : 'false';
+		} else if (is_numeric($value)) {
+			$value = (string)$value;
+		} else if (is_string($value)) {
+			$value = '"' . $value . '"';
+		} else {
+			throw new Exception( 'Unable to escape value for ini file writing: ' . var_export($value) );
+		}
+		
+		return $value;
+	}
+	
+	final private function getKeyLineString( $key, $value ) {
+		if ( is_array( $value ) ) {
+			$keyParts = array();
+			
+			foreach ($value as $val) {
+				$keyParts[] = $key . "[] = " . $this->escapeValueForIni( $val );			
+			}
+			
+			$keyString = implode( "\n", $keyParts );
+		} else {
+			$keyString = $key . " = " . $this->escapeValueForIni( $value );
+		}
+		
+		return $keyString;
+	}
+	
+	public function setKey( $section, $key, $value ) {
 		$this->conf[ $section ][ $key ] = $value;
+		
+		
+		$sectionString = '[' . $section . ']';
+		$sectionPos = strpos( $this->fileContent, $sectionString );
+		
+		if ( $sectionPos === false ) {
+			$this->fileContent .= "\n\n" . $sectionString . "\n" . $this->getKeyLineString( $key, $value );
+		} else {
+			// commented section
+			if ( $sectionPos > 0 && $this->fileContent[$sectionPos - 1] === ';') {
+				// remove ';'
+				$this->fileContent = substr( $this->fileContent, 0, $sectionPos - 1 ) . substr( $this->fileContent, $sectionPos + strlen( $sectionString ) );
+			}
+			
+			// find next section 
+			$nextSectionPosition = strpos( $this->fileContent, "\n[", $sectionPos + strlen( $sectionString ) );
+			
+			if ($nextSectionPosition === false) {				
+				$workOn =& $this->fileContent;				
+			} else {
+				$startPos = $sectionPos + strlen( $sectionString );
+				$sectionContent = substr( $this->fileContent, $startPos, $nextSectionPosition - $startPos );
+				
+				$workOn =& $sectionContent;
+			}
+
+			// try to find key
+			$keyExists = preg_match( "/^" . preg_quote($key, "/") . "(\[[^\]]*\])\s*=.*$/", $this->fileContent, $matches, PREG_OFFSET_CAPTURE, $sectionPos + strlen( $sectionString ) );
+			
+			
+			// TODO
+		}
 	}
 	
 	public function getKey( $section, $key ) {

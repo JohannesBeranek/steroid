@@ -188,6 +188,9 @@ class DBInfo {
 				$className = $recordClassFile[ ClassFinder::CLASSFILE_KEY_CLASSNAME ];
 
 				$records = $className::getStaticRecords( $this->storage );
+				
+				if($records && count($records)){
+					$summary[$className] = count($records);
 
 				$count = count($records);
 				$done = 0;
