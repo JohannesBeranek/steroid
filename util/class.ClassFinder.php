@@ -25,6 +25,8 @@ class ClassFinder {
 	protected static $classes = array();
 	protected static $required = array();
 
+	public static $ignoreLocal = false;
+
 	protected static $cache;
 
 	public static function clearCache() {
@@ -160,7 +162,11 @@ class ClassFinder {
 
 	protected static function getFiles( $regex, $include = NULL, $exclude = NULL ) {
 		if ( $include === NULL ) {
-			$include = array( STROOT, LOCALROOT );
+			$include = array( STROOT );
+		}
+
+		if(!static::$ignoreLocal){
+			$include[] = LOCALROOT;
 		}
 
 		if ( $exclude === NULL ) {

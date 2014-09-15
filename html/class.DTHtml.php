@@ -50,9 +50,9 @@ class DTHtml extends BaseDTText {
 	}
 
 	public function setValue( $data = NULL, $loaded = false ) {
-		if ( ( $this->config[ 'allowed' ] !== true ) && ( !HtmlUtil::isValid( $data, $this->config[ 'allowed' ] ) ) ) {
-			throw new InvalidValueForFieldException( 'Invalid data, message: ' . HtmlUtil::getLastInvalidMessage() );
-		}
+//		if (!$loaded && ($this->config[ 'allowed' ] !== true  &&  !HtmlUtil::isValid( $data, $this->config[ 'allowed' ] ) ) ) {
+//			throw new InvalidValueForFieldException( 'Invalid data, message: ' . HtmlUtil::getLastInvalidMessage() );
+//		}
 
 		parent::setValue( $data, $loaded );
 	}

@@ -149,11 +149,61 @@ class UTHtmlUtil extends PHPUnit_Framework_TestCase {
 			'description' => 'Empty div tag, div not allowed'
 		)
 	);
+
+	protected static $testSetsRepair = array(
+		array(
+			'data' => '<div><div></div>',
+			'allowed' => array( 'div' ),
+			'expected' => false,
+			'description' => 'HTML div tag with 2 opening, and 1 closing tag, div is allowed'
+		),
+		array(
+			'data' => '<div></span></div>',
+			'allowed' => array( 'div', 'span' ),
+			'expected' => false,
+			'description' => 'HTML span tag not opened correctly'
+		),
+		array(
+			'data' => '<div><span></div>',
+			'allowed' => array( 'div', 'span' ),
+			'expected' => false,
+			'description' => 'HTML span tag not closed correctly'
+		),
+		array(
+			'data' => '<div></div></div>',
+			'allowed' => array( 'div' ),
+			'expected' => false,
+			'description' => 'HTML div tag with 2 closing tags, div is allowed'
+		),
+		array(
+			'data' => '<div>',
+			'allowed' => array( 'div' ),
+			'expected' => false,
+			'description' => 'HTML div tag without "/" and without closing tag, div is allowed'
+		),
+		array(
+			'data' => '</br>',
+			'allowed' => array( 'br' => null ),
+			'expected' => false,
+			'description' => 'HTML br closing tag without opening tag, br is allowed'
+		),
+	);
+
+	protected static $testSetHtrunc = array(
+		array(
+			'data' => '<b>Landesrätin</b><br><br>Sprecherin der Grünen Frauen Tirol <a href=\"http://frauen.tirol.gruene.at \">frauen.tirol.gruene.at</a>&nbsp;<br><a href=\"PageRecord 67109634\"><b>Biografie und Infos</b>&nbsp;</a><a href=\"mailto:christine.baur@gruene.at\">christine.baur@gruene.at</a>​',
+			'allowed' => array('b', 'br', 'a' => array('href') ),
+			'expected' => 255,
+			'description' => 'HTML longer than 255 characters should be truncated to shorter than 255'
+		)
+	);
 	
 	public function testHTML() {
 		$testSets = array(
 			'valid' => static::$testSetsValid,
-			'filter' => static::$testSetsFilter
+			'filter' => static::$testSetsFilter,
+			'repair' => static::$testSetsRepair,
+			'htrunc' => static::$testSetHtrunc
 		);
 
 		foreach($testSets as $type => $set){
@@ -170,6 +220,27 @@ class UTHtmlUtil extends PHPUnit_Framework_TestCase {
 						$res = HtmlUtil::filter( $conf[ 'data' ], $conf[ 'allowed' ] );
 
 						$this->assertEquals( $conf[ 'expected' ], $res );
+					}
+					break;
+				case 'repair':
+					foreach ( $set as $conf ) {
+						$res = HtmlUtil::repair( $conf[ 'data' ] );
+
+						$isValid = HtmlUtil::isValid( $res, $conf[ 'allowed' ] );
+
+						if ( !$isValid ) {
+							echo HtmlUtil::getLastInvalidMessage();
+						}
+
+						$this->assertEquals( true, $isValid );
+					}
+
+					break;
+				case 'htrunc':
+					foreach($set as $conf){
+						$res = HtmlUtil::htrunc($conf['data'], $conf['expected']);
+
+						$this->assertLessThanOrEqual($conf['expected'], mb_strlen($res, 'utf-8'));
 					}
 					break;
 			}
