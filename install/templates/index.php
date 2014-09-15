@@ -1,23 +1,16 @@
 <?php
-
-
 /**
- * @var string
+ * Entry point
+ *
+ * Depending on php_sapi_name() either STCLI or STWeb is instanced and run.
+ *
+ *
+ * @package steroid
  */
-const WEBROOT = __DIR__;
 
-/**
- * @var string
- */
-const STDIRNAME = 'steroid';
+require_once __DIR__ . '/pathdefines.php';
 
-/**
- * @var string
- */
-const LOCALDIRNAME = 'stlocal';
- 
-
-require_once __DIR__ . '/' . STDIRNAME . '/base.php';
+require_once WEBROOT . '/' . STDIRNAME . '/base.php';
 
 $returnCode = run( isset( $argv ) ? $argv : NULL );
 

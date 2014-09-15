@@ -24,15 +24,6 @@ if ( function_exists( 'mb_internal_encoding' ) ) {
 	mb_internal_encoding( 'UTF-8' );
 }
 
-
-
-
-// defines LOCALROOT
-require_once WEBROOT . '/' . LOCALDIRNAME . '/localroot.php';
-
-require_once WEBROOT . '/' . STDIRNAME . '/stroot.php';
-
-
 require_once STROOT . '/util/class.SteroidException.php';
 require_once STROOT . '/exception_error_handler.php';
 
@@ -84,12 +75,8 @@ function run( $argv ) {
 
 	$storage = getStorage( $conf );
 
-	$conf->setKey( 'storage', 'instance', $storage );
-	
 	// separate storage connection for log so we can have live logging even during transactions
 	$logStorage = getStorage( $conf );
-	
-	$conf->setKey( 'log', 'storage', $logStorage );
 
 	Log::init( $logStorage );
 	set_exception_handler( array( 'Log', 'write' ) );
