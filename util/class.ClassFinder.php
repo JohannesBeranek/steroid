@@ -16,6 +16,7 @@ class ClassFinder {
 	const CLASSTYPE_LOGIN_EXTENSION = 'LE'; // BACKEND login extensions only!
 	const CLASSTYPE_EMAIL_PROVIDER = 'EP';
 	const CLASSTYPE_AUTHENTICATOR = 'AC';
+	const CLASSTYPE_TESTRECORD = 'RT';
 
 	const CLASSFILE_KEY_FULLPATH = 'fullPath';
 	const CLASSFILE_KEY_FILENAME = 'fileName';
@@ -23,6 +24,8 @@ class ClassFinder {
 
 	protected static $classes = array();
 	protected static $required = array();
+
+	public static $ignoreLocal = false;
 
 	protected static $cache;
 
@@ -159,7 +162,11 @@ class ClassFinder {
 
 	protected static function getFiles( $regex, $include = NULL, $exclude = NULL ) {
 		if ( $include === NULL ) {
-			$include = array( STROOT, LOCALROOT );
+			$include = array( STROOT );
+		}
+
+		if(!static::$ignoreLocal){
+			$include[] = LOCALROOT;
 		}
 
 		if ( $exclude === NULL ) {

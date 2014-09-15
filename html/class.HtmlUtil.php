@@ -277,17 +277,27 @@ class HtmlUtil {
 		return (string)$html;
 	}
 
+	// FIXME: make sure html entities aren't truncated
+	// TODO: visual vs actual count (e.g. how to count html entities)
+	public static function htrunc( $string, $chars, $inWord = false, $killBreaks = false, $linkTarget = NULL, $countTags = false, $linkImages = true, $appendix = NULL ) {
+		if ($appendix === NULL) {
+			$appendix = ' &hellip;';
+		}
 
-	public static function htrunc( $string, $chars, $inWord = false, $killBreaks = false, $linkTarget = null ) {
-		$ret = preg_replace( '/<img [^>]*src="([^"]*)"[^>]*>/', '<a href="$1">$1</a>', $string );
+		if ($linkImages) {
+			// convert images into links
+			$ret = preg_replace( '/<img [^>]*src="([^"]*)"[^>]*>/u', '<a href="$1">$1</a>', $string );
+		} else {
+			$ret = $string;
+		}
 
 		if ( $linkTarget !== null ) {
 			if ( $linkTarget === true ) {
-				$ret = preg_replace( '/<a [^>]*href="([^"]*)"[^>]*target="([^"]*)">/', '<a href="$1" target="$2">', $ret );
-				$ret = preg_replace( '/<a [^>]*target="([^"]*)"[^>]*href="([^"]*)">/', '<a href="$2" target="$1">', $ret );
+				$ret = preg_replace( '/<a [^>]*href="([^"]*)"[^>]*target="([^"]*)">/u', '<a href="$1" target="$2">', $ret );
+				$ret = preg_replace( '/<a [^>]*target="([^"]*)"[^>]*href="([^"]*)">/u', '<a href="$2" target="$1">', $ret );
 				// TODO: fix a tags without target attribute
 			} else {
-				$ret = preg_replace( '/<a [^>]*href="([^"]*)"[^>]*>/', '<a href="$1" target="' . $linkTarget . '">', $ret );
+				$ret = preg_replace( '/<a [^>]*href="([^"]*)"[^>]*>/u', '<a href="$1" target="' . $linkTarget . '">', $ret );
 			}
 		}
 
@@ -297,7 +307,7 @@ class HtmlUtil {
 			$allowedTags[ ] = 'br';
 		}
 
-		$ret = preg_replace_callback( '/<\/?([^ >\/]+).*?>/', function( $matches ) use ( $allowedTags ) {
+		$ret = preg_replace_callback( '/<\/?([^ >\/]+)\S*?>/u', function( $matches ) use ( $allowedTags ) {
 			$tag = strtolower( $matches[ 1 ] );
 
 			if ( in_array( $tag, $allowedTags ) ) {
@@ -311,46 +321,89 @@ class HtmlUtil {
 		$ret = preg_replace( '/<([^ >]+).*?>\s*<\/\1>/', '', $ret );
 
 		$tagStack = array();
-		$len = strlen( $ret );
+		$len = mb_strlen( $ret );
+
+		// short circuit
+		// also prevents ($i - 1) < 0
+		if ($len === 0) {
+			return $ret;
+		}
+
+		if ( $countTags ) {
+			$lastChar = $chars - 1;
+		}
+
 		$c = 0;
 
 		for ( $i = 0; $i < $len; $i++ ) {
-			if ( $ret[ $i ] == '<' ) { // skip tag
-				if ( $ret[ $i + 1 ] == '/' ) {
+			if ( mb_substr($ret, $i, 1) === '<' ) { // skip tag
+				$tagStart = $i;
+
+				if ( mb_substr($ret, $i + 1, 1)  === '/' ) {
+					// closing tag
 					array_pop( $tagStack );
+
+					$isEndTag = true;
 				} else {
-					preg_match( '/([^ \/>]+)[^\/>]*(\/>|>)/', $ret, $m, PREG_OFFSET_CAPTURE, $i + 1 );
-					if ( $m[ 2 ][ 0 ] != '/>' ) {
+					// opening tag
+					preg_match( '/([^ \/>]+)[^\/>]*(\/>|>)/u', $ret, $m, PREG_OFFSET_CAPTURE, $i + 1 );
+					if ( $m[ 2 ][ 0 ] !== '/>' ) {
 						$tag = $m[ 1 ][ 0 ];
 
-						$tagStack[ ] = $tag;
+						if (!in_array(strtolower($tag), self::$htmlTagsNeedNoClose, true)) {
+
+							$tagStack[ ] = $tag;
+
+							if ( $countTags ) {
+								$lastChar -= 3 + mb_strlen($tag); // 3 chars for "</...>"
+							}
+						}
+					}
+
+					$isEndTag = false;
+				}
+
+				$i = mb_strpos( $ret, '>', $i + 1 );
+
+
+				if ( $countTags ) {
+					if ( $isEndTag ) {
+						$lastChar += $i - $tagStart + 1;
+					}
+
+					if ( $i >= ( $lastChar ) ) {
+						break;
 					}
 				}
 
-				$i = strpos( $ret, '>', $i + 1 );
 				continue;
 			}
 
-			$c++;
+			if ( !$countTags ) {
+				$c++;
 
-			if ( $c == $chars ) {
+				if ( $c === $chars ) {
+					break;
+				}
+			} else if ( $i >= ( $lastChar ) ) {
 				break;
 			}
 		}
 
+
 		if ( $i < ( $len - 1 ) ) {
 			// easy version - trim hit space
-			if ( $ret[ $i - 1 ] == ' ' || $ret[ $i ] == ' ' || $inWord ) {
-				$ret = rtrim( substr( $ret, 0, $i ) );
+			if ( mb_substr($ret, $i - 1, 1) === ' ' || mb_substr($ret, $i, 1) === ' ' || $inWord ) {
+				$ret = rtrim( mb_substr( $ret, 0, $i ) );
 
 			} else {
-				while ( --$i && $ret[ $i ] != ' ' ) {
-					if ( $ret[ $i ] == '<' ) {
-						if ( $ret[ $i + 1 ] != '/' ) {
+				while ( --$i && mb_substr( $ret, $i, 1) !== ' ' ) {
+					if ( mb_substr($ret, $i, 1) == '<' ) {
+						if ( mb_substr($ret, $i + 1, 1) !== '/' ) {
 							array_pop( $tagStack );
 						} else {
-							preg_match( '/([^ \/>]+)[^\/>]*(\/>|>)/', $ret, $m, PREG_OFFSET_CAPTURE, $i );
-							if ( $m[ 2 ][ 0 ] != '/>' ) {
+							preg_match( '/([^ \/>]+)[^\/>]*(\/>|>)/u', $ret, $m, PREG_OFFSET_CAPTURE, $i );
+							if ( $m[ 2 ][ 0 ] !== '/>' ) {
 								$tag = $m[ 1 ][ 0 ];
 								$tagStack[ ] = $tag;
 							}
@@ -358,14 +411,16 @@ class HtmlUtil {
 					}
 				}
 
-				$ret = rtrim( substr( $ret, 0, $i ) );
+				$ret = rtrim( mb_substr( $ret, 0, $i ) );
 			}
 
 			while ( $tag = array_pop( $tagStack ) ) {
 				$ret .= '</' . $tag . '>';
 			}
 
-			$ret .= ' &hellip;';
+			if ($appendix !== false && $appendix !== '') {
+				$ret .= $appendix;
+			}
 		}
 
 

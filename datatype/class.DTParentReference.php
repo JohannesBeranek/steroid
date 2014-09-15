@@ -67,4 +67,18 @@ class DTParentReference extends BaseDTRecordReference {
 
 		return $this->value;
 	}
+
+	protected function _setValue( $data, $loaded, $skipRaw = false, $skipReal = false ) {
+		if($this->record->exists() && (($data instanceof IRecord && $data === $this->record)
+		|| ( ( is_string( $data ) || is_int( $data ) ) && $this->record->{Record::FIELDNAME_PRIMARY} == $data)
+		|| ( is_array( $data ) && $data[ Record::FIELDNAME_PRIMARY ] == $this->record->{Record::FIELDNAME_PRIMARY}) )){
+			throw new ParentOfItselfException('Record cannot be parent of itself');
+		}
+
+		parent::_setValue($data, $loaded, $skipRaw, $skipReal);
+	}
+}
+
+class ParentOfItselfException extends SteroidException {
+
 }

@@ -59,10 +59,10 @@ cache = "file"
 ;cache = "file"
 
 ; Optional
-;[mode]
+[mode]
 ;    possible values: "devlopment" "production"
 ;    defaults to: "production"
-;installation = "development"
+installation = "development"
 
 ; Optional
 ;[ElasticSearch]

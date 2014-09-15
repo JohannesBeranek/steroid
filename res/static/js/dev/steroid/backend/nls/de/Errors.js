@@ -72,6 +72,10 @@ define({
 		title: 'Ungültiger Wert',
 		message: 'Ungültiger Wert für Feld "$field"'
 	},
+	ParentOfItselfException: {
+		title: 'Ungültiger Wert',
+		message: 'Eintrag kann nicht Kind von sich selbst sein'
+	},
 	NoParentPageException: {
 		title: 'Keine Elternseite',
 		message: 'Es konnte keine Elternseite für "$record" gefunden werden'

@@ -41,7 +41,7 @@ interface IDB extends ITransactionBased {
 	 * @param bool $keepNull
 	 * @return string|string[] same structure as passed values
 	 */
-	public function escape( $values, $addQuotes, $keepNull );
+	public function escape( $values, $addQuotes = true, $keepNull = false );
 	
 	/**
 	 * Fetch all rows matching the query

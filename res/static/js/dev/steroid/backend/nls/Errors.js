@@ -72,6 +72,10 @@ define({ root: ({
 		title: 'Invalid value',
 		message: 'Invalid value for field "$field"'
 	},
+	ParentOfItselfException: {
+		title: 'Invalid parent',
+		message: 'Entry cannot be a parent of itself'
+	},
 	NoParentPageException: {
 		title: 'No parent page',
 		message: 'No parent page for "$record" found'

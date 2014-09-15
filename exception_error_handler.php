@@ -1,4 +1,7 @@
 <?php
+
+require_once STROOT . '/util/class.SteroidException.php';
+
 /**
 *
 * @package steroid
@@ -18,23 +21,3 @@ function exception_error_handler($errno, $errstr, $errfile, $errline ) {
 }
 
 set_error_handler("exception_error_handler");
-
-class SteroidException extends Exception implements JsonSerializable {
-	protected $data;
-		
-	public function __construct( $message = "", array $data = NULL, $code = 0, Exception $previous = NULL ) {
-		$this->data = $data === NULL ? array() : $data;
-		
-		parent::__construct( $message, $code, $previous );
-	}
-	
-	public function jsonSerialize() {
-		return array(
-			'data' => $this->data
-		);
-	}
-	
-	public function getData() {
-		return $this->data;
-	}
-}

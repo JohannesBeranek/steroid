@@ -463,6 +463,8 @@ class UHBackend implements IURLHandler {
 
 		if ( !isset( $this->user->logoutException ) ) {
 			$this->ajaxSuccess();
+		} else {
+			Log::write( $this->user->logoutException->getMessage());
 		}
 	}
 

@@ -297,7 +297,7 @@ abstract class DataType implements IDataType {
 	}
 }
 
-class InvalidValueForFieldException extends Exception {
+class InvalidValueForFieldException extends SteroidException {
 }
 
 ?>
