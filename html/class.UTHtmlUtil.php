@@ -195,6 +195,12 @@ class UTHtmlUtil extends PHPUnit_Framework_TestCase {
 			'length' => 255,
 			'expected' => 255,
 			'description' => 'HTML longer than 255 characters should be truncated to shorter than or exactly 255'
+		),
+		array(
+			'data' => '<b>Landtagsabgeordneter, Landtagsvizepräsident, Stadtrat in Schwaz</b><b>Themen:</b>&nbsp;Verkehr,&nbsp;Wohnen,&nbsp;<span style="font-size: small; font-family: Tahoma, sans-serif;">Gemeinden,&nbsp;<span style="font-size: small; font-family: Tahoma, sans-serif;"</span></span>',
+			'length' => 255,
+			'expected' => 255,
+			'description' => 'HTML longer than 255 characters should be truncated to shorter than or exactly 255'
 		)
 	);
 	
