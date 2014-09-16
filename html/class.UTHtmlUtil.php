@@ -199,7 +199,7 @@ class UTHtmlUtil extends PHPUnit_Framework_TestCase {
 		array(
 			'data' => '<p><b>Landtagsabgeordneter, Landtagsvizepräsident, Stadtrat in Schwaz</b></p><b>Themen:</b>&nbsp;Verkehr,&nbsp;Wohnen,&nbsp;</span><span style="font-size: small; font-family: Tahoma, sans-serif;">Gemeinden,&nbsp;</span><span style="font-size: small; font-family: Tahoma, sans-serif;">Agrargemeinschaften</span><span style="font-size: small; font-family: Tahoma, sans-serif;"><br><p><a href="PageRecord 67109639"><b>Biografie und Infos</b>&nbsp;</a></p><a href="mailto:hermann.weratschnig@gruene.at">hermann.weratschnig@gruene.at</a>​',
 			'length' => 255,
-			'expected' => 255,
+			'expected' => 212,
 			'description' => 'HTML longer than 255 characters should be truncated to shorter than or exactly 255'
 		)
 	);
@@ -244,9 +244,9 @@ class UTHtmlUtil extends PHPUnit_Framework_TestCase {
 					break;
 				case 'htrunc':
 					foreach($set as $conf){
-						$res = HtmlUtil::htrunc($conf['data'], $conf['length'], true, false, NULL, true, false, false);
-
-						$this->assertEquals($conf['expected'], mb_strlen($res, 'UTF-8'));
+						$res = HtmlUtil::htrunc(HtmlUtil::repair($conf['data']), $conf['length'], true, false, NULL, true, false, false, false);
+						
+						$this->assertEquals($conf['expected'], mb_strlen($res));
 					}
 					break;
 			}

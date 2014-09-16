@@ -279,7 +279,7 @@ class HtmlUtil {
 
 	// FIXME: make sure html entities aren't truncated
 	// TODO: visual vs actual count (e.g. how to count html entities)
-	public static function htrunc( $string, $chars, $inWord = false, $killBreaks = false, $linkTarget = NULL, $countTags = false, $linkImages = true, $appendix = NULL ) {
+	public static function htrunc( $string, $chars, $inWord = false, $killBreaks = false, $linkTarget = NULL, $countTags = false, $linkImages = true, $appendix = NULL, $allowedTags = NULL ) {
 		if ($appendix === NULL) {
 			$appendix = ' &hellip;';
 		}
@@ -301,26 +301,31 @@ class HtmlUtil {
 			}
 		}
 
-		$allowedTags = array( 'a', 'b', 'strong', 'em', 'i', 'u', 's' );
-
-		if ( !$killBreaks ) {
-			$allowedTags[ ] = 'br';
+		if ($allowedTags === NULL) {
+			$allowedTags = array( 'a', 'b', 'strong', 'em', 'i', 'u', 's' );
+	
+			if ( !$killBreaks ) {
+				$allowedTags[ ] = 'br';
+			}
 		}
 
-		$ret = preg_replace_callback( '/<\/?([^ >\/]+)\S*?>/u', function( $matches ) use ( $allowedTags ) {
-			$tag = strtolower( $matches[ 1 ] );
-
-			if ( in_array( $tag, $allowedTags ) ) {
-				return $matches[ 0 ];
-			}
-
-			return '';
-		}, $ret );
-
-		// remove now empty tags - should leave breaks intact
-		$ret = preg_replace( '/<([^ >]+).*?>\s*<\/\1>/u', '', $ret );
+		if ($allowedTags !== false) {
+			$ret = preg_replace_callback( '/<\/?([^ >\/]+)\S*?>/u', function( $matches ) use ( $allowedTags ) {
+				$tag = strtolower( $matches[ 1 ] );
+	
+				if ( in_array( $tag, $allowedTags ) ) {
+					return $matches[ 0 ];
+				}
+	
+				return '';
+			}, $ret );
+	
+			// remove now empty tags - should leave breaks intact
+			$ret = preg_replace( '/<([^ >]+).*?>\s*<\/\1>/u', '', $ret );
+		}
 
 		$tagStack = array();
+		$lenStack = array();
 		$len = mb_strlen( $ret );
 
 		// short circuit
@@ -336,34 +341,50 @@ class HtmlUtil {
 		$c = 0;
 
 		for ( $i = 0; $i < $len; $i++ ) {
-			if ( mb_substr($ret, $i, 1) === '<' ) { // skip tag
+			if ( mb_substr($ret, $i, 1) === '<' ) { // tag
 				$tagStart = $i;
 
 				if ( mb_substr($ret, $i + 1, 1)  === '/' ) {
 					// closing tag
-					array_pop( $tagStack );
 
 					$isEndTag = true;
 				} else {
 					// opening tag
-					// TODO: PREG_OFFSET_CAPTURE is not needed
 					// preg_match uses bytes for offset, so we need to convert char count to bytes first
 					$byteOffset = strlen(mb_substr($ret, 0, $i + 1));
-					$foundMatches = preg_match( '/(?:[\S+]=("?)\S*\1)*([^ \/>]+)[^\/>]*(\/>|>)/u', $ret, $m, PREG_OFFSET_CAPTURE, $byteOffset );
-					if ($foundMatches) {
-						if (count($m) > 3) {
-							array_splice($m, 0, -3);
-						}
+					
+					$foundMatches = preg_match( '/
+						([^\t \/>]+)          # match tag name
+						(?:\s+[^\s>]+         # match attribute start
+						=                     # match = in attribute
+							(?:                # needed for branches
+								(?:"[^"]*")     # branch 1: attribute value in double quote sign
+								|             
+								(?:\'[^\']*\')  # branch 2: attribute value in single quote sign
+								|
+								(?:[^"\'][^\t \/>]*)  # branch 3: attribute value without quote, ended on whitespace character
+								|
+								(?:)
+							)
+						)*                    # match possible attributes, 0-
+						\s*                   # match spaces before end
+						(\/>|>)               # match end
+						/xu',                 // regex flags: extended, unicode
+						$ret, $m, 0, $byteOffset );
 						
-						if ( $m[ 2 ][ 0 ] !== '/>' ) {
-							$tag = $m[ 1 ][ 0 ];
-	
+						
+					if ($foundMatches) {												
+						if ( $m[ 2 ] !== '/>' ) {
+							$tag = $m[ 1 ];
+								
 							if (!in_array(strtolower($tag), self::$htmlTagsNeedNoClose, true)) {
 	
 								$tagStack[ ] = $tag;
+								$subLen = 3 + mb_strlen($tag);
+								$lenStack[ ] = $subLen;
 	
 								if ( $countTags ) {
-									$lastChar -= 3 + mb_strlen($tag); // 3 chars for "</...>"
+									$lastChar -= $subLen ; // 2 chars for "</", ">" is included in $m[0]
 								}
 							}
 						}
@@ -375,17 +396,41 @@ class HtmlUtil {
 				$tagEnd = mb_strpos( $ret, '>', $i + 1 );
 
 				if ( $tagEnd !== false ) {
+					
+					if ($isEndTag) {
+						$tagCompare = mb_substr($ret, $i+2, ($tagEnd - $i - 2));
+					
+						$tag = array_pop( $tagStack );
+						
+						if ($tag === NULL) {
+							throw new Exception('Got closing tag: ' . $tagCompare . ' at position ' . $i . ' but no starting tag');
+						}
+						
+						
+						if ($tag !== $tagCompare) {
+							throw new Exception('Non matching tag: ' . $tagCompare . ' != ' . $tag . ' at pos ' . $i);
+						}
+						
+						if ( $countTags ) {
+							$lastChar += array_pop($lenStack);
+							
+						}
+					}
+					
 					$i = $tagEnd;
 				}
 
-				if ( $countTags ) {
-					if ( $isEndTag ) {
-						$lastChar += $i - $tagStart + 1;
+				if ( $countTags  && ($i + 1) >= ( $lastChar ) ) {
+					$i++;
+					
+					// might have to remove last tag again
+					if (!$isEndTag && $i > $lastChar) {
+						$i = $tagStart;
+						array_pop( $tagStack );
+						array_pop( $lenStack );
 					}
-
-					if ( $i >= ( $lastChar ) ) {
-						break;
-					}
+					break;
+					
 				}
 
 				continue;
