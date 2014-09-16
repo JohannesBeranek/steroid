@@ -328,11 +328,14 @@ class HtmlUtil {
 		$lenStack = array();
 		$len = mb_strlen( $ret );
 
-		// short circuit
+		// short circuit (also $len === 0)
 		// also prevents ($i - 1) < 0
-		if ($len === 0) {
+		if ($len <= $chars) {
 			return $ret;
 		}
+		
+		// else
+		$chars -= mb_strlen($appendix);
 
 		if ( $countTags ) {
 			$lastChar = $chars;
