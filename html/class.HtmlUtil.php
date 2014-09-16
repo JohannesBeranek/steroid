@@ -349,16 +349,22 @@ class HtmlUtil {
 					// TODO: PREG_OFFSET_CAPTURE is not needed
 					// preg_match uses bytes for offset, so we need to convert char count to bytes first
 					$byteOffset = strlen(mb_substr($ret, 0, $i + 1));
-					preg_match( '/(?:[\S+]=("?)\S*\1)*([^ \/>]+)[^\/>]*(\/>|>)/u', $ret, $m, PREG_OFFSET_CAPTURE, $byteOffset );
-					if ( $m[ 3 ][ 0 ] !== '/>' ) {
-						$tag = $m[ 2 ][ 0 ];
-
-						if (!in_array(strtolower($tag), self::$htmlTagsNeedNoClose, true)) {
-
-							$tagStack[ ] = $tag;
-
-							if ( $countTags ) {
-								$lastChar -= 3 + mb_strlen($tag); // 3 chars for "</...>"
+					$foundMatches = preg_match( '/(?:[\S+]=("?)\S*\1)*([^ \/>]+)[^\/>]*(\/>|>)/u', $ret, $m, PREG_OFFSET_CAPTURE, $byteOffset );
+					if ($foundMatches) {
+						if (count($m) > 3) {
+							array_splice($m, 0, -3);
+						}
+						
+						if ( $m[ 2 ][ 0 ] !== '/>' ) {
+							$tag = $m[ 1 ][ 0 ];
+	
+							if (!in_array(strtolower($tag), self::$htmlTagsNeedNoClose, true)) {
+	
+								$tagStack[ ] = $tag;
+	
+								if ( $countTags ) {
+									$lastChar -= 3 + mb_strlen($tag); // 3 chars for "</...>"
+								}
 							}
 						}
 					}
@@ -366,8 +372,11 @@ class HtmlUtil {
 					$isEndTag = false;
 				}
 
-				$i = mb_strpos( $ret, '>', $i + 1 );
+				$tagEnd = mb_strpos( $ret, '>', $i + 1 );
 
+				if ( $tagEnd !== false ) {
+					$i = $tagEnd;
+				}
 
 				if ( $countTags ) {
 					if ( $isEndTag ) {
