@@ -318,7 +318,7 @@ class HtmlUtil {
 		}, $ret );
 
 		// remove now empty tags - should leave breaks intact
-		$ret = preg_replace( '/<([^ >]+).*?>\s*<\/\1>/', '', $ret );
+		$ret = preg_replace( '/<([^ >]+).*?>\s*<\/\1>/u', '', $ret );
 
 		$tagStack = array();
 		$len = mb_strlen( $ret );
@@ -330,7 +330,7 @@ class HtmlUtil {
 		}
 
 		if ( $countTags ) {
-			$lastChar = $chars - 1;
+			$lastChar = $chars;
 		}
 
 		$c = 0;
@@ -346,9 +346,12 @@ class HtmlUtil {
 					$isEndTag = true;
 				} else {
 					// opening tag
-					preg_match( '/([^ \/>]+)[^\/>]*(\/>|>)/u', $ret, $m, PREG_OFFSET_CAPTURE, $i + 1 );
-					if ( $m[ 2 ][ 0 ] !== '/>' ) {
-						$tag = $m[ 1 ][ 0 ];
+					// TODO: PREG_OFFSET_CAPTURE is not needed
+					// preg_match uses bytes for offset, so we need to convert char count to bytes first
+					$byteOffset = strlen(mb_substr($ret, 0, $i + 1));
+					preg_match( '/(?:[\S+]=("?)\S*\1)*([^ \/>]+)[^\/>]*(\/>|>)/u', $ret, $m, PREG_OFFSET_CAPTURE, $byteOffset );
+					if ( $m[ 3 ][ 0 ] !== '/>' ) {
+						$tag = $m[ 2 ][ 0 ];
 
 						if (!in_array(strtolower($tag), self::$htmlTagsNeedNoClose, true)) {
 
@@ -402,7 +405,10 @@ class HtmlUtil {
 						if ( mb_substr($ret, $i + 1, 1) !== '/' ) {
 							array_pop( $tagStack );
 						} else {
-							preg_match( '/([^ \/>]+)[^\/>]*(\/>|>)/u', $ret, $m, PREG_OFFSET_CAPTURE, $i );
+							$byteOffset = strlen(mb_substr($ret, 0, $i));
+							
+							// TODO: PREG_OFFSET_CAPTURE not needed
+							preg_match( '/([^ \/>]+)[^\/>]*(\/>|>)/u', $ret, $m, PREG_OFFSET_CAPTURE, $byteOffset );
 							if ( $m[ 2 ][ 0 ] !== '/>' ) {
 								$tag = $m[ 1 ][ 0 ];
 								$tagStack[ ] = $tag;
