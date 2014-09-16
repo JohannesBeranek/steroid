@@ -45,6 +45,33 @@ class CHDomainGroup extends CLIHandler implements IRecordHookAfterDelete {
 						return EXIT_FAILURE;
 				
 			break;
+			case 'append':
+				if ( count( $params ) < 3 ) {
+					$this->notifyError( $this->getUsageText( $called, $command, $params ) );
+					return EXIT_FAILURE;	
+				}
+				
+				$this->storage->init();
+				
+				$parentDomainGroupPrimary = (int)array_pop( $params );
+				
+				if ($parentDomainGroupPrimary <= 0) {
+					$this->notifyError( $this->getUsageText( $called, $command, $params ) );
+					return EXIT_FAILURE;	
+				}
+				
+				$parentDomainGroup = $this->storage->fetchRecord('RCDomainGroup', array( 'fields' => '*', 'where' => array( 'primary', '=', array($parentDomainGroupPrimary))));
+				
+				if ($parentDomainGroup === NULL) {
+					$this->notifyError( $this->getUsageText( $called, $command, $params ) );
+					return EXIT_FAILURE;	
+				}
+				
+				reset( $params );
+				while( $domainGroup = next($params) ) {
+					if ( !$this->appendDomainDroup( (int)$domainGroup, $parentDomainGroup ) )
+						return EXIT_FAILURE;
+				}
 			default:
 				$this->notifyError( $this->getUsageText( $called, $command, $params ) );
 				return EXIT_FAILURE;
@@ -61,7 +88,8 @@ class CHDomainGroup extends CLIHandler implements IRecordHookAfterDelete {
 					'php ' . $called . ' ' . $command . ' COMMAND' => '',
 					'available commands' => array(
 						'list' => 'list available domainGroups with primary and title',
-						'delete DOMAINGROUP_PRIMARY [DOMAINGROUP_PRIMARY ...]' => 'delete specified domaingroup'
+						'delete DOMAINGROUP_PRIMARY [DOMAINGROUP_PRIMARY ...]' => 'delete specified domaingroup',
+						'append DOMAINGROUP_PRIMARY [DOMAINGROUP_PRIMARY ...] PARENT_DOMAINGROUP_PRIMARY' => 'make domaingroup child of parent domaingroup'
 					)
 				)
 			)
@@ -71,11 +99,42 @@ class CHDomainGroup extends CLIHandler implements IRecordHookAfterDelete {
 	final private function listDomainGroups() {
 		$this->storage->init();
 					
-		$domainGroups = $this->storage->select( 'RCDomainGroup', array( 'fields' => array( 'primary', 'title' ) ) );
+		$domainGroups = $this->storage->selectRecords( 'RCDomainGroup', array( 'fields' => array( 'primary', 'title', 'parent' ) ) );
+				
+		$sorted = $this->listDomainGroupsSort( NULL, $domainGroups );
 		
-		foreach ($domainGroups as $domainGroup) {
-			echo str_pad( $domainGroup['primary'], 10, " ", STR_PAD_LEFT ) . " " . $domainGroup['title'] . "\n";
+		
+		$listHelper = function( $arr, $indent = 0 ) use (&$listHelper) {
+			foreach ($arr as $domainGroupArr) {
+				$domainGroup = $domainGroupArr['domainGroup'];
+			
+				echo str_repeat("\t", $indent) . str_pad( $domainGroup->primary, 10, " ", STR_PAD_LEFT ) . " " . $domainGroup->getTitle() . "\n";
+				
+				if ($domainGroupArr['children']) {
+					$listHelper( $domainGroupArr['children'], $indent + 1 );
+				}
+			}
+		};
+		
+		$listHelper( $sorted );
+		
+	
+	}
+	
+	final private function listDomainGroupsSort( $parent, $domainGroups ) {
+		$children = array();
+		
+		foreach ($domainGroups as $k => $domainGroup) {
+			if ($domainGroup->parent === $parent) {
+				$child = array( 'domainGroup' => $domainGroup );
+				
+				$child['children'] = $this->listDomainGroupsSort( $domainGroup, $domainGroups );
+				
+				$children[] = $child;
+			}
 		}
+		
+		return $children;
 	}
 	
 	final private function deleteDomainGroup( $domainGroupPrimary ) {
@@ -112,11 +171,35 @@ class CHDomainGroup extends CLIHandler implements IRecordHookAfterDelete {
 			
 			$tx->commit();
 		} catch( Exception $e ) {
-			$tx->rollback();
+			try {
+				$tx->rollback();
+			} catch ( Exception $rollbackException ) {
+				// might cause exception "transaction is not active"
+				// if transaction takes too long
+				
+				Log::write($e);
+				throw $rollbackException;
+			}
+			
 			throw( $e );
 		}
 		
 		echo "\n\tDeleted domainGroup with primary " . $domainGroupPrimary . "\n";
+		
+		return true;
+	}
+	
+	final private function appendDomainGroup( $domainGroupPrimary, $parentDomainGroup ) {
+		$domainGroup = $this->storage->fetchRecord('RCDomainGroup', array( 'fields' => '*', 'where' => array( 'primary', '=', array($domainGroupPrimary))));
+		
+		$domainGroup->parent = $parentDomainGroup;
+		
+		echo "\nAppending domainGroup " . $domainGroup->getTitle() . " to domainGroup " . $parentDomainGroup->getTitle();
+		
+		// only changing a single value here, no need for transaction
+		$domainGroup->save();
+		
+		echo "\nDone.\n";
 		
 		return true;
 	}
