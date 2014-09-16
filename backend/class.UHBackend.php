@@ -685,11 +685,11 @@ class UHBackend implements IURLHandler {
 		$authenticators = $conf->getSection( 'authenticator' );
 		$auth = NULL;
 
-		if($authenticators !== NULL){
+		if ($authenticators !== NULL) {
 			foreach($authenticators as $className => $path){
 				require_once WEBROOT . '/' . $path;
 
-				if($className::AUTH_TYPE === User::AUTH_TYPE_BE){
+				if ($className::AUTH_TYPE === User::AUTH_TYPE_BE) {
 					$auth = $className;
 					break;
 				}
