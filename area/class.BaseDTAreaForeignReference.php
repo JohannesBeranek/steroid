@@ -44,5 +44,3 @@ class BaseDTAreaForeignReference extends BaseDTForeignReference {
 		return parent::getFormValue();
 	}
 }
-
-?>

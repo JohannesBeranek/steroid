@@ -110,10 +110,11 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 	/**
 	 * Holds the instantiated DataTypes which manage the internal values
+	 * Filled in constructor, so this may be NULL initially
 	 *
 	 * @var array
 	 */
-	protected $fields = array();
+	protected $fields;
 
 	protected $indexed;
 	protected $deleted;
@@ -247,16 +248,16 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		}
 		
 			
-		$this->values = array();
-		$this->valuesLastLoaded = array();
+		unset($this->values);
+		unset($this->valuesLastLoaded);
 		
-		$this->metaData = NULL;
+		unset($this->metaData);
 					
 					
 		// disconnect fields
-		$this->fields = array();
+		unset($this->fields);
 		
-		$this->storage = NULL;
+		unset($this->storage);
 	}
 
 	public static function addHook( $object, $hookType, $recordClasses = NULL ) {
@@ -1645,14 +1646,20 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 	// pushIndex + popIndex can be used to keep memory usage in control when doing several large operations with many records
 	public static final function pushIndex() {
-		array_push( self::$oldIndex, self::$records );
+		self::$oldIndex[] = self::$records;
 	}
 
 	public static final function popIndex() {
-		$popIndex = array_pop( self::$oldIndex );
+		if ( self::$oldIndex !== NULL ) {
+			$popIndex = array_pop( self::$oldIndex );
 
-		if ( $popIndex !== NULL ) {
-			self::$records = $popIndex;
+			if ( $popIndex !== NULL ) {
+				self::$records = $popIndex;
+			}
+			
+			if ( !self::$oldIndex ) {
+				self::$oldIndex = NULL;
+			}
 		}
 	}
 

@@ -51,5 +51,3 @@ class RCUrlHandler extends Record {
 		return $records;
 	}
 }
-
-?>

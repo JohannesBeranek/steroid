@@ -41,5 +41,3 @@ class DTMenuItemForeignReference extends BaseDTForeignReference {
 		}
 	}
 }
-
-?>

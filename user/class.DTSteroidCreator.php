@@ -72,5 +72,3 @@ class DTSteroidCreator extends BaseDTRecordReference {
 	}
 
 }
-
-?>

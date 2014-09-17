@@ -162,5 +162,3 @@ class RCMenuItem extends BaseMenuItem {
 		parent::notifyReferenceRemoved( $originRecord, $reflectingFieldName, $triggeringFunction, $basket );
 	}
 }
-
-?>

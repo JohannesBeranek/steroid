@@ -18,7 +18,7 @@ class DTJSON extends BaseDTText {
 	public function cleanup() {
 		parent::cleanup();
 		
-		$this->value = NULL;
+		unset($this->value);
 	}
 
 	public function getValue() {

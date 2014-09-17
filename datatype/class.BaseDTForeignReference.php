@@ -47,8 +47,8 @@ abstract class BaseDTForeignReference extends DataType {
 	public function cleanup() {
 		parent::cleanup();
 		
-		$this->value = NULL;
-		$this->changeStack = NULL;
+		unset($this->value);
+		unset($this->changeStack);
 	}
 
 	public function getForeignFieldName() {
@@ -373,18 +373,24 @@ abstract class BaseDTForeignReference extends DataType {
 		$foreignRecords = $this->getForeignRecords();
 
 		if ( isset( $this->config[ 'requireSelf' ] ) && $this->config[ 'requireSelf' ] ) {
-			foreach ( $foreignRecords as $foreignRecord ) {
+			while( $foreignRecord = array_pop($foreignRecords)) {
 				if ( $basket !== NULL || !$foreignRecord->isDeleted() ) {
 					$foreignRecord->delete( $basket );
+					
+					// help with gc
+					unset($foreignRecord);
 				}
 			}
 		} else { // [JB 11.02.2013] even if foreign ref is not required we need to make sure that referencing record has it's value set to NULL
 			$foreignFieldName = $this->getForeignFieldName();
 
-			foreach ( $foreignRecords as $foreignRecord ) {
+			while ( $foreignRecord = array_pop( $foreignRecords ) ) {
 				if ( $foreignRecord->{$foreignFieldName} !== NULL ) {
 					$foreignRecord->{$foreignFieldName} = NULL;
 					$foreignRecord->save();
+					
+					// help with gc
+					unset($foreignRecord);
 				}
 			}
 		}

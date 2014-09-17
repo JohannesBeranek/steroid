@@ -69,8 +69,8 @@ abstract class BaseDTRecordReference extends DataType {
 	public function cleanup() {
 		parent::cleanup();
 		
-		$this->lastRawValue = NULL;
-		$this->value = NULL;	
+		unset($this->lastRawValue);
+		unset($this->value);	
 	}
 
 	public function getValue() {
@@ -275,6 +275,10 @@ abstract class BaseDTRecordReference extends DataType {
 				
 				$this->value->delete( $basket );
 				
+				// help with gc
+				if ( $basket === NULL ) {
+					unset($this->value);
+				}
 			}
 		}
 
