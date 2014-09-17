@@ -2391,8 +2391,11 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 	protected function _delete() {
 		$this->storage->deleteRecord( $this );
-		$this->removeFromIndex();
+
 		$this->deleted = true;
+		
+		// remove from index 		
+		$this->removeFromIndex();		
 	}
 
 	/**
@@ -2837,26 +2840,17 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		}
 		
 		
-		// cleanup
-		if (!$basket) {
-			// remove from index 		
-			$this->removeFromIndex();
-			
-
-			
+		if ( $basket === NULL ) {
 			$this->cleanup();
-			
+		
 			// free mem every so often
 			self::$recordsDeletedSinceLastGCCollectCycles++; 
-		
+			
 			if ( self::$recordsDeletedSinceLastGCCollectCycles >= self::$runGCCollectCyclesAfterRecordsDeletedNum ) {
 				gc_collect_cycles();
 				self::$recordsDeletedSinceLastGCCollectCycles = 0;
 			}
-
 		}
-		
-
 	}
 
 	public function getTitle() {
