@@ -251,7 +251,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		unset($this->values);
 		unset($this->valuesLastLoaded);
 		
-		unset($this->metaData);
+		// meta data might still be needed afterwards
+		// unset($this->metaData);
 					
 					
 		// disconnect fields
