@@ -15,4 +15,3 @@ class BaseDTBool extends DataType {
 		parent::setValue( $data === NULL ? NULL : ((int)$data == 0 ? 0 : 1), $loaded );
 	}
 }
-?>

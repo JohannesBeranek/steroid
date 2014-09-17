@@ -15,6 +15,12 @@ class DTJSON extends BaseDTText {
 		);
 	}
 
+	public function cleanup() {
+		parent::cleanup();
+		
+		$this->value = NULL;
+	}
+
 	public function getValue() {
 		return $this->value;
 	}

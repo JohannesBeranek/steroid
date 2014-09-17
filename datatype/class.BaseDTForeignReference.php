@@ -13,7 +13,7 @@ require_once STROOT . '/util/class.Debug.php';
  * class for foreign references (e.g. join tables, where the datatype's record is referenced by another record)
  */
 abstract class BaseDTForeignReference extends DataType {
-	protected $changeStack = array();
+	protected $changeStack = NULL;
 	protected $wasDirtyOnSave;
 	protected $value;
 
@@ -42,6 +42,13 @@ abstract class BaseDTForeignReference extends DataType {
 	 */
 	public static function getColName( $fieldName = NULL, array $config = NULL ) {
 		return NULL;
+	}
+
+	public function cleanup() {
+		parent::cleanup();
+		
+		$this->value = NULL;
+		$this->changeStack = NULL;
 	}
 
 	public function getForeignFieldName() {
@@ -171,7 +178,7 @@ abstract class BaseDTForeignReference extends DataType {
 
 		$this->addNestedRecords( $records );
 
-		if ( $loaded ) {
+		if ( $loaded && $this->changeStack !== NULL ) {
 			foreach ( $this->changeStack as $todo ) {
 				switch ( $todo[ 0 ] ) {
 					case self::CHANGE_ADD:
@@ -188,7 +195,7 @@ abstract class BaseDTForeignReference extends DataType {
 			}
 
 		} else {
-			$this->changeStack = array();
+			$this->changeStack = NULL;
 		}
 
 		$this->value = $records;

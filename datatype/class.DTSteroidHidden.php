@@ -22,4 +22,3 @@ class DTSteroidHidden extends BaseDTBool {
 		);
 	}
 }
-?>

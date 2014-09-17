@@ -65,6 +65,13 @@ abstract class BaseDTRecordReference extends DataType {
 
 		return $values;
 	}
+	
+	public function cleanup() {
+		parent::cleanup();
+		
+		$this->lastRawValue = NULL;
+		$this->value = NULL;	
+	}
 
 	public function getValue() {
 		return $this->value;
