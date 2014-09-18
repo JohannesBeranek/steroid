@@ -258,6 +258,11 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		unset($this->fields);
 		
 		unset($this->storage);
+		
+		// remove ourselves from callbacks
+		if ( ( $key = array_search( $this, self::$notifyOnSaveComplete, true ) ) !== false ) {
+			unset(self::$notifyOnSaveComplete[$key]);
+		}
 	}
 
 	public static function addHook( $object, $hookType, $recordClasses = NULL ) {
