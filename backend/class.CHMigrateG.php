@@ -18,7 +18,7 @@ require_once STROOT . '/language/class.RCLanguage.php';
  * @package steroid\backend
  *
  */
-class CHMigrate extends CLIHandler {
+class CHMigrateG extends CLIHandler {
 
 
 	public function performCommand( $called, $command, array $params ) {
