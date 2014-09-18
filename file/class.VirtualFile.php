@@ -47,7 +47,7 @@ class VirtualFile implements IFileInfo {
 		return $this->mimeType === NULL ? NULL : strstr( $this->mimeType, '/', true );
 	}
 
-	public function getMeta( $name ) {
+	public function getFileMeta( $name ) {
 		return NULL;
 	}
 

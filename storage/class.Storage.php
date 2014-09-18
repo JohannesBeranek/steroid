@@ -459,7 +459,9 @@ class Storage extends DB implements IStorage {
 
 		$dstBaseName = $this->realMoveFile( $tmpFileName, $dir, $uploadedFilename, self::MOVE_OPERATION_UPLOAD );
 
-		$fileRecord->setStoredFilename( $subDir . '/' . $dstBaseName );
+		$storedFilename = $subDir . '/' . $dstBaseName;
+		$fileRecord->setStoredFilename( $storedFilename );
+		$fileRecord->setFullFilename( $this->directory . '/' . $storedFilename );
 
 		// TODO: extend in RBStorage
 	}
@@ -569,7 +571,10 @@ class Storage extends DB implements IStorage {
 
 		$dstBaseName = $this->realMoveFile( $tmpFileName, $dir, $uploadedFilename, self::MOVE_OPERATION_DOWNLOAD );
 
-		$fileRecord->setStoredFilename( $subDir . '/' . $dstBaseName );
+		$storedFilename = $subDir . '/' . $dstBaseName;
+
+		$fileRecord->setStoredFilename( $storedFilename );
+		$fileRecord->setFullFilename( $this->directory . '/' . $storedFilename );
 
 		// TODO: extend in RBStorage
 	}
@@ -590,7 +595,7 @@ class Storage extends DB implements IStorage {
 		}
 
 		foreach ( $this->openDownloadHandles as $k => $handle ) {
-			if ( $handle[ 'destFileName' ] == $completeFilename ) {
+			if ( $handle[ 'destFileName' ] === $completeFilename ) {
 				try {
 					if ( !empty( $handle[ 'dest' ] ) && is_resource( $handle[ 'dest' ] ) ) {
 						fclose( $handle[ 'dest' ] );

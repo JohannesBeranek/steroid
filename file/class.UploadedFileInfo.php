@@ -17,6 +17,7 @@ class UploadedFileInfo implements IFileInfo {
 	protected $uploadedFilename;
 
 	protected $mimeType;
+	protected $fullFilename;
 
 	public function __construct( array $fileObject ) {
 		$this->tempFilename = $fileObject[ 'tmp_name' ];
@@ -42,8 +43,12 @@ class UploadedFileInfo implements IFileInfo {
 		$this->storedFilename = $filename;
 	}
 
+	public function setFullFilename( $filename ) {
+		$this->fullFilename = $filename;
+	}
+
 	public function getFullFilename() {
-		return NULL;
+		return $this->fullFilename;
 	}
 
 	public function getTempFilename() {
@@ -71,7 +76,8 @@ class UploadedFileInfo implements IFileInfo {
 		return strstr( $this->getMimeType(), '/', true );
 	}
 
-	public function getMeta( $name ) {
+	public function getFileMeta( $name ) {
+		// TODO: should be able to extract meta
 		return NULL;
 	}
 

@@ -2119,7 +2119,7 @@ class GFX {
 				}
 
 				if (!array_key_exists('alt', $params['attr']) && isset($fileInfo)) {
-					$alt = $fileInfo -> getMeta('alt');
+					$alt = $fileInfo -> getFileMeta('alt');
 
 					$params['attr']['alt'] = ($alt === NULL) ? '' : $alt;
 				}

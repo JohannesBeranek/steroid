@@ -12,6 +12,7 @@ interface IFileInfo {
 
 	function setStoredFilename( $filename );
 
+	function setFullFilename( $filename );
 	function getFullFilename();
 
 	function getTempFilename();
@@ -24,7 +25,7 @@ interface IFileInfo {
 
 	function getDownloadFilename();
 
-	function getMeta( $name );
+	function getFileMeta( $name );
 
 	function getData();
 }

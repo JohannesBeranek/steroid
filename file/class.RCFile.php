@@ -201,6 +201,10 @@ class RCFile extends Record implements IFileInfo {
 		$this->filename = $filename;
 	}
 
+	public function setFillFilename( $filename ) {
+		// ignore
+	}
+
 	public function getFullFilename() {
 		return $this->storage->getStorageDirectory() . '/' . $this->getStoredFilename();
 	}
@@ -213,7 +217,7 @@ class RCFile extends Record implements IFileInfo {
 		return $this->filetype->mimeType;
 	}
 
-	public function getMeta( $name ) {
+	public function getFileMeta( $name ) {
 		return isset( $this->fields[ $name ] ) ? $this->getFieldValue( $name ) : NULL;
 	}
 
