@@ -242,6 +242,11 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 * cleans up to prepare for garbage collection
 	 */
 	protected function cleanup() {
+		// remove ourselves from callbacks
+		while ( ( $key = array_search( $this, self::$notifyOnSaveComplete, true ) ) !== false ) {
+			unset(self::$notifyOnSaveComplete[$key]);
+		}
+		
 		// correct internal state (loadedFields, values, etc)
 		foreach ( $this->fields as $field ) {
 			$field->cleanup();
@@ -259,10 +264,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		
 		unset($this->storage);
 		
-		// remove ourselves from callbacks
-		if ( ( $key = array_search( $this, self::$notifyOnSaveComplete, true ) ) !== false ) {
-			unset(self::$notifyOnSaveComplete[$key]);
-		}
+	
 	}
 
 	public static function addHook( $object, $hookType, $recordClasses = NULL ) {
