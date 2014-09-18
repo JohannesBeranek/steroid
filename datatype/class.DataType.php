@@ -231,7 +231,7 @@ abstract class DataType implements IDataType {
 		$values[ $this->fieldName ] = $this->record->{$this->fieldName};
 	}
 
-
+// FIXME: use interface
 	public function earlyCopy( array &$values, array $changes, array &$missingReferences, array &$originRecords, array &$copiedOriginRecords ) {
 		// stub
 	}
@@ -240,15 +240,17 @@ abstract class DataType implements IDataType {
 		// stub
 	}
 
-
+// FIXME: use interface
 	public function refresh() {
 		// stub
 	}
-
+	
+// FIXME: use interface
 	public function notifySaveComplete() {
 		// stub
 	}
 
+// TODO: maybe use interface for this?
 	public function checkForDelete() {
 		return false;
 	}

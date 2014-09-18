@@ -2192,8 +2192,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			unset( $this->deleteBasket );
 		}
 
-		foreach ( $this->fields as $fieldName => $dt ) {
-			$dt->notifySaveComplete();
+		if (!$this->isDeleted()) {
+			foreach ( $this->fields as $fieldName => $dt ) {
+				$dt->notifySaveComplete();
+			}
 		}
 	}
 
