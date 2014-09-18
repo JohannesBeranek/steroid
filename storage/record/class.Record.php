@@ -243,7 +243,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 */
 	protected function cleanup() {
 		// remove ourselves from callbacks
-		while ( ( $key = array_search( $this, self::$notifyOnSaveComplete, true ) ) !== false ) {
+		while ( self::$notifyOnSaveComplete && ( $key = array_search( $this, self::$notifyOnSaveComplete, true ) ) !== false ) {
 			unset(self::$notifyOnSaveComplete[$key]);
 		}
 		
