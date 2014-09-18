@@ -40,6 +40,10 @@ class Transaction {
 		$this->transactionTarget->rollback( $this );
 	}
 	
+	public function isActive() {
+		return $this->active;
+	}
+	
 	protected function finish() {
 		if (! $this->active) {
 			throw new TransactionInactiveException('Transaction not active');
