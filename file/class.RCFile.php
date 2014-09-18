@@ -201,7 +201,7 @@ class RCFile extends Record implements IFileInfo {
 		$this->filename = $filename;
 	}
 
-	public function setFillFilename( $filename ) {
+	public function setFullFilename( $filename ) {
 		// ignore
 	}
 
