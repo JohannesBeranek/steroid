@@ -1661,6 +1661,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$popIndex = array_pop( self::$oldIndex );
 
 			if ( $popIndex !== NULL ) {
+				// TODO: make diff of self::$records and $popIndex and call cleanup on those
 				self::$records = $popIndex;
 			}
 			
