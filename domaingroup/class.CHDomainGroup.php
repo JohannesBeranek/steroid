@@ -172,7 +172,7 @@ class CHDomainGroup extends CLIHandler implements IRecordHookAfterDelete {
 			$tx->commit();
 		} catch( Exception $e ) {
 			try {
-				if ($ty->isActive) {
+				if ($tx->isActive()) {
 					$tx->rollback();
 				}
 			} catch ( Exception $rollbackException ) {
