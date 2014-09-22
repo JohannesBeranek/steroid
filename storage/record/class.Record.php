@@ -1185,9 +1185,11 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 				$authenticators = $conf->getSection('authenticator');
 
 				foreach($authenticators as $auth => $path){
-					require_once(WEBROOT . '/' . $path);
+					require_once WEBROOT . '/' . $path;
 
-					if($auth::AUTH_TYPE === User::AUTH_TYPE_BE){
+					// TODO: why only include auth with AUTH_TYPE_BE?
+// FIXME: auth classes should not be included here - would be good to find a way to decouple this from record class
+					if ( $auth::AUTH_TYPE === User::AUTH_TYPE_BE ) {
 						$classes[$auth] = $path;
 						break;
 					}
