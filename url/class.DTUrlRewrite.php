@@ -154,6 +154,7 @@ class DTUrlRewrite extends BaseDTRecordReference {
 									// other rewrite record is already connected to url
 									// just disconnect and save it again
 									$urlRecord->{'url:RCUrlRewrite'} = array();
+									$foreignRewrite->url = NULL;
 									
 									// put save into transaction as multiple records will be affected
 									$tx = $storage->startTransaction();
