@@ -2756,7 +2756,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction, array &$basket = NULL ) {
 		if ( $reflectingFieldName && isset( $this->fields[ $reflectingFieldName ] ) ) { // filter for dynamic references
-			$isIndexField = $this->isIndexField( $fieldName );
+			$isIndexField = $this->isIndexField( $reflectingFieldName );
 	
 			if ( $this->indexed && $isIndexField ) {
 				$this->removeFromIndex();
@@ -2791,7 +2791,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 	public function notifyReferenceAdded( IRecord $originRecord, $reflectingFieldName, $loaded ) {
 		if ( $reflectingFieldName && isset( $this->fields[ $reflectingFieldName ] ) ) {
-			$isIndexField = $this->isIndexField( $fieldName );
+			$isIndexField = $this->isIndexField( $reflectingFieldName );
 	
 			if ( $this->indexed && $isIndexField ) {
 				$this->removeFromIndex();
