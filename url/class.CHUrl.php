@@ -180,9 +180,7 @@ class CHUrl extends CLIHandler {
 		
 		foreach ($urlRewritePrimaries as $urlRewritePrimaryRow) {
 			$urlRewritePrimary = $urlRewritePrimaryRow['primary'];
-			
-			Record::pushIndex();
-			
+						
 			$urlRewriteRecord = RCUrlRewrite::get( $this->storage, array( 'primary' => $urlRewritePrimary ), Record::TRY_TO_LOAD );
 			$isReferenced = false;
 			
@@ -198,6 +196,7 @@ class CHUrl extends CLIHandler {
 				
 				try {
 					$urlRewriteRecord->delete();
+					unset($urlRewriteRecord);
 					
 					$deleteCount ++;
 					echo " deleted\n";
@@ -206,9 +205,7 @@ class CHUrl extends CLIHandler {
 					echo " failed: " . $e->getMessage() . "\n";
 				}
 				
-			}
-			
-			Record::popIndex();
+			}			
 		}
 		
 		printf( "\nFinished Part 2. Deleted: %d  ; Failed: %d\n", $deleteCount, $failCount );
@@ -259,7 +256,7 @@ class CHUrl extends CLIHandler {
 		try {
 			$liveRecord = $previewRecord->getFamilyMember( array( 'live' => DTSteroidLive::LIVE_STATUS_LIVE ) );
 			
-			if ($liveRecord->exists()) {
+			if ($liveRecord->exists() && $liveRecord !== $previewRecord) {
 				// check if live record has a rewrite record
 				$liveRewriteRecord = $liveRecord->getFieldValue( $rewriteField );
 				
@@ -330,6 +327,7 @@ class CHUrl extends CLIHandler {
 								$liveRewriteRecord->readOnly = true; // prevent delete
 	
 								$liveUrlRecord->delete(); // delete wrong url
+								unset($liveUrlRecord);
 		
 								$liveRewriteRecord->readOnly = false; // unprotect
 		
