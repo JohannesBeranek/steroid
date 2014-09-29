@@ -1,10 +1,3 @@
-/res/static/js/dev/dgrid
-/res/static/js/dev/dijit
-/res/static/js/dev/dojo
-/res/static/js/dev/dojox
-/res/static/js/dev/put-selector
-/res/static/js/dev/util
-/res/static/js/dev/xstyle
 .DS_Store
 /.project
 /unittest/reports
