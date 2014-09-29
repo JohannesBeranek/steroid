@@ -141,15 +141,13 @@ class DTUrlRewrite extends BaseDTRecordReference {
 						}
 
 						
-						if ($urlRecord->exists()) {
+						if (isset($urlRecord->{'url:RCUrlRewrite'})) {
 							// due to some strange circumstances, this urlRecord might already be existing
+							// or rewrites might have been copied
 							// if this is the case, disconnect existing records from it
 							$foreignRewrites = $urlRecord->{'url:RCUrlRewrite'};
 							
-							if (!$foreignRewrites) {
-								throw new Exception();
-							}
-							
+		
 							// empty foreign refs
 							$urlRecord->{'url:RCUrlRewrite'} = array();
 						}
