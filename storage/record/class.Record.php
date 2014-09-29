@@ -2,6 +2,8 @@
 /**
  * @package steroid\record
  */
+ 
+require_once __DIR__ . '/class.RecordIndexConflictException.php';
 
 require_once __DIR__ . '/interface.IRecord.php';
 require_once STROOT . '/backend/interface.IBackendModule.php';
@@ -1772,7 +1774,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 				$pt = $this;
 				$this->indexed = true;
 			} else if ( $pt !== $this ) {
-				throw new Exception( 'Indexing conflict for ' . get_called_class() . ' on key ' . $keyName . ' with values ' . Debug::getStringRepresentation( $this->values ) . ' ; other record has ' . Debug::getStringRepresentation( $pt->getValues() ) );
+				throw new RecordIndexConflictException( 'Indexing conflict for ' . get_called_class() . ' on key ' . $keyName . ' with values ' . Debug::getStringRepresentation( $this->values ) . ' ; other record has ' . Debug::getStringRepresentation( $pt->getValues() ) );
 			}
 		}
 	}
