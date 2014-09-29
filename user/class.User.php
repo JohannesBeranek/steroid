@@ -471,16 +471,21 @@ class User {
 		return $this->domainGroups;
 	}
 
-	public function getCurrentPermissions( $domainGroup = NULL ) {
-		if ( !$domainGroup ) {
-			$domainGroup = $this->getSelectedDomainGroup();
-		}
-
+	public function getCurrentPermissions( $domainGroup = NULL, $language = NULL ) {
 		if ( $this->permissions === NULL ) {
+			// TODO: $domainGroup === NULL ?	
+			if ( !$domainGroup ) {
+				$domainGroup = $this->getSelectedDomainGroup();
+			}
+		
+			if ( $language === NULL ) {
+				$language = $this->getSelectedLanguage();
+			}
+			
 			$this->permissions = $this->storage->selectRecords(
 				'RCPermission', array(
 					'fields' => '*',
-					'vals' => array( $this->record, $this->getSelectedLanguage(), $domainGroup ),
+					'vals' => array( $this->record, $language, $domainGroup ),
 					'name' => 'User_currentPermissions',
 					'join' => array(
 						'permission:RCDomainGroupLanguagePermissionUser' => array(

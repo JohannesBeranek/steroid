@@ -32,6 +32,12 @@ class DTUrlRewrite extends BaseDTRecordReference {
 		$ct = 0;
 		$urlLast = ( $prefix === NULL ? '' : $prefix ) . ( $suffix === NULL ? '' : $suffix );
 		$urlBase = rtrim( $page->getUrlForPage( $page, false ), '/' ) . '/';
+		
+		$domainGroup = $page->domainGroup;
+		
+		if ($domainGroup === NULL) {
+			throw new Exception();
+		}
 
 		do {
 			if ( $ct > 0 ) {
@@ -48,7 +54,7 @@ class DTUrlRewrite extends BaseDTRecordReference {
 				'fields' => array('primary'),
 				'where' => array(
 					'url', '=', array( $newUrl ),
-					'AND', 'domainGroup', '=', array( $page->domainGroup ), // RCDomainGroup has no live field
+					'AND', 'domainGroup', '=', array( $domainGroup ), // RCDomainGroup has no live field
 					'AND', 'live', '=', array( $liveState ) ) ) );
 
 
@@ -129,9 +135,27 @@ class DTUrlRewrite extends BaseDTRecordReference {
 
 						$urlRecord = $otherUrlRecord->copy( array( 'live' => $liveStatus ), $missingReferences );
 
+						// just to be safe
+						if ($urlRecord === $otherUrlRecord) {
+							throw new Exception();
+						}
+
+						
+						if ($urlRecord->exists()) {
+							// due to some strange circumstances, this urlRecord might already be existing
+							// if this is the case, disconnect existing records from it
+							$foreignRewrites = $urlRecord->{'url:RCUrlRewrite'};
+							
+							if (!$foreignRewrites) {
+								throw new Exception();
+							}
+							
+							// empty foreign refs
+							$urlRecord->{'url:RCUrlRewrite'} = array();
+						}
+
 						//  make sure we don't get problems if url is already taken in current live status
 						$urlRecord->url = self::getNewUrl($storage, $page, $rewriteTitlePrefix, $rewriteTitleSuffix, $liveStatus);
-						
 						
 						
 						$rewriteUrlRecordReturn->url = $urlRecord;
