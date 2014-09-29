@@ -2756,19 +2756,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction, array &$basket = NULL ) {
 		if ( $reflectingFieldName && isset( $this->fields[ $reflectingFieldName ] ) ) { // filter for dynamic references
-			$isIndexField = $this->isIndexField( $reflectingFieldName );
-	
-			if ( $this->indexed && $isIndexField ) {
-				$this->removeFromIndex();
-			}
-
-	
 			$this->fields[ $reflectingFieldName ]->notifyReferenceRemoved( $originRecord, $triggeringFunction, $basket );
-			
-	
-			if ( $isIndexField ) {
-				$this->index();
-			}
 		}
 
 		// BaseDTRecordReference notifies from doNotifications and beforeDelete
@@ -2791,18 +2779,25 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 	public function notifyReferenceAdded( IRecord $originRecord, $reflectingFieldName, $loaded ) {
 		if ( $reflectingFieldName && isset( $this->fields[ $reflectingFieldName ] ) ) {
-			$isIndexField = $this->isIndexField( $reflectingFieldName );
+			$this->fields[ $reflectingFieldName ]->notifyReferenceAdded( $originRecord, $loaded );
+		}
+	}
+	
+	/**
+	 * Used by some fields, e.g. BaseDTRecordReference in notifyReferenceRemoved/-Added
+	 */
+	public function wrapReindex( $fieldName, $function ) {
+			$isIndexField = $this->isIndexField( $fieldName );
 	
 			if ( $this->indexed && $isIndexField ) {
 				$this->removeFromIndex();
 			}
 			
-			$this->fields[ $reflectingFieldName ]->notifyReferenceAdded( $originRecord, $loaded );
+			$function();
 			
 			if ( $isIndexField ) {
 				$this->index();
 			}
-		}
 	}
 
 	public function refreshField( $fieldName ) {

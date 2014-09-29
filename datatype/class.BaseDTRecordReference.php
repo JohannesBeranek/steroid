@@ -449,8 +449,10 @@ abstract class BaseDTRecordReference extends DataType {
 					$lastRawValue = $this->values[ $this->colName ];
 				}
 
-				$this->_setValue( NULL, false );
-
+				$this->record->wrapReindex( $this->fieldName, function() {
+					$this->_setValue( NULL, false );	
+				});
+			
 				if ( isset( $lastRawValue ) ) {
 					$this->lastRawValue = $lastRawValue;
 				}
@@ -465,7 +467,9 @@ abstract class BaseDTRecordReference extends DataType {
 		}
 
 		// FIXME: we actually don't know if the value we get is the same as in DB
-		$this->_setValue( $originRecord, false );
+		$this->record->wrapReindex( $this->fieldName, function() use ( $originRecord ){
+			$this->_setValue( $originRecord, false );
+		});
 	}
 
 	protected static function getRequiredPermissions( $fieldDef, $fieldName, $currentForeignPerms, $permissions, $owningRecordClass ) {
