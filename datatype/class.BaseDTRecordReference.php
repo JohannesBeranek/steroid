@@ -448,8 +448,12 @@ abstract class BaseDTRecordReference extends DataType {
 				if ( isset( $this->values[ $this->colName ] ) ) { // this is needed so we can still delete the record if this reference is part of the primary key
 					$lastRawValue = $this->values[ $this->colName ];
 				}
-
+				
+				// FIXME: removeFromIndex + index should use record funcs
+								
+				$this->record->removeFromIndex();
 				$this->_setValue( NULL, false );
+				$this->record->index();
 
 				if ( isset( $lastRawValue ) ) {
 					$this->lastRawValue = $lastRawValue;
@@ -465,7 +469,10 @@ abstract class BaseDTRecordReference extends DataType {
 		}
 
 		// FIXME: we actually don't know if the value we get is the same as in DB
+		// FIXME: removeFromIndex + index should use record funcs
+		$this->record->removeFromIndex();
 		$this->_setValue( $originRecord, false );
+		$this->record->index();
 	}
 
 	protected static function getRequiredPermissions( $fieldDef, $fieldName, $currentForeignPerms, $permissions, $owningRecordClass ) {
