@@ -70,7 +70,7 @@ define([
 				value: "1",
 				disabled: !!me.disabled,
 				readOnly: !!me.readOnly,
-				name: me.originalName
+				name: me.submitName
 			});
 
 			me.checkBox.startup();
