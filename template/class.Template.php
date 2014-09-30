@@ -306,6 +306,10 @@ class Template {
 							try {
 								$handleAreaReturn = $outputPart[ 'element' ]->handleArea( $this->data, $this );
 							} catch (Exception $e) {
+								if ($e instanceof RequireHTTPSException) {
+									throw $e;
+								}
+								
 								Log::write($e);
 								
 								if ( !empty( $this->data[ 'page' ] ) ) {
