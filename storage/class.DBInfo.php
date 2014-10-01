@@ -115,7 +115,7 @@ class DBInfo {
 			$padTo = max($padTo, strlen($recordClassFile[ ClassFinder::CLASSFILE_KEY_CLASSNAME ])); // strlen is okay here, as we don't accept utf8 in classnames
 		}
 
-		$summary = array( DBTableDefinition::RESULT_EQUALS => 0, DBTableDefinition::SAFE_UPDATE_TRUE => 0, DBTableDefinition::SAFE_UPDATE_FALSE => 0, DBTableDefinition::SAFE_UPDATE_UNKNOWN => 0 );
+		$summary = array( DBTableDefinition::RESULT_EQUALS => 0, DBTableDefinition::SAFE_UPDATE_TRUE => 0, DBTableDefinition::SAFE_UPDATE_FALSE => 0, DBTableDefinition::SAFE_UPDATE_UNKNOWN => 0, DBTableDefinition::RESULT_RECORD_COUNT => 0 );
 
 		foreach ( $this->recordClassFiles as $idx => $recordClassFile ) {
 			$className = $recordClassFile[ ClassFinder::CLASSFILE_KEY_CLASSNAME ];
@@ -152,7 +152,7 @@ class DBInfo {
 				$summary[ DBTableDefinition::RESULT_EQUALS ]++;	
 			}
 
-
+			$summary[DBTableDefinition::RESULT_RECORD_COUNT] += $this->storage->count( $className::getTableName() );
 		}
 
 		$longest = max(
@@ -169,6 +169,7 @@ class DBInfo {
 		echo CLIHandler::RESULT_COLOR_WARNING . '   Update safety unknown: ' . str_pad($summary[ DBTableDefinition::SAFE_UPDATE_UNKNOWN ], $longest, ' ', STR_PAD_LEFT) . "\n";
 		echo CLIHandler::RESULT_COLOR_FAILURE . '   Update unsafe:         ' . str_pad($summary[ DBTableDefinition::SAFE_UPDATE_FALSE ], $longest, ' ', STR_PAD_LEFT) . "\n";	
 		echo CLIHandler::COLOR_DEFAULT . "\n";
+		echo CLIHandler::COLOR_DEFAULT . "Total record count: " . str_pad( $summary[ DBTableDefinition::RESULT_RECORD_COUNT ], $longest, ' ', STR_PAD_LEFT ) . "\n";
 
 		echo CLIHandler::COLOR_CLASSNAME . "Don't forget to update permissions if necessary!" . "\n";
 
