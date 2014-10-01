@@ -46,7 +46,7 @@ define({
 		title: 'Andere Einträge die ebenfalls veröffentlich werden müssen (ausgegraut), bzw können (auswählbar)'
 	},
 	AffectedReferencesException: {
-		title: 'Die folgenden Einträge müssen ebenfalls versteckt werden'
+		title: 'Die folgenden Einträge müssen ebenfalls gelöscht werden'
 	},
 	AccessDeniedException: {
 		title: 'Zugriff verweigert',

@@ -46,7 +46,7 @@ define({ root: ({
 		title: 'Other records that must (greyed out), or can (selectable) also be published'
 	},
 	AffectedReferencesException: {
-		title: 'Other records that also must be hidden'
+		title: 'Other records that also must be deleted'
 	},
 	AccessDeniedException: {
 		title: 'Access denied',
