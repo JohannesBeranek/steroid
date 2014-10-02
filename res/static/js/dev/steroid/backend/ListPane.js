@@ -550,11 +550,6 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 			me.selectionBar.addChild(me.BTSelect);
 			me.addChild(me.selectionBar);
 		},
-		reselectAfterLoad : function(primary) {
-			var me = this;
-
-			console.debug(primary);
-		},
 		initMenuBar : function() {
 			var me = this;
 
@@ -961,7 +956,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 		selectionChanged : function() {
 			var me = this;
 
-			if (me.nextSelectionEventKey === 0 || me.nextSelectionEventKey === 13) {
+			if (me.nextSelectionEventKey === null || me.nextSelectionEventKey === 0 || me.nextSelectionEventKey === 13) {
 				delete me.nextSelectionEventKey;
 				me.rowsSelected();
 			}
