@@ -5,7 +5,7 @@ require_once __DIR__ . '/class.Transaction.php';
 
 class BaseDB implements ITransactionBased {
 	
-	protected $host, $user, $password, $database, $engine, $charset, $collation;
+	protected $host, $user, $password, $database, $port, $engine, $charset, $collation;
 
 	protected $persistent;
 	protected $transactionLevel = 0;
@@ -40,11 +40,12 @@ class BaseDB implements ITransactionBased {
 		return empty( $engine ) ? $this->engine : $engine;
 	}
 
-	public function __construct( $host, $user, $password, $database, $engine = NULL, $charset = NULL, $collation = NULL, $persistent = true ) {
+	public function __construct( $host, $user, $password, $database, $engine = NULL, $charset = NULL, $collation = NULL, $persistent = true, $port = NULL ) {
 		$this->host = $host;
 		$this->user = $user;
 		$this->password = $password;
 		$this->database = $database;
+		$this->port = $port;
 
 		$this->engine = $engine === NULL ? self::DEFAULT_ENGINE : $engine;
 		$this->charset = $charset === NULL ? self::DEFAULT_CHARSET : $charset;
@@ -64,7 +65,11 @@ class BaseDB implements ITransactionBased {
 	}
 
 	protected function _createConnection() {
-		$this->conn = new mysqli( ( $this->persistent ? 'p:' : '' ) . $this->host, $this->user, $this->password, $this->database );
+		if ($this->port === NULL) {
+			$this->conn = new mysqli( ( $this->persistent ? 'p:' : '' ) . $this->host, $this->user, $this->password, $this->database );
+		} else {
+			$this->conn = new mysqli( ( $this->persistent ? 'p:' : '' ) . $this->host, $this->user, $this->password, $this->database, $this->port );
+		}
 
 		if ( $this->conn->connect_errno != 0 ) {
 			throw new Exception( 'Error connecting to database: ' . $this->conn->connect_errno . ' : ' . $this->conn->connect_error );

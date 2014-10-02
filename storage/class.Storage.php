@@ -55,8 +55,8 @@ class Storage extends DB implements IStorage {
 
 	const DEFAULT_DIRECTORY = 'upload';
 
-	public function __construct( $host, $user, $password, $database, $directory = NULL, $engine = NULL, $charset = NULL, $collation = NULL, $persistent = true ) {
-		parent::__construct( $host, $user, $password, $database, $engine, $charset, $collation, $persistent );
+	public function __construct( $host, $user, $password, $database, $directory = NULL, $engine = NULL, $charset = NULL, $collation = NULL, $persistent = true, $port = NULL ) {
+		parent::__construct( $host, $user, $password, $database, $engine, $charset, $collation, $persistent, $port );
 
 		if ( $directory === NULL ) {
 			$directory = self::DEFAULT_DIRECTORY;
