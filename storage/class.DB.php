@@ -165,12 +165,16 @@ if (!class_exists('mysqli')) { // mysqli emulation layer for older versions of H
 class mysqli {
 	protected $conn;
 
-	public function __construct( $host, $user, $password, $database ) {
+	public function __construct( $host, $user, $password, $database, $port = NULL ) {
+		if ($port === NULL) {
+			$port = ini_get( "mysql.default_port" );
+		}
+
 		if ( $host[0] === 'p' && $host[1] === ':' ) {
 			$host = substr($host, 2);
-			$this->conn = mysql_pconnect( $host, $user, $password );
+			$this->conn = mysql_pconnect( $host, $user, $password, $port );
 		} else {
-			$this->conn = mysql_connect( $host, $user, $password );
+			$this->conn = mysql_connect( $host, $user, $password, $port );
 		}
 
 		mysql_select_db( $database, $this->conn );
