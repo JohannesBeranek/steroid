@@ -65,8 +65,9 @@ class RCPreviewSecret extends Record {
 		$previewSecret = self::get( $page->getStorage(), array(), false );
 		$previewSecret->save();
 		
-		// TODO: http vs https!	
-		return $page->getUrlForPage( $page, $previewSecret->getPreviewParam( true ), true );
+		// prefer http - in case frontend needs https, we'll get redirected anyway
+		// TODO: make this localconf option
+		return $page->getUrlForPage( $page, $previewSecret->getPreviewParam( true ), 'http', true );
 	}
 	
 	protected function beforeSave( $isUpdate, $isFirst ) {
@@ -77,5 +78,3 @@ class RCPreviewSecret extends Record {
 		}
 	}
 }
-
-?>
