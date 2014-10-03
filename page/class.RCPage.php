@@ -270,6 +270,8 @@ class RCPage extends Record {
 			if ( !empty( $urlParts[ 'fragment' ] ) ) $url .= '#' . $urlParts[ 'fragment' ];
 
 		} else {
+			// $page is not string or $page === 'http' or $page === 'https'
+			
 			if ( $page === NULL ) {
 				$page = $this;
 			} else if ( is_array( $page ) ) {
