@@ -272,7 +272,7 @@ abstract class BaseDTRecordReference extends DataType {
 				if ( ! $this->value instanceof IRecord ) {
 					throw new Exception(Debug::getStringRepresentation($this->value) . " = \$this->value, not instanceof IRecord!" );
 				}
-				
+
 				$this->value->delete( $basket );
 				
 				// help with gc
