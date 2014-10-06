@@ -1807,25 +1807,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		}
 	}
 
-
-	public function setStorage( IRBStorage $storage ) {
-		if ( $storage === NULL ) {
-			throw new Exception( '$storage may not be NULL.' );
-		}
-
-		if ( $storage !== $this->storage ) {
-			$this->storage = $storage;
-
-			foreach ( $this->fields as $field ) {
-				/* @var $field IDataType */
-
-				if ( $field->hasBeenSet() ) {
-					$field->setDirty( true );
-				}
-			}
-		}
-	}
-
 	public function getStorage() {
 		return $this->storage;
 	}
@@ -2103,7 +2084,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		}
 	}
 
-	public function isDirty( $checkForeign = true ) {
+	public function isDirty( $checkForeign ) {
 		foreach ( $this->fields as $fieldName => $dataType ) {
 			if ( ( $checkForeign || $dataType->colName ) && $dataType->dirty ) {
 				return true;

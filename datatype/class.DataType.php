@@ -141,11 +141,6 @@ abstract class DataType implements IDataType {
 		return true;
 	}
 
-	// ONLY FOR EMERGENCY CASES LIKE BACKUP RECOVERY!
-	public function setDirty( $dirty ) {
-		$this->isDirty = $dirty;
-	}
-
 
 	public function setDefault( array $saveResult ) {
 		if ( $this->colName && array_key_exists( 'default', $this->config ) && !array_key_exists( $this->colName, $this->values ) ) {
@@ -160,8 +155,8 @@ abstract class DataType implements IDataType {
 	}
 
 	public function afterSave( $isUpdate, array $saveResult ) {
+		// stub
 	}
-
 
 	public function beforeDelete( array &$basket = NULL ) {
 		// stub
