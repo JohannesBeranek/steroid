@@ -321,15 +321,18 @@ abstract class BaseDTForeignReference extends DataType {
 		$newRecords = array();
 
 		// TODO: make it possible to use unique sorting key (at the moment we can get conflicts because old records don't get delete before new ones get inserted/updated)
-		if ( $this->config[ 'requireSelf' ] ) {
-			foreach ( $currentRecords as $currentRecord ) {
-				if ( !in_array( $currentRecord, $this->value, true ) ) {	
+		foreach ( $currentRecords as $currentRecord ) {
+			if ( !in_array( $currentRecord, $this->value, true ) ) {	
+				if ( $this->config[ 'requireSelf' ] ) {
 					$currentRecord->checkForDelete();
 				} else {
-					$keepRecords[] = $currentRecord; // save existing record as well, might have new values (and record might not even be dirty itself, but some referenced record on xth level)
+					$currentRecord->save();
 				}
+			} else {
+				$keepRecords[] = $currentRecord; // save existing record as well, might have new values (and record might not even be dirty itself, but some referenced record on xth level)
 			}
 		}
+		
 
 
 		// re-save existing records first, so we don't get into unique sorting key conflicts
