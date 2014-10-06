@@ -431,12 +431,12 @@ abstract class BaseDTForeignReference extends DataType {
 		if ( $this->hasBeenSet() ) {
 			$val = $this->record->getFieldValue( $this->fieldName ); // would lead to huge recursion in case of lazy loading (which is why we do lazy stuff separate)
 
-			if ( ( $key = array_search( $originRecord, $val, true ) ) !== false ) {
+			if ( $basket === NULL && ( $key = array_search( $originRecord, $val, true ) ) !== false ) {
 				unset( $val[ $key ] );
 
 				$this->_setValue( $val, false );
 			}
-		} else if ( $this->record->exists() ) { // this is needed so we don't dirty records because of notify as well as preventing recursion through hundreds of records
+		} else if ( $basket === NULL && $this->record->exists() ) { // this is needed so we don't dirty records because of notify as well as preventing recursion through hundreds of records
 			$this->changeStack[ ] = array( self::CHANGE_REMOVE, $originRecord );
 		}
 	}
