@@ -28,6 +28,7 @@ require_once STROOT . '/datatype/class.BaseDTForeignReference.php';
 require_once STROOT . '/datatype/class.BaseDTRecordReference.php';
 
 require_once STROOT . '/util/class.Config.php';
+require_once STROOT . '/util/array_diff_strict.php';
 
 
 /**
@@ -118,7 +119,12 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 */
 	protected $fields;
 
-	protected $indexed;
+	/**
+	 * @var integer number of times this record is in the index
+	 */
+	protected $indexed = 0;
+	protected $_id;
+	
 	protected $deleted;
 	protected $metaData;
 
@@ -133,6 +139,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 */
 	private static $oldIndex = array();
 
+	private static $_idCounter = 0;
 
 	private static $useCache;
 
@@ -174,6 +181,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 * Used to determine how often 
 	 * gc_collect_cycles should be called
 	 * after a record has been deleted
+	 * 
+	 * TODO: private static, so inheriting classes don't get this
 	 */
 	public static $runGCCollectCyclesAfterRecordsDeletedNum = 100;
 	
@@ -244,6 +253,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 * cleans up to prepare for garbage collection
 	 */
 	protected function cleanup() {
+		if ($this->deleted) {
+			return;
+		}
+		
 		// remove ourselves from callbacks
 		while ( self::$notifyOnSaveComplete && ( $key = array_search( $this, self::$notifyOnSaveComplete, true ) ) !== false ) {
 			unset(self::$notifyOnSaveComplete[$key]);
@@ -264,9 +277,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		// disconnect fields
 		unset($this->fields);
 		
-		unset($this->storage);
-		
-	
+		unset($this->storage);		
 	}
 
 	public static function addHook( $object, $hookType, $recordClasses = NULL ) {
@@ -1609,28 +1620,24 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $pt;
 	}
 
+	// FIXME: remove duplicates - using in_array check takes way too long
+	// until this is fixed, function may return records several times
 	public static function getAllRecords() {
 		if ( empty( self::$records ) ) {
 			return array();
 		}
 
-
-		$getRecs = function ( array $from, array &$bucket ) use ( &$getRecs ) {
-			foreach ( $from as $item ) {
-				if ( $item instanceof IRecord ) {
-					$bucket[ ] = $item;
-				} elseif ( is_array( $item ) ) {
-					$getRecs( $item, $bucket );
-				}
-			}
-		};
-
 		$recs = array();
 
-		$getRecs( self::$records, $recs );
-
+		array_walk_recursive( self::$records, function( $item, $key ) use ( &$recs ) {
+			if ( $item instanceof IRecord ) {
+				$recs[$item->getId()] = $item;
+			}
+		});
+		
 		return $recs;
 	}
+	
 
 
 	public static function getRecordCount() {
@@ -1638,21 +1645,19 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			return 0;
 		}
 
-		$getRecs = function ( array $from, &$count ) use ( &$getRecs ) {
-			foreach ( $from as $item ) {
-				if ( $item instanceof Irecord ) {
-					$count++;
-				} elseif ( is_array( $item ) ) {
-					$getRecs( $item, $count );
-				}
-			}
-		};
-
 		$count = 0;
 
-		$getRecs( self::$records, $count );
+		array_walk_recursive( self::$records, function( $item, $key ) use (&$count) {
+			if ( $item instanceof IRecord ) {
+				$count += 1 / $item->getIndexCount();
+			}
+		});
 
-		return $count;
+
+		return round($count);
+		
+		// the above is faster and yields the same result
+//		return count( self::getAllRecords() );
 	}
 
 	// pushIndex + popIndex can be used to keep memory usage in control when doing several large operations with many records
@@ -1660,13 +1665,32 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		self::$oldIndex[] = self::$records;
 	}
 
-	public static final function popIndex() {
+	public static final function popIndex( $cleanup = true ) {
 		if ( self::$oldIndex !== NULL ) {
 			$popIndex = array_pop( self::$oldIndex );
 
 			if ( $popIndex !== NULL ) {
 				// TODO: make diff of self::$records and $popIndex and call cleanup on those
+				if ($cleanup === true) {
+					$oldRecords = self::getAllRecords();
+				}
+				
 				self::$records = $popIndex;
+				
+				if ($cleanup === true) {
+					$newRecords = self::getAllRecords();
+					
+					$diff = array_diff_strict( $oldRecords, $newRecords );
+
+					foreach ($diff as $rec) {
+						$rec->unload();
+					}
+
+					foreach ($diff as $rec) {
+						$rec->cleanup();
+					}
+					
+				}
 			}
 			
 			if ( !self::$oldIndex ) {
@@ -1721,7 +1745,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			}
 		}
 
-		$this->indexed = false;
+		$this->indexed = 0;
 	}
 
 
@@ -1772,7 +1796,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 			if ( $pt === NULL ) {
 				$pt = $this;
-				$this->indexed = true;
+				$this->indexed++;
 			} else if ( $pt !== $this ) {
 				throw new RecordIndexConflictException( 'Indexing conflict for ' . get_called_class() . ' on key ' . $keyName . ' with values ' . Debug::getStringRepresentation( $this->values ) . ' ; other record has ' . Debug::getStringRepresentation( $pt->getValues() ) );
 			}
@@ -1785,6 +1809,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	// no lazy instancing of fields here as we can't do much without touching all fields (see beforeSave/beforeDelete/...) 
 	protected function __construct( IRBStorage $storage, array $values = NULL, $loaded = true ) {
 		$this->storage = $storage;
+
+		$this->_id = self::$_idCounter++;
 
 		$fieldDefs = static::getAllFieldDefinitions();
 
@@ -1827,6 +1853,15 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 		return false;
 	}
+	
+	public function getIndexCount() {
+		return $this->indexed;
+	}
+	
+	public function getId() {
+		return $this->_id;
+	}
+	
 
 	/**
 	 * Field value should always be set using this function internally
@@ -1974,6 +2009,25 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 
 		return $this;
+	}
+
+	/**
+	 * Helps with memory management
+	 */
+	public function unload() {
+		foreach ($this->fields as $fieldName => $field) {
+			$this->unloadField( $fieldName );
+		}
+	}
+	
+	public function unloadField( $fieldName ) {
+		$field = $this->fields[ $fieldName ];
+		
+		if ( $field instanceof BaseDTRecordReference || $field instanceof BaseDTForeignReference ) {
+			$field->unloadForeign();
+		}
+		
+		$field->unload();
 	}
 
 

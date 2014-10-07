@@ -13,7 +13,7 @@ require_once STROOT . '/util/class.Debug.php';
  * class for foreign references (e.g. join tables, where the datatype's record is referenced by another record)
  */
 abstract class BaseDTForeignReference extends DataType {
-	protected $changeStack = NULL;
+	protected $changeStack;
 	protected $value;
 
 	const CHANGE_ADD = 'add';
@@ -44,6 +44,8 @@ abstract class BaseDTForeignReference extends DataType {
 	}
 
 	public function cleanup() {
+		$this->unloadForeign();
+		
 		parent::cleanup();
 		
 		unset($this->value);
@@ -478,6 +480,27 @@ abstract class BaseDTForeignReference extends DataType {
 
 		return 0;
 	}
+	
+	public function unload() {
+		// loop guard
+		if ( isset($this->value) ) {
+			$this->value = NULL;
+			$this->changeStack = NULL;
+			
+			parent::unload();
+		}
+	}
+
+	public function unloadForeign() {
+		if ( isset($this->value) ) {
+			$foreignFieldName = $this->getForeignFieldName();
+			
+			foreach ($this->value as $val) {
+				$val->unloadField( $foreignFieldName );
+			}
+		}
+	}
+	
 
 	public static function getFormConfig( IRBStorage $storage, $owningRecordClass, $fieldName, $fieldDef ) {
 		$fieldDef = parent::getFormConfig( $storage, $owningRecordClass, $fieldName, $fieldDef );

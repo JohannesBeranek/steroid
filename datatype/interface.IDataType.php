@@ -84,12 +84,14 @@ interface IDataType {
 	 */
 	public function hasBeenSet();
 	
-	
+	/**
+	 * Helps with memory management
+	 */
+	public function unload();
+		
 	public static function getTitleFields( $fieldName, $config );
 	
 	public static function fillTitleFields( $fieldName, &$titleFields, $config );
 	
 	public function refresh();
 }
-
-?>

@@ -67,6 +67,8 @@ abstract class BaseDTRecordReference extends DataType {
 	}
 	
 	public function cleanup() {
+		$this->unloadForeign();
+		
 		parent::cleanup();
 		
 		unset($this->lastRawValue);
@@ -470,6 +472,24 @@ abstract class BaseDTRecordReference extends DataType {
 		$this->record->wrapReindex( $this->fieldName, function() use ( $originRecord ){
 			$this->_setValue( $originRecord, false );
 		});
+	}
+	
+	public function unload() {
+		// loop guard
+		if ( isset($this->value) ) {
+			$this->value = NULL;
+			$this->lastRawValue = NULL;
+			
+			parent::unload();
+		}		
+	}
+	
+	public function unloadForeign() {
+		if ( isset( $this->value ) ) {
+			$foreignFieldName = $this->getForeignFieldName();
+		
+			$this->value->unloadField( $foreignFieldName );
+		}
 	}
 
 	protected static function getRequiredPermissions( $fieldDef, $fieldName, $currentForeignPerms, $permissions, $owningRecordClass ) {

@@ -129,6 +129,14 @@ abstract class DataType implements IDataType {
 		return array_key_exists( $this->colName, $this->values );
 	}
 
+	public function unload() {
+		if ($this->colName !== NULL) {
+			unset( $this->values[$this->colName] );
+		}
+		
+		$this->isDirty = false;
+	}
+
 	public function hasValidValue() {
 		return !empty( $this->config[ 'nullable' ] ) ? array_key_exists( $this->colName, $this->values ) : !empty( $this->values[ $this->colName ] );
 	}
