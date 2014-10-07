@@ -67,7 +67,7 @@ abstract class DataType implements IDataType {
 	 * @param null     $fieldName
 	 * @param array    $config
 	 */
-	public function __construct( IStorage &$storage, IRecord $record, array &$values, $fieldName = NULL, array $config = NULL ) {
+	public function __construct( IStorage $storage, IRecord $record, array &$values, $fieldName = NULL, array $config = NULL ) {
 		if ( $fieldName === NULL || $config === NULL ) {
 			throw new InvalidArgumentException( '$fieldName and $config must be set' );
 		}
@@ -77,16 +77,18 @@ abstract class DataType implements IDataType {
 		$this->fieldName = $fieldName;
 		$this->colName = static::getColName( $fieldName, $config );
 		$this->config = $config;
-		$this->storage = & $storage;
+		$this->storage = $storage;
 	}
 	
 	public function cleanup() {
-		unset($this->record);
+		$this->record = NULL;
+		
 		unset($this->values);
-		unset($this->fieldName);
-		unset($this->colName);
-		unset($this->config);
-		unset($this->storage);
+		$this->values = NULL;
+		$this->fieldName = NULL;
+		$this->colName = NULL;
+		$this->config = NULL;
+		$this->storage = NULL;
 	}
 
 	public static function getDefaultValue( IStorage $storage, $fieldName = NULL, array $fieldConf = NULL, array $extraParams = NULL ) {

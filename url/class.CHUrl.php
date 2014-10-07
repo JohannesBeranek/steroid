@@ -127,13 +127,18 @@ class CHUrl extends CLIHandler {
 			printf("Fixing preview records, currently %d records indexed.\n", Record::getRecordCount());
 			
 			
-			foreach ($previewRecords as $previewRecord) {
+			foreach ($previewRecords as $n => $previewRecord) {
 				$this->fixRecord( $previewRecord, $rewriteField, $rewriteRecordPrimaries );
+				printf("\rRecords checked: %d ", $n + 1);
 			}
+
+			unset($previewRecords);
+			unset($previewRecord);
+			
+			echo "\nDone.\n";
 			
 			Record::popIndex();
-			unset($previewRecords);
-			
+						
 			Record::pushIndex();
 			
 			// there might be live records with rewrite where the corresponding preview record has no rewrite
@@ -157,6 +162,10 @@ class CHUrl extends CLIHandler {
 					$this->fixRecord( $previewRecord, $rewriteField, $rewriteRecordPrimaries );
 				}
 			}
+			
+			unset($liveRecords);
+			unset($liveRecord);
+			unset($previewRecord);
 			
 			
 			Record::popIndex();
@@ -248,8 +257,6 @@ class CHUrl extends CLIHandler {
 			
 			$urlFields = array_keys($urlFields);
 		}
-
-		Record::pushIndex();
 		
 		$tx = $this->storage->startTransaction();
 			
@@ -463,10 +470,7 @@ class CHUrl extends CLIHandler {
 			$tx->rollback();
 				
 			throw $e;
-		}
-		
-		Record::popIndex();
-		
+		}		
 	}
 
 	public function getUsageText( $called, $command, array $params ) {

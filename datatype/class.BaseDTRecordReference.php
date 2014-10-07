@@ -67,12 +67,20 @@ abstract class BaseDTRecordReference extends DataType {
 	}
 	
 	public function cleanup() {
-		$this->unloadForeign();
+		$foreignFieldName = $this->getForeignFieldName();
+
+		$value = $this->value;
+		$this->value = NULL;	
+		
+		if ( $value !== NULL ) {
+			$value->unloadField( $foreignFieldName );
+		}
+		
+		unset($value);
 		
 		parent::cleanup();
 		
-		unset($this->lastRawValue);
-		unset($this->value);	
+		$this->lastRawValue = NULL;
 	}
 
 	public function getValue() {
@@ -476,22 +484,22 @@ abstract class BaseDTRecordReference extends DataType {
 	
 	public function unload() {
 		// loop guard
-		if ( isset($this->value) ) {
+		if ( $this->value !== NULL ) {
+			$foreignFieldName = $this->getForeignFieldName();
+			
+			$value = $this->value;
 			$this->value = NULL;
+			
+			$value->unloadField( $foreignFieldName );
+			
+			unset($value);
+			
 			$this->lastRawValue = NULL;
 			
 			parent::unload();
 		}		
 	}
 	
-	public function unloadForeign() {
-		if ( isset( $this->value ) ) {
-			$foreignFieldName = $this->getForeignFieldName();
-		
-			$this->value->unloadField( $foreignFieldName );
-		}
-	}
-
 	protected static function getRequiredPermissions( $fieldDef, $fieldName, $currentForeignPerms, $permissions, $owningRecordClass ) {
 		$owningRecordPerms = $permissions[ $owningRecordClass ];
 

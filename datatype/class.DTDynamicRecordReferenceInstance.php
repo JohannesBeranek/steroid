@@ -113,7 +113,6 @@ class DTDynamicRecordReferenceInstance extends BaseDTRecordReference {
 		return $this->value !== NULL || $this->tempValue !== NULL;
 	}
 
-	// FIXME: this not workin?
 	public static function getForeignReferences( $recordClass, $calledClass, $fieldName, $fieldDef, &$fieldNames ) {
 		if ($recordClass::fieldDefinitionExists(Record::FIELDNAME_PRIMARY)) {
 			$fieldNames[ $fieldName . ':' . $calledClass ] = DTDynamicForeignReference::getFieldDefinition( $fieldDef['classFieldName'], $fieldDef[ 'requireForeign' ] );

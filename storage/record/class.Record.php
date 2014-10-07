@@ -253,13 +253,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 * cleans up to prepare for garbage collection
 	 */
 	protected function cleanup() {
-		if ($this->deleted) {
+		if ($this->fields === NULL) {
 			return;
-		}
-		
-		// remove ourselves from callbacks
-		while ( self::$notifyOnSaveComplete && ( $key = array_search( $this, self::$notifyOnSaveComplete, true ) ) !== false ) {
-			unset(self::$notifyOnSaveComplete[$key]);
 		}
 		
 		// correct internal state (loadedFields, values, etc)
@@ -267,17 +262,22 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$field->cleanup();
 		}
 		
-			
-		unset($this->values);
-		unset($this->valuesLastLoaded);
+		// remove ourselves from callbacks
+		while ( self::$notifyOnSaveComplete && ( $key = array_search( $this, self::$notifyOnSaveComplete, true ) ) !== false ) {
+			unset(self::$notifyOnSaveComplete[$key]);
+		}
 		
-		unset($this->metaData);
+			
+		$this->values = NULL;
+		$this->valuesLastLoaded = NULL;
+		
+		$this->metaData = NULL;
 					
 					
 		// disconnect fields
-		unset($this->fields);
+		$this->fields = NULL;
 		
-		unset($this->storage);		
+		$this->storage = NULL;		
 	}
 
 	public static function addHook( $object, $hookType, $recordClasses = NULL ) {
@@ -1649,7 +1649,13 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 		array_walk_recursive( self::$records, function( $item, $key ) use (&$count) {
 			if ( $item instanceof IRecord ) {
-				$count += 1 / $item->getIndexCount();
+				$indexCount = $item->getIndexCount();
+				
+				if ( $indexCount === 0 ) {
+					throw new Exception('Wrong indexCount on record: ' . Debug::getStringRepresentation( $item->getValues() ) );
+				}
+				
+				$count += 1 / $indexCount;
 			}
 		});
 
@@ -1661,16 +1667,23 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	}
 
 	// pushIndex + popIndex can be used to keep memory usage in control when doing several large operations with many records
-	public static final function pushIndex() {
+	final public static function pushIndex() {
 		self::$oldIndex[] = self::$records;
 	}
 
-	public static final function popIndex( $cleanup = true ) {
+	final private static function cleanIndexDiff( $oldRecords, $newRecords ) {
+		$diff = array_diff_strict( $oldRecords, $newRecords );
+
+		foreach ($diff as $n => $rec) {
+			$rec->cleanup();
+		}
+	}
+
+	final public static function popIndex( $cleanup = true ) {
 		if ( self::$oldIndex !== NULL ) {
 			$popIndex = array_pop( self::$oldIndex );
 
 			if ( $popIndex !== NULL ) {
-				// TODO: make diff of self::$records and $popIndex and call cleanup on those
 				if ($cleanup === true) {
 					$oldRecords = self::getAllRecords();
 				}
@@ -1680,16 +1693,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 				if ($cleanup === true) {
 					$newRecords = self::getAllRecords();
 					
-					$diff = array_diff_strict( $oldRecords, $newRecords );
-
-					foreach ($diff as $rec) {
-						$rec->unload();
-					}
-
-					foreach ($diff as $rec) {
-						$rec->cleanup();
-					}
+					self::cleanIndexDiff( $oldRecords, $newRecords );
 					
+					unset($oldRecords);
+					unset($newRecords);
 				}
 			}
 			
@@ -2015,19 +2022,23 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 * Helps with memory management
 	 */
 	public function unload() {
+		// might be called after cleanup
+		if ($this->fields === NULL) {
+			return;
+		}
+		
 		foreach ($this->fields as $fieldName => $field) {
 			$this->unloadField( $fieldName );
 		}
 	}
 	
 	public function unloadField( $fieldName ) {
-		$field = $this->fields[ $fieldName ];
-		
-		if ( $field instanceof BaseDTRecordReference || $field instanceof BaseDTForeignReference ) {
-			$field->unloadForeign();
+		// might be called after cleanup
+		if ($this->fields === NULL) {
+			return;
 		}
 		
-		$field->unload();
+		$this->fields[ $fieldName ]->unload();
 	}
 
 

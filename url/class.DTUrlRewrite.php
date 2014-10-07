@@ -268,8 +268,6 @@ class DTUrlRewrite extends BaseDTRecordReference {
 			// check if rewriteRecord already exists
 			$rewriteFieldValue = $rewriteOwningRecord->getFieldValue( $rewriteField );
 			
-			// transaction for creating rewrite - due to scoping this needs to be declared here
-			$txOuter = NULL;
 			
 			if ( $rewriteFieldValue === NULL ) {
 				// need to create rewriteRecord 

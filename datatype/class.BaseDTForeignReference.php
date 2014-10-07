@@ -44,12 +44,24 @@ abstract class BaseDTForeignReference extends DataType {
 	}
 
 	public function cleanup() {
-		$this->unloadForeign();
+		$foreignFieldName = $this->getForeignFieldName();
+		
+		$value = $this->value;
+		$this->value = NULL;
+		
+		if ( $value !== NULL ) {
+			foreach ($value as $val) {
+				$val->unloadField( $foreignFieldName );
+			}
+			
+			unset($val);
+		}
+		
+		unset($value);
 		
 		parent::cleanup();
 		
-		unset($this->value);
-		unset($this->changeStack);
+		$this->changeStack = NULL;
 	}
 
 	public function getForeignFieldName() {
@@ -483,23 +495,25 @@ abstract class BaseDTForeignReference extends DataType {
 	
 	public function unload() {
 		// loop guard
-		if ( isset($this->value) ) {
+		if ( $this->value !== NULL ) {
+			$foreignFieldName = $this->getForeignFieldName();
+				
+			$value = $this->value;
 			$this->value = NULL;
+			
+			foreach ($value as $val) {
+				$val->unloadField( $foreignFieldName );
+			}
+			
+			unset($value);
+			unset($val);
+			
 			$this->changeStack = NULL;
 			
 			parent::unload();
 		}
 	}
 
-	public function unloadForeign() {
-		if ( isset($this->value) ) {
-			$foreignFieldName = $this->getForeignFieldName();
-			
-			foreach ($this->value as $val) {
-				$val->unloadField( $foreignFieldName );
-			}
-		}
-	}
 	
 
 	public static function getFormConfig( IRBStorage $storage, $owningRecordClass, $fieldName, $fieldDef ) {
