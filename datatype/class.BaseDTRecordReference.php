@@ -70,7 +70,7 @@ abstract class BaseDTRecordReference extends DataType {
 		$foreignFieldName = $this->getForeignFieldName();
 
 		$value = $this->value;
-		$this->value = NULL;	
+		$this->value = NULL;
 		
 		if ( $value !== NULL ) {
 			$value->unloadField( $foreignFieldName );
@@ -279,16 +279,18 @@ abstract class BaseDTRecordReference extends DataType {
 		if ( $this->record->{$this->fieldName} ) { // support lazy loading
 			$this->value->notifyReferenceRemoved( $this->record, $this->getForeignFieldName(), __FUNCTION__, $basket );
 
-			if ( $this->deleteValueOnBeforeDelete() && $this->value !== NULL ) { // NULL check is needed for circular function calling
-				if ( ! $this->value instanceof IRecord ) {
-					throw new Exception(Debug::getStringRepresentation($this->value) . " = \$this->value, not instanceof IRecord!" );
+			if($this->value !== NULL){
+				if ( $this->deleteValueOnBeforeDelete()) { // NULL check is needed for circular function calling
+					if ( !$this->value instanceof IRecord ) {
+						throw new Exception( Debug::getStringRepresentation( $this->value ) . " = \$this->value, not instanceof IRecord!" );
+					}
+
+					$this->value->delete( $basket );
 				}
 
-				$this->value->delete( $basket );
-				
 				// help with gc
 				if ( $basket === NULL ) {
-					unset($this->value);
+					$this->value = NULL;
 				}
 			}
 		}

@@ -82,8 +82,7 @@ abstract class DataType implements IDataType {
 	
 	public function cleanup() {
 		$this->record = NULL;
-		
-		unset($this->values);
+
 		$this->values = NULL;
 		$this->fieldName = NULL;
 		$this->colName = NULL;
