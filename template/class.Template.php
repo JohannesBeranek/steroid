@@ -299,12 +299,18 @@ class Template {
 							$this->fileContexts = array();
 							$this->pushContext( rtrim( $outputPart[ 'dir' ], '/' ) . '/' );
 
+							$data = $this->data;
+
+							foreach ($this->localDataStack as $localData) {
+								$data = array_merge($data, $localData);
+							}
+
 							// DEBUG
 							$startTime = microtime(true);
 
 							// catch exceptions and display message to authenticated users with enough permissions
 							try {
-								$handleAreaReturn = $outputPart[ 'element' ]->handleArea( $this->data, $this );
+								$handleAreaReturn = $outputPart[ 'element' ]->handleArea( $data, $this );
 							} catch (Exception $e) {
 								if ($e instanceof RequireHTTPSException) {
 									throw $e;
