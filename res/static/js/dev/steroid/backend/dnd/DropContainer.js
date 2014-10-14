@@ -34,6 +34,7 @@ define([
 		class: 'STDropContainer',
 		disabled: false,
 		readOnly: false,
+		useIndex: false,
 
 		constructor: function () {
 			this.items = [];
@@ -167,6 +168,8 @@ define([
 		},
 		addItem: function (item, dropIndex) {
 			var me = this;
+
+			item.useIndex = me.useIndex;
 
 			if (item.currentContainer) {
 				item.beforeDomMove();

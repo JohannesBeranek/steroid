@@ -752,6 +752,10 @@ class User {
 		$highestPermission = -1;
 
 		foreach ( $permissionJoins as $permissionJoin ) {
+			if(!$permissionJoin->permission){
+				continue;
+			}
+
 			$permissionIndex = array_search( $permissionJoin->permission->title, static::$permissionPriority );
 
 			if ( $permissionIndex !== false && $permissionIndex > $highestPermission ) {
