@@ -748,19 +748,17 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 			var filter = [];
 			var hasQuickSearchFilter = false;
 
-			for (i in me.currentFilter) {
+			for (var i in me.currentFilter) {
 				// Code to handle entered spaces in quicksearch: "a b" is handled as "a" AND "b"
 				if (i == 'quicksearch') {
-					if (value) {
-						hasQuickSearchFilter = true;
+					hasQuickSearchFilter = true;
 
-						var tokens = value.split(' ');
-						for (n in tokens) {
-							if (tokens[n].length) {
-								var f = dojo.clone(me.currentFilter[i]);
-								f.filterValue = tokens[n];
-								filter.push(f);
-							}
+					var tokens = me.currentFilter.quicksearch.filterValue.split(' ');
+					for (var n in tokens) {
+						if (tokens[n].length) {
+							var f = dojo.clone(me.currentFilter[i]);
+							f.filterValue = tokens[n];
+							filter.push(f);
 						}
 					}
 				} else {
