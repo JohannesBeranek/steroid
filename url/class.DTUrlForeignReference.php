@@ -81,7 +81,6 @@ class DTUrlForeignReference extends BaseDTForeignReference {
 		if ( $recordIsLive || ( $recordLiveFieldName && $recordLiveStatus === NULL ) ) {
 			return;
 		}
-				
 
 		$recordLanguageFieldName = $this->record->getDataTypeFieldName( 'DTSteroidLanguage' );
 		$recordParentFieldName = $this->record->getDataTypeFieldName( 'DTParentReference' );
@@ -108,6 +107,10 @@ class DTUrlForeignReference extends BaseDTForeignReference {
 		//  if field wasn't loaded but the record exists, $isUpdate should be true
 		if ( $isUpdate || isset( $this->record->{$this->fieldName} ) ) {
 			$currentUrls = $this->record->getFieldValue($this->fieldName);
+		}
+
+		if(!$isUpdate && count($currentUrls)){
+			return;
 		}
 
 		$parentRecord = NULL;
