@@ -172,7 +172,8 @@ define([
 				accept: [me.fieldName],
 				dndManager: me.dndManager,
 				submitName: me.submitName,
-				backend: me.backend
+				backend: me.backend,
+				useIndex: me.fieldConf.useIndex
 			});
 
 			me.dropWatch = me.recordList.watch('STValue', function () {

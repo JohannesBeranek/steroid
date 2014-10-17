@@ -2,7 +2,7 @@
 
 require_once STROOT . '/storage/record/class.Record.php';
 require_once STROOT . '/datatype/class.DTDynamicRecordReferenceClass.php';
-require_once STROOT . '/datatype/class.DTDynamicRecordReferenceInstance.php';
+require_once STROOT . '/pubdate/class.DTPubDateReferenceInstance.php';
 require_once STROOT . '/datatype/class.DTPubStartDateTime.php';
 require_once STROOT . '/datatype/class.DTPubEndDateTime.php';
 
@@ -23,8 +23,8 @@ class RCPubDateEntries extends Record {
 		return array(
 			Record::FIELDNAME_PRIMARY => DTInt::getFieldDefinition( false, true ),
 			'recordType' => DTDynamicRecordReferenceClass::getFieldDefinition( 'elementId' ),
-			// TODO: use special DTDynamicRecordReferenceInstance which only adds foreign ref to record classes which can have pubdate
-			'elementId' => DTDynamicRecordReferenceInstance::getFieldDefinition( 'recordType', true ),
+			// use special DTDynamicRecordReferenceInstance which only adds foreign ref to record classes which can have pubdate
+			'elementId' => DTPubDateReferenceInstance::getFieldDefinition( 'recordType', true ),
 			'pubDate' => DTDateTime::getFieldDefinition(),
 			'do' => DTString::getFieldDefinition()
 		);

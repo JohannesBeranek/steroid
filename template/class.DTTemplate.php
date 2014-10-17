@@ -85,5 +85,3 @@ class DTTemplate extends BaseDTRecordReference {
 
 class MissingTemplateException extends SteroidException {
 }
-
-?>

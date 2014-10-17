@@ -299,11 +299,46 @@ class Template {
 							$this->fileContexts = array();
 							$this->pushContext( rtrim( $outputPart[ 'dir' ], '/' ) . '/' );
 
+							$data = $this->data;
+
+							foreach ($this->localDataStack as $localData) {
+								$data = array_merge($data, $localData);
+							}
+
 							// DEBUG
 							$startTime = microtime(true);
 
+							// catch exceptions and display message to authenticated users with enough permissions
+							try {
+								$handleAreaReturn = $outputPart[ 'element' ]->handleArea( $data, $this );
+							} catch (Exception $e) {
+								if ($e instanceof RequireHTTPSException) {
+									throw $e;
+								}
+								
+								Log::write($e);
+								
+								if ( !empty( $this->data[ 'page' ] ) ) {
+									$currentUser = User::getCurrent();
+								
+									if ($currentUser !== NULL && $currentUser->authenticated ) {
+										$currentPermissions = $currentUser->getCurrentPermissions( $this->data[ 'page' ]->domainGroup, $this->data['page']->language );
+										
+										if ($currentPermissions) {
+											$handleAreaReturn = '!!! Error in element ' . get_class($outputPart[ 'element' ]) .  '!!!';
+										} else {
+											$handleAreaReturn = '';
+										}
+									} else {
+										$handleAreaReturn = '';
+									}
+								} else {
+									$handleAreaReturn = '';
+								}
+							}
+
 							// handleArea may call $template->cancelOutput() to set $this->cancelOutputFlag or just return false to cancel output
-							if ( ( $outputPart[ 'element' ]->handleArea( $this->data, $this ) === false && ( $this->cancelOutputFlag = true ) ) || $this->cancelOutputFlag ) {
+							if ( ( $handleAreaReturn === false && ( $this->cancelOutputFlag = true ) ) || $this->cancelOutputFlag ) {
 								return false;
 							}
 

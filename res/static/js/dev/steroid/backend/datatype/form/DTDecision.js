@@ -144,7 +144,7 @@ define([
 			var me = this;
 
 			for (var i in me.options) {
-				if (setName && !me.disabled) {
+				if (me.fieldConf.alwaysDirty || (setName && !me.disabled)) {
 					me.options[i].set('disabled', false);
 				} else {
 					if (i == me.current) {

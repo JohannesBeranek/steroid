@@ -65,6 +65,23 @@ abstract class BaseDTRecordReference extends DataType {
 
 		return $values;
 	}
+	
+	public function cleanup() {
+		$foreignFieldName = $this->getForeignFieldName();
+
+		$value = $this->value;
+		$this->value = NULL;
+		
+		if ( $value !== NULL ) {
+			$value->unloadField( $foreignFieldName );
+		}
+		
+		unset($value);
+		
+		parent::cleanup();
+		
+		$this->lastRawValue = NULL;
+	}
 
 	public function getValue() {
 		return $this->value;
@@ -196,6 +213,7 @@ abstract class BaseDTRecordReference extends DataType {
 			}
 
 			if ( $this->value ) {
+				// might in turn call notifyReferenceRemoved on this record again
 				$this->value->notifyReferenceAdded( $this->record, $foreignFieldName, $loaded );
 			}
 		}
@@ -228,7 +246,7 @@ abstract class BaseDTRecordReference extends DataType {
 			);
 		}
 
-		if ( $this->value !== NULL && ( $this->value->isDirty() || !$this->value->exists() ) ) {
+		if ( $this->value !== NULL && ( $this->value->isDirty( true ) || !$this->value->exists() ) ) {
 			$this->value->save();
 
 			$this->refresh();
@@ -261,13 +279,19 @@ abstract class BaseDTRecordReference extends DataType {
 		if ( $this->record->{$this->fieldName} ) { // support lazy loading
 			$this->value->notifyReferenceRemoved( $this->record, $this->getForeignFieldName(), __FUNCTION__, $basket );
 
-			if ( $this->deleteValueOnBeforeDelete() && $this->value !== NULL ) { // NULL check is needed for circular function calling
-				if ( ! $this->value instanceof IRecord ) {
-					throw new Exception(Debug::getStringRepresentation($this->value) . " = \$this->value, not instanceof IRecord!" );
+			if($this->value !== NULL){
+				if ( $this->deleteValueOnBeforeDelete()) { // NULL check is needed for circular function calling
+					if ( !$this->value instanceof IRecord ) {
+						throw new Exception( Debug::getStringRepresentation( $this->value ) . " = \$this->value, not instanceof IRecord!" );
+					}
+
+					$this->value->delete( $basket );
 				}
-				
-				$this->value->delete( $basket );
-				
+
+				// help with gc
+				if ( $basket === NULL ) {
+					$this->value = NULL;
+				}
 			}
 		}
 
@@ -345,7 +369,6 @@ abstract class BaseDTRecordReference extends DataType {
 
 	public function checkForDelete() {
 		// TODO: should we check $this->hasBeenSet() ?
-		// DONE need verify
 		if ( ( !$this->record->isDeleted() ) && $this->config[ 'requireForeign' ] && ( !$this->value ) && ( $this->hasBeenSet() || !$this->record->{$this->fieldName} ) && ( !isset( $this->values[ $this->colName ] ) ) ) {
 			return true;
 		}
@@ -378,7 +401,7 @@ abstract class BaseDTRecordReference extends DataType {
 				} else if ( $mayCopyReferenced === 0 ) {
 					// $mayCopyRefenced should not return 0 unless requireForeign is false 
 					$nval = NULL;
-				} else if ( $val->isDirty() || ( ( $nval = $val->getFamilyMember( $changes ) ) && !$nval->exists() ) ) {
+				} else if ( $val->isDirty( true ) || ( ( $nval = $val->getFamilyMember( $changes ) ) && !$nval->exists() ) ) {
 					// might exist from an old published record, in which case we would still want to copy
 				
 					if ( $val->getMeta( 'missing' ) !== false ) {
@@ -433,13 +456,15 @@ abstract class BaseDTRecordReference extends DataType {
 	public function notifyReferenceRemoved( IRecord $originRecord, $triggeringFunction, array &$basket = NULL ) {
 		if ( $this->hasBeenSet() || $this->record->exists() ) {
 			// need to check this in case we get remove notification after already having a new value
-			if ( $this->value && ( $originRecord === $this->value ) || ( isset( $this->values[ $this->colName ] ) && ( isset( $originRecord->{Record::FIELDNAME_PRIMARY} ) || $originRecord->exists() ) && $originRecord->{Record::FIELDNAME_PRIMARY} == $this->values[ $this->colName ] ) ) {
+			if ( ( $this->value && ( $originRecord === $this->value ) ) || ( isset( $this->values[ $this->colName ] ) && ( isset( $originRecord->{Record::FIELDNAME_PRIMARY} ) || $originRecord->exists() )	&& $originRecord->{Record::FIELDNAME_PRIMARY} == $this->values[ $this->colName ] ) ) {
 				if ( isset( $this->values[ $this->colName ] ) ) { // this is needed so we can still delete the record if this reference is part of the primary key
 					$lastRawValue = $this->values[ $this->colName ];
 				}
 
-				$this->_setValue( NULL, false );
-
+				$this->record->wrapReindex( $this->fieldName, function() {
+					$this->_setValue( NULL, false );	
+				});
+					
 				if ( isset( $lastRawValue ) ) {
 					$this->lastRawValue = $lastRawValue;
 				}
@@ -454,9 +479,29 @@ abstract class BaseDTRecordReference extends DataType {
 		}
 
 		// FIXME: we actually don't know if the value we get is the same as in DB
-		$this->_setValue( $originRecord, false );
+		$this->record->wrapReindex( $this->fieldName, function() use ( $originRecord ){
+			$this->_setValue( $originRecord, false );
+		});
 	}
-
+	
+	public function unload() {
+		// loop guard
+		if ( $this->value !== NULL ) {
+			$foreignFieldName = $this->getForeignFieldName();
+			
+			$value = $this->value;
+			$this->value = NULL;
+			
+			$value->unloadField( $foreignFieldName );
+			
+			unset($value);
+			
+			$this->lastRawValue = NULL;
+			
+			parent::unload();
+		}		
+	}
+	
 	protected static function getRequiredPermissions( $fieldDef, $fieldName, $currentForeignPerms, $permissions, $owningRecordClass ) {
 		$owningRecordPerms = $permissions[ $owningRecordClass ];
 

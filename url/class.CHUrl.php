@@ -127,13 +127,18 @@ class CHUrl extends CLIHandler {
 			printf("Fixing preview records, currently %d records indexed.\n", Record::getRecordCount());
 			
 			
-			foreach ($previewRecords as $previewRecord) {
+			foreach ($previewRecords as $n => $previewRecord) {
 				$this->fixRecord( $previewRecord, $rewriteField, $rewriteRecordPrimaries );
+				printf("\rRecords checked: %d ", $n + 1);
 			}
+
+			unset($previewRecords);
+			unset($previewRecord);
+			
+			echo "\nDone.\n";
 			
 			Record::popIndex();
-			unset($previewRecords);
-			
+						
 			Record::pushIndex();
 			
 			// there might be live records with rewrite where the corresponding preview record has no rewrite
@@ -158,6 +163,10 @@ class CHUrl extends CLIHandler {
 				}
 			}
 			
+			unset($liveRecords);
+			unset($liveRecord);
+			unset($previewRecord);
+			
 			
 			Record::popIndex();
 				
@@ -180,9 +189,7 @@ class CHUrl extends CLIHandler {
 		
 		foreach ($urlRewritePrimaries as $urlRewritePrimaryRow) {
 			$urlRewritePrimary = $urlRewritePrimaryRow['primary'];
-			
-			Record::pushIndex();
-			
+						
 			$urlRewriteRecord = RCUrlRewrite::get( $this->storage, array( 'primary' => $urlRewritePrimary ), Record::TRY_TO_LOAD );
 			$isReferenced = false;
 			
@@ -198,6 +205,7 @@ class CHUrl extends CLIHandler {
 				
 				try {
 					$urlRewriteRecord->delete();
+					unset($urlRewriteRecord);
 					
 					$deleteCount ++;
 					echo " deleted\n";
@@ -206,9 +214,7 @@ class CHUrl extends CLIHandler {
 					echo " failed: " . $e->getMessage() . "\n";
 				}
 				
-			}
-			
-			Record::popIndex();
+			}			
 		}
 		
 		printf( "\nFinished Part 2. Deleted: %d  ; Failed: %d\n", $deleteCount, $failCount );
@@ -251,15 +257,13 @@ class CHUrl extends CLIHandler {
 			
 			$urlFields = array_keys($urlFields);
 		}
-
-		Record::pushIndex();
 		
 		$tx = $this->storage->startTransaction();
 			
 		try {
 			$liveRecord = $previewRecord->getFamilyMember( array( 'live' => DTSteroidLive::LIVE_STATUS_LIVE ) );
 			
-			if ($liveRecord->exists()) {
+			if ($liveRecord->exists() && $liveRecord !== $previewRecord) {
 				// check if live record has a rewrite record
 				$liveRewriteRecord = $liveRecord->getFieldValue( $rewriteField );
 				
@@ -330,6 +334,7 @@ class CHUrl extends CLIHandler {
 								$liveRewriteRecord->readOnly = true; // prevent delete
 	
 								$liveUrlRecord->delete(); // delete wrong url
+								unset($liveUrlRecord);
 		
 								$liveRewriteRecord->readOnly = false; // unprotect
 		
@@ -465,10 +470,7 @@ class CHUrl extends CLIHandler {
 			$tx->rollback();
 				
 			throw $e;
-		}
-		
-		Record::popIndex();
-		
+		}		
 	}
 
 	public function getUsageText( $called, $command, array $params ) {

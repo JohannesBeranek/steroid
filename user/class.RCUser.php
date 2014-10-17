@@ -101,5 +101,3 @@ class RCUser extends Record {
 
 	// TODO: getTitle to get name from CRM
 }
-
-?>

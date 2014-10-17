@@ -192,7 +192,7 @@ class DBInfo {
 			foreach ( $this->recordClassFiles as $idx => $recordClassFile ) {
 				$className = $recordClassFile[ ClassFinder::CLASSFILE_KEY_CLASSNAME ];
 
-				$records = $className::getStaticRecords( $this->storage );
+				$records = (array)$className::getStaticRecords( $this->storage );
 
 				$count = count($records);
 				$done = 0;

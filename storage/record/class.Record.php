@@ -2,6 +2,8 @@
 /**
  * @package steroid\record
  */
+ 
+require_once __DIR__ . '/class.RecordIndexConflictException.php';
 
 require_once __DIR__ . '/interface.IRecord.php';
 require_once STROOT . '/backend/interface.IBackendModule.php';
@@ -26,6 +28,7 @@ require_once STROOT . '/datatype/class.BaseDTForeignReference.php';
 require_once STROOT . '/datatype/class.BaseDTRecordReference.php';
 
 require_once STROOT . '/util/class.Config.php';
+require_once STROOT . '/util/array_diff_strict.php';
 
 
 /**
@@ -110,12 +113,18 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 	/**
 	 * Holds the instantiated DataTypes which manage the internal values
+	 * Filled in constructor, so this may be NULL initially
 	 *
 	 * @var array
 	 */
-	protected $fields = array();
+	protected $fields;
 
-	protected $indexed;
+	/**
+	 * @var integer number of times this record is in the index
+	 */
+	protected $indexed = 0;
+	protected $_id;
+	
 	protected $deleted;
 	protected $metaData;
 
@@ -130,6 +139,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 */
 	private static $oldIndex = array();
 
+	private static $_idCounter = 0;
 
 	private static $useCache;
 
@@ -171,6 +181,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 * Used to determine how often 
 	 * gc_collect_cycles should be called
 	 * after a record has been deleted
+	 * 
+	 * TODO: private static, so inheriting classes don't get this
 	 */
 	public static $runGCCollectCyclesAfterRecordsDeletedNum = 100;
 	
@@ -241,22 +253,31 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 * cleans up to prepare for garbage collection
 	 */
 	protected function cleanup() {
+		if ($this->fields === NULL) {
+			return;
+		}
+		
 		// correct internal state (loadedFields, values, etc)
 		foreach ( $this->fields as $field ) {
 			$field->cleanup();
 		}
 		
+		// remove ourselves from callbacks
+		while ( self::$notifyOnSaveComplete && ( $key = array_search( $this, self::$notifyOnSaveComplete, true ) ) !== false ) {
+			unset(self::$notifyOnSaveComplete[$key]);
+		}
+		
 			
-		$this->values = array();
-		$this->valuesLastLoaded = array();
+		$this->values = NULL;
+		$this->valuesLastLoaded = NULL;
 		
 		$this->metaData = NULL;
 					
 					
 		// disconnect fields
-		$this->fields = array();
+		$this->fields = NULL;
 		
-		$this->storage = NULL;
+		$this->storage = NULL;		
 	}
 
 	public static function addHook( $object, $hookType, $recordClasses = NULL ) {
@@ -1177,9 +1198,11 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 				$authenticators = $conf->getSection('authenticator');
 
 				foreach($authenticators as $auth => $path){
-					require_once(WEBROOT . '/' . $path);
+					require_once WEBROOT . '/' . $path;
 
-					if($auth::AUTH_TYPE === User::AUTH_TYPE_BE){
+					// TODO: why only include auth with AUTH_TYPE_BE?
+// FIXME: auth classes should not be included here - would be good to find a way to decouple this from record class
+					if ( $auth::AUTH_TYPE === User::AUTH_TYPE_BE ) {
 						$classes[$auth] = $path;
 						break;
 					}
@@ -1597,28 +1620,24 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $pt;
 	}
 
+	// FIXME: remove duplicates - using in_array check takes way too long
+	// until this is fixed, function may return records several times
 	public static function getAllRecords() {
 		if ( empty( self::$records ) ) {
 			return array();
 		}
 
-
-		$getRecs = function ( array $from, array &$bucket ) use ( &$getRecs ) {
-			foreach ( $from as $item ) {
-				if ( $item instanceof IRecord ) {
-					$bucket[ ] = $item;
-				} elseif ( is_array( $item ) ) {
-					$getRecs( $item, $bucket );
-				}
-			}
-		};
-
 		$recs = array();
 
-		$getRecs( self::$records, $recs );
-
+		array_walk_recursive( self::$records, function( $item, $key ) use ( &$recs ) {
+			if ( $item instanceof IRecord ) {
+				$recs[$item->getId()] = $item;
+			}
+		});
+		
 		return $recs;
 	}
+	
 
 
 	public static function getRecordCount() {
@@ -1626,33 +1645,64 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			return 0;
 		}
 
-		$getRecs = function ( array $from, &$count ) use ( &$getRecs ) {
-			foreach ( $from as $item ) {
-				if ( $item instanceof Irecord ) {
-					$count++;
-				} elseif ( is_array( $item ) ) {
-					$getRecs( $item, $count );
-				}
-			}
-		};
-
 		$count = 0;
 
-		$getRecs( self::$records, $count );
+		array_walk_recursive( self::$records, function( $item, $key ) use (&$count) {
+			if ( $item instanceof IRecord ) {
+				$indexCount = $item->getIndexCount();
+				
+				if ( $indexCount === 0 ) {
+					throw new Exception('Wrong indexCount on record: ' . Debug::getStringRepresentation( $item->getValues() ) );
+				}
+				
+				$count += 1 / $indexCount;
+			}
+		});
 
-		return $count;
+
+		return round($count);
+		
+		// the above is faster and yields the same result
+//		return count( self::getAllRecords() );
 	}
 
 	// pushIndex + popIndex can be used to keep memory usage in control when doing several large operations with many records
-	public static final function pushIndex() {
-		array_push( self::$oldIndex, self::$records );
+	final public static function pushIndex() {
+		self::$oldIndex[] = self::$records;
 	}
 
-	public static final function popIndex() {
-		$popIndex = array_pop( self::$oldIndex );
+	final private static function cleanIndexDiff( $oldRecords, $newRecords ) {
+		$diff = array_diff_strict( $oldRecords, $newRecords );
 
-		if ( $popIndex !== NULL ) {
-			self::$records = $popIndex;
+		foreach ($diff as $n => $rec) {
+			$rec->cleanup();
+		}
+	}
+
+	final public static function popIndex( $cleanup = true ) {
+		if ( self::$oldIndex !== NULL ) {
+			$popIndex = array_pop( self::$oldIndex );
+
+			if ( $popIndex !== NULL ) {
+				if ($cleanup === true) {
+					$oldRecords = self::getAllRecords();
+				}
+				
+				self::$records = $popIndex;
+				
+				if ($cleanup === true) {
+					$newRecords = self::getAllRecords();
+					
+					self::cleanIndexDiff( $oldRecords, $newRecords );
+					
+					unset($oldRecords);
+					unset($newRecords);
+				}
+			}
+			
+			if ( !self::$oldIndex ) {
+				self::$oldIndex = NULL;
+			}
 		}
 	}
 
@@ -1702,7 +1752,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			}
 		}
 
-		$this->indexed = false;
+		$this->indexed = 0;
 	}
 
 
@@ -1753,9 +1803,9 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 			if ( $pt === NULL ) {
 				$pt = $this;
-				$this->indexed = true;
+				$this->indexed++;
 			} else if ( $pt !== $this ) {
-				throw new Exception( 'Indexing conflict for ' . get_called_class() . ' on key ' . $keyName . ' with values ' . Debug::getStringRepresentation( $this->values ) . ' ; other record has ' . Debug::getStringRepresentation( $pt->getValues() ) );
+				throw new RecordIndexConflictException( 'Indexing conflict for ' . get_called_class() . ' on key ' . $keyName . ' with values ' . Debug::getStringRepresentation( $this->values ) . ' ; other record has ' . Debug::getStringRepresentation( $pt->getValues() ) );
 			}
 		}
 	}
@@ -1766,6 +1816,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	// no lazy instancing of fields here as we can't do much without touching all fields (see beforeSave/beforeDelete/...) 
 	protected function __construct( IRBStorage $storage, array $values = NULL, $loaded = true ) {
 		$this->storage = $storage;
+
+		$this->_id = self::$_idCounter++;
 
 		$fieldDefs = static::getAllFieldDefinitions();
 
@@ -1785,25 +1837,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 		if ( $values !== NULL ) {
 			$this->setValues( $values, $loaded );
-		}
-	}
-
-
-	public function setStorage( IRBStorage $storage ) {
-		if ( $storage === NULL ) {
-			throw new Exception( '$storage may not be NULL.' );
-		}
-
-		if ( $storage !== $this->storage ) {
-			$this->storage = $storage;
-
-			foreach ( $this->fields as $field ) {
-				/* @var $field IDataType */
-
-				if ( $field->hasBeenSet() ) {
-					$field->setDirty( true );
-				}
-			}
 		}
 	}
 
@@ -1827,6 +1860,15 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 		return false;
 	}
+	
+	public function getIndexCount() {
+		return $this->indexed;
+	}
+	
+	public function getId() {
+		return $this->_id;
+	}
+	
 
 	/**
 	 * Field value should always be set using this function internally
@@ -1976,6 +2018,29 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $this;
 	}
 
+	/**
+	 * Helps with memory management
+	 */
+	public function unload() {
+		// might be called after cleanup
+		if ($this->fields === NULL) {
+			return;
+		}
+		
+		foreach ($this->fields as $fieldName => $field) {
+			$this->unloadField( $fieldName );
+		}
+	}
+	
+	public function unloadField( $fieldName ) {
+		// might be called after cleanup
+		if ($this->fields === NULL) {
+			return;
+		}
+		
+		$this->fields[ $fieldName ]->unload();
+	}
+
 
 	public function exists() {
 		// quick check without db access: do we have a datatype which was loaded?
@@ -2084,7 +2149,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		}
 	}
 
-	public function isDirty( $checkForeign = true ) {
+	public function isDirty( $checkForeign ) {
 		foreach ( $this->fields as $fieldName => $dataType ) {
 			if ( ( $checkForeign || $dataType->colName ) && $dataType->dirty ) {
 				return true;
@@ -2178,8 +2243,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			unset( $this->deleteBasket );
 		}
 
-		foreach ( $this->fields as $fieldName => $dt ) {
-			$dt->notifySaveComplete();
+		if (!$this->isDeleted()) {
+			foreach ( $this->fields as $fieldName => $dt ) {
+				$dt->notifySaveComplete();
+			}
 		}
 	}
 
@@ -2384,8 +2451,11 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 	protected function _delete() {
 		$this->storage->deleteRecord( $this );
-		$this->removeFromIndex();
+
 		$this->deleted = true;
+		
+		// remove from index 		
+		$this->removeFromIndex();		
 	}
 
 	/**
@@ -2461,6 +2531,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	}
 
 	public function getFieldValue( $fieldName, $lazyLoadAll = false ) {
+		if ( $this->deleted ) {
+			throw new Exception( 'Trying to access deleted record' );
+		}
+		
 		if ( !isset( $this->fields[ $fieldName ] ) ) {
 			throw new InvalidFieldAccessException( 'Record of class "' . get_called_class() . '" has no field "' . $fieldName . '"' );
 		}
@@ -2754,6 +2828,23 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$this->fields[ $reflectingFieldName ]->notifyReferenceAdded( $originRecord, $loaded );
 		}
 	}
+	
+	/**
+	 * Used by some fields, e.g. BaseDTRecordReference in notifyReferenceRemoved/-Added
+	 */
+	public function wrapReindex( $fieldName, $function ) {
+			$isIndexField = $this->isIndexField( $fieldName );
+	
+			if ( $this->indexed && $isIndexField ) {
+				$this->removeFromIndex();
+			}
+			
+			$function();
+			
+			if ( $isIndexField ) {
+				$this->index();
+			}
+	}
 
 	public function refreshField( $fieldName ) {
 		$isIndexField = $this->isIndexField( $fieldName );
@@ -2826,26 +2917,17 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		}
 		
 		
-		// cleanup
-		if (!$basket) {
-			// remove from index 		
-			$this->removeFromIndex();
-			
-
-			
+		if ( $basket === NULL ) {
 			$this->cleanup();
-			
+		
 			// free mem every so often
 			self::$recordsDeletedSinceLastGCCollectCycles++; 
-		
+			
 			if ( self::$recordsDeletedSinceLastGCCollectCycles >= self::$runGCCollectCyclesAfterRecordsDeletedNum ) {
 				gc_collect_cycles();
 				self::$recordsDeletedSinceLastGCCollectCycles = 0;
 			}
-
 		}
-		
-
 	}
 
 	public function getTitle() {

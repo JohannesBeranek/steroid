@@ -67,7 +67,7 @@ abstract class DataType implements IDataType {
 	 * @param null     $fieldName
 	 * @param array    $config
 	 */
-	public function __construct( IStorage &$storage, IRecord $record, array &$values, $fieldName = NULL, array $config = NULL ) {
+	public function __construct( IStorage $storage, IRecord $record, array &$values, $fieldName = NULL, array $config = NULL ) {
 		if ( $fieldName === NULL || $config === NULL ) {
 			throw new InvalidArgumentException( '$fieldName and $config must be set' );
 		}
@@ -77,12 +77,16 @@ abstract class DataType implements IDataType {
 		$this->fieldName = $fieldName;
 		$this->colName = static::getColName( $fieldName, $config );
 		$this->config = $config;
-		$this->storage = & $storage;
+		$this->storage = $storage;
 	}
 	
 	public function cleanup() {
 		$this->record = NULL;
+
 		$this->values = NULL;
+		$this->fieldName = NULL;
+		$this->colName = NULL;
+		$this->config = NULL;
 		$this->storage = NULL;
 	}
 
@@ -126,6 +130,14 @@ abstract class DataType implements IDataType {
 		return array_key_exists( $this->colName, $this->values );
 	}
 
+	public function unload() {
+		if ($this->colName !== NULL) {
+			unset( $this->values[$this->colName] );
+		}
+		
+		$this->isDirty = false;
+	}
+
 	public function hasValidValue() {
 		return !empty( $this->config[ 'nullable' ] ) ? array_key_exists( $this->colName, $this->values ) : !empty( $this->values[ $this->colName ] );
 	}
@@ -136,11 +148,6 @@ abstract class DataType implements IDataType {
 
 	public function recordMaySave() {
 		return true;
-	}
-
-	// ONLY FOR EMERGENCY CASES LIKE BACKUP RECOVERY!
-	public function setDirty( $dirty ) {
-		$this->isDirty = $dirty;
 	}
 
 
@@ -157,8 +164,8 @@ abstract class DataType implements IDataType {
 	}
 
 	public function afterSave( $isUpdate, array $saveResult ) {
+		// stub
 	}
-
 
 	public function beforeDelete( array &$basket = NULL ) {
 		// stub
@@ -228,7 +235,7 @@ abstract class DataType implements IDataType {
 		$values[ $this->fieldName ] = $this->record->{$this->fieldName};
 	}
 
-
+// FIXME: use interface
 	public function earlyCopy( array &$values, array $changes, array &$missingReferences, array &$originRecords, array &$copiedOriginRecords ) {
 		// stub
 	}
@@ -237,15 +244,17 @@ abstract class DataType implements IDataType {
 		// stub
 	}
 
-
+// FIXME: use interface
 	public function refresh() {
 		// stub
 	}
-
+	
+// FIXME: use interface
 	public function notifySaveComplete() {
 		// stub
 	}
 
+// TODO: maybe use interface for this?
 	public function checkForDelete() {
 		return false;
 	}

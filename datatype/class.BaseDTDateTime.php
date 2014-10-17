@@ -11,6 +11,4 @@ require_once STROOT . '/datatype/class.DataType.php';
  
 class BaseDTDateTime extends DataType {
 	
-	
 }
-?>

@@ -38,6 +38,9 @@ class DTFile extends BaseDTString {
 		);
 	}
 	
+	public function cleanup() {
+		unset($this->uploadedFile);
+	}
 
 	public function setValue( $data = NULL, $loaded = false ) {
 

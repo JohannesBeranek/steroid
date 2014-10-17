@@ -40,6 +40,7 @@ class CLIHandlerDefault extends CLIHandler {
 
 	public function getUsageText( $called, $command, array $params ) {
 		$availableCommands = $this->getAvailableCommands();
+		sort($availableCommands);
 
 		return $this->formatUsageArguments( array(
 			ST::PRODUCT_NAME . ' CLI commands:' => $availableCommands

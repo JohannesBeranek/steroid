@@ -32,6 +32,12 @@ class DTUrlRewrite extends BaseDTRecordReference {
 		$ct = 0;
 		$urlLast = ( $prefix === NULL ? '' : $prefix ) . ( $suffix === NULL ? '' : $suffix );
 		$urlBase = rtrim( $page->getUrlForPage( $page, false ), '/' ) . '/';
+		
+		$domainGroup = $page->domainGroup;
+		
+		if ($domainGroup === NULL) {
+			throw new Exception();
+		}
 
 		do {
 			if ( $ct > 0 ) {
@@ -48,7 +54,7 @@ class DTUrlRewrite extends BaseDTRecordReference {
 				'fields' => array('primary'),
 				'where' => array(
 					'url', '=', array( $newUrl ),
-					'AND', 'domainGroup', '=', array( $page->domainGroup ), // RCDomainGroup has no live field
+					'AND', 'domainGroup', '=', array( $domainGroup ), // RCDomainGroup has no live field
 					'AND', 'live', '=', array( $liveState ) ) ) );
 
 
@@ -109,97 +115,134 @@ class DTUrlRewrite extends BaseDTRecordReference {
 				$storage->unregisterFilter( UHPage::FILTER_IDENTIFIER );
 			}
 			
-			// try to get a live record from owning Record
-			$otherRewriteOwningRecord = $rewriteOwningRecord->getFamilyMember( array( 'live' => $otherLiveStatus ) );
-			
-			// check if we actually got a different record
-			if ( $otherRewriteOwningRecord !== $rewriteOwningRecord && $otherRewriteOwningRecord->exists() ) {
-				$otherRewriteUrlRecord = $otherRewriteOwningRecord->getFieldValue( $rewriteField );
+			try {
+				// try to get a live record from owning Record
+				$otherRewriteOwningRecord = $rewriteOwningRecord->getFamilyMember( array( 'live' => $otherLiveStatus ) );
 				
-				// ... and if the record with the other live status has a rewrite record set to it
-				if ( $otherRewriteUrlRecord !== NULL ) {
-					$otherUrlRecord = $otherRewriteUrlRecord->getFieldValue('url');
+				// check if we actually got a different record
+				if ( $otherRewriteOwningRecord !== $rewriteOwningRecord && $otherRewriteOwningRecord->exists() ) {
+					$otherRewriteUrlRecord = $otherRewriteOwningRecord->getFieldValue( $rewriteField );
 					
-					if ( $otherUrlRecord !== NULL ) {
-						// finally, if we can get an url record from that, 
-						// we can copy it for our original live state
-						// and thus fix up our original record	
+					// ... and if the record with the other live status has a rewrite record set to it
+					if ( $otherRewriteUrlRecord !== NULL ) {
+						$otherUrlRecord = $otherRewriteUrlRecord->getFieldValue('url');
 						
-						$missingReferences = array();
-
-						$urlRecord = $otherUrlRecord->copy( array( 'live' => $liveStatus ), $missingReferences );
-
-						//  make sure we don't get problems if url is already taken in current live status
-						$urlRecord->url = self::getNewUrl($storage, $page, $rewriteTitlePrefix, $rewriteTitleSuffix, $liveStatus);
-						
-						
-						
-						$rewriteUrlRecordReturn->url = $urlRecord;
-						
-						// put save into transaction as multiple records will be affected
-						$tx = $storage->startTransaction();
-						
-						try {
-							$rewriteUrlRecordReturn->save();
+						if ( $otherUrlRecord !== NULL ) {
+							// finally, if we can get an url record from that, 
+							// we can copy it for our original live state
+							// and thus fix up our original record	
 							
-							$tx->commit();
-						} catch( Exception $e ) {
-							$tx->rollback();
-							throw($e);
-						}
+							$missingReferences = array();
+	
+							$urlRecord = $otherUrlRecord->copy( array( 'live' => $liveStatus ), $missingReferences );
+	
+							// just to be safe
+							if ($urlRecord === $otherUrlRecord) {
+								throw new Exception();
+							}
+							
+							if ($urlRecord->exists()) {
+								$foreignRewrites = $urlRecord->{'url:RCUrlRewrite'};
+								
+								if ($foreignRewrites) {
+									$foreignRewrite = reset($foreignRewrites);
+									
+									if ($rewriteUrlRecordReturn === $foreignRewrite) {
+										// should not happen
+										throw new Exception();
+									} else {
+										// other rewrite record is already connected to url
+										// this should not happen
+										throw new Exception();
+									}
+								} else {
+									$pageUrlEntries = $urlRecord->{'url:RCPageUrl'};
+
+									if ($pageUrlEntries) {
+										throw new Exception();
+									}
+								}
+							}
+	
+							//  make sure we don't get problems if url is already taken in current live status
+							$urlRecord->url = self::getNewUrl($storage, $page, $rewriteTitlePrefix, $rewriteTitleSuffix, $liveStatus);
+							
+							
+							$rewriteUrlRecordReturn->url = $urlRecord;
 						
-						// if everything went fine, it's time to set the url to return it later on
-						$url = $urlRecord->getFieldValue('url');
+
+							// put save into transaction as multiple records will be affected
+							$tx = $storage->startTransaction();
+							
+							try {
+								$rewriteUrlRecordReturn->save();
+								
+								$tx->commit();
+							} catch( Exception $e ) {
+								$tx->rollback();
+								throw($e);
+							}
+							
+							// if everything went fine, it's time to set the url to return it later on
+							$url = $urlRecord->getFieldValue('url');
+						} 
+						
+						// else: other record also doesn't have an url record
+						// so we need to create one from scratch
+			
+						// -> $url is not set, so urlRecord will be created
+						
 					} 
+	
+					// else: other record doesn't have a rewrite record set to it
+					// so we need to create out url record from scratch
 					
-					// else: other record also doesn't have an url record
-					// so we need to create one from scratch
-		
 					// -> $url is not set, so urlRecord will be created
 					
 				} 
-
-				// else: other record doesn't have a rewrite record set to it
-				// so we need to create out url record from scratch
+	
+				// else: there might not be a record in a different live state for this record class
+				// so create url record from scratch
 				
 				// -> $url is not set, so urlRecord will be created
 				
-			} 
-
-			// else: there might not be a record in a different live state for this record class
-			// so create url record from scratch
-			
-			// -> $url is not set, so urlRecord will be created
-			
-			if ( !isset($url) ) {
-				$tx = $storage->startTransaction();
-				
-				try {
-					static $urlHandlerRecord;
+				if ( !isset($url) ) {
+					$tx = $storage->startTransaction();
 					
-					if ($urlHandlerRecord === NULL) {
-						$urlHandlerRecord =  $storage->selectFirstRecord( 'RCUrlHandler', array( 'where' => array( 'className', '=', array( 'UHUrlRewrite' ) ) ) );
+					try {
+						static $urlHandlerRecord;
 						
 						if ($urlHandlerRecord === NULL) {
-							throw new Exception('Unable to find UHUrlRewrite urlHandler');
+							$urlHandlerRecord =  $storage->selectFirstRecord( 'RCUrlHandler', array( 'where' => array( 'className', '=', array( 'UHUrlRewrite' ) ) ) );
+							
+							if ($urlHandlerRecord === NULL) {
+								throw new Exception('Unable to find UHUrlRewrite urlHandler');
+							}
 						}
-					}
+		
+						$urlRecord = self::createNewUrlRecord( $storage, $page, $urlHandlerRecord, $rewriteTitlePrefix, $rewriteTitleSuffix, $liveStatus );
+					
+						$rewriteUrlRecordReturn->url = $urlRecord;
+					
+						$urlRecord->save();
 	
-					$urlRecord = self::createNewUrlRecord( $storage, $page, $urlHandlerRecord, $rewriteTitlePrefix, $rewriteTitleSuffix, $liveStatus );
-				
-					$rewriteUrlRecordReturn->url = $urlRecord;
-				
-					$urlRecord->save();
-
-					$tx->commit();
-				} catch( Exception $e ) {
-					$tx->rollback();
-					throw $e;
+						$tx->commit();
+					} catch( Exception $e ) {
+						$tx->rollback();
+						throw $e;
+					}
+					
+					$url = $urlRecord->url;
 				}
-				
-				$url = $urlRecord->url;
-			}
+			} catch(Exception $e) {
+				// enable filter again
+				if ( isset($frontendFilter) ) {
+					$storage->registerFilter( $frontendFilter, UHPage::FILTER_IDENTIFIER );
+					unset( $frontendFilter );
+				}
 			
+				throw $e;
+			}
 			
 			// enable filter again
 			if ( isset($frontendFilter) ) {
@@ -225,8 +268,6 @@ class DTUrlRewrite extends BaseDTRecordReference {
 			// check if rewriteRecord already exists
 			$rewriteFieldValue = $rewriteOwningRecord->getFieldValue( $rewriteField );
 			
-			// transaction for creating rewrite - due to scoping this needs to be declared here
-			$txOuter = NULL;
 			
 			if ( $rewriteFieldValue === NULL ) {
 				// need to create rewriteRecord 

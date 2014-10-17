@@ -34,12 +34,6 @@ interface IDataType {
 	 */
 	public function setValue( $data = NULL, $loaded = false );
 
-	/**
-	 * Set dirty - ONLY FOR EMERGENCY CASES LIKE RESTORING BACKUP
-	 * 
-	 * @param bool $dirty
-	 */
-	public function setDirty( $dirty );
 
 	/**
 	 * Get value
@@ -90,12 +84,14 @@ interface IDataType {
 	 */
 	public function hasBeenSet();
 	
-	
+	/**
+	 * Helps with memory management
+	 */
+	public function unload();
+		
 	public static function getTitleFields( $fieldName, $config );
 	
 	public static function fillTitleFields( $fieldName, &$titleFields, $config );
 	
 	public function refresh();
 }
-
-?>

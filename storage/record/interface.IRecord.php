@@ -75,7 +75,7 @@ interface IRecord {
 	 *
 	 * @return bool
 	 */
-	public function isDirty( $checkForeign = true );
+	public function isDirty( $checkForeign );
 
 
 	/**

@@ -192,8 +192,14 @@ class UTHtmlUtil extends PHPUnit_Framework_TestCase {
 	protected static $testSetHtrunc = array(
 		array(
 			'data' => '<b>Landesrätin</b><br><br>Sprecherin der Grünen Frauen Tirol <a href="http://frauen.tirol.gruene.at">frauen.tirol.gruene.at</a>&nbsp;<br><a href="PageRecord 67109634"><b>Biografie und Infos</b>&nbsp;</a><a href="mailto:christine.baur@gruene.at">christine.baur@gruene.at</a>​',
-//			'allowed' => array('b', 'br', 'a' => array('href') ),
+			'length' => 255,
 			'expected' => 255,
+			'description' => 'HTML longer than 255 characters should be truncated to shorter than or exactly 255'
+		),
+		array(
+			'data' => '<p><b>Landtagsabgeordneter, Landtagsvizepräsident, Stadtrat in Schwaz</b></p><b>Themen:</b>&nbsp;Verkehr,&nbsp;Wohnen,&nbsp;</span><span style="font-size: small; font-family: Tahoma, sans-serif;">Gemeinden,&nbsp;</span><span style="font-size: small; font-family: Tahoma, sans-serif;">Agrargemeinschaften</span><span style="font-size: small; font-family: Tahoma, sans-serif;"><br><p><a href="PageRecord 67109639"><b>Biografie und Infos</b>&nbsp;</a></p><a href="mailto:hermann.weratschnig@gruene.at">hermann.weratschnig@gruene.at</a>​',
+			'length' => 255,
+			'expected' => 212,
 			'description' => 'HTML longer than 255 characters should be truncated to shorter than or exactly 255'
 		)
 	);
@@ -238,12 +244,9 @@ class UTHtmlUtil extends PHPUnit_Framework_TestCase {
 					break;
 				case 'htrunc':
 					foreach($set as $conf){
-						$res = HtmlUtil::htrunc($conf['data'], $conf['expected'], true, false, NULL, true, false, false);
-
-						var_dump($conf['data']);
-						var_dump($res);
-
-						$this->assertLessThanOrEqual($conf['expected'], mb_strlen($res, 'UTF-8'));
+						$res = HtmlUtil::htrunc(HtmlUtil::repair($conf['data']), $conf['length'], true, false, NULL, true, false, false, false);
+						
+						$this->assertEquals($conf['expected'], mb_strlen($res));
 					}
 					break;
 			}
