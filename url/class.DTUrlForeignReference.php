@@ -109,7 +109,7 @@ class DTUrlForeignReference extends BaseDTForeignReference {
 			$currentUrls = $this->record->getFieldValue($this->fieldName);
 		}
 
-		if(!$isUpdate && count($currentUrls)){
+		if(!$isUpdate && isset($currentUrls) && count($currentUrls)){
 			return;
 		}
 
