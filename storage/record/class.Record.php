@@ -1365,7 +1365,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		$recordClasses = ClassFinder::getAll( ClassFinder::CLASSTYPE_RECORD, true );
 
 		if ( function_exists( 'apc_fetch' ) ) {
-			$key = WEBROOT . '_Record::fillRecordClasses()';
+			$key = WEBROOT . ':' . ClassFinder::CLASSTYPE_RECORD . '_Record::fillRecordClasses()';
 
 			self::$recordClasses = apc_fetch( $key );
 		} else {
@@ -1385,7 +1385,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 				$recordClasses = get_declared_classes();
 
 				foreach ( $recordClasses as $recordClass ) {
-					if ( substr( $recordClass, 0, 2 ) == 'RC' ) {
+					if ( substr( $recordClass, 0, 2 ) === ClassFinder::CLASSTYPE_RECORD ) {
 						$classNames[ ] = $recordClass;
 					}
 				}
