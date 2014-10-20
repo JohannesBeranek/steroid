@@ -141,20 +141,22 @@ class ClassFinder {
 		$files = array();
 
 		foreach ( $types as $type => $className ) {
-			if ( class_exists( $className[ 0 ], false ) ) {
-				$files[ ] = array( self::CLASSFILE_KEY_CLASSNAME => $className[ 0 ] );
-				continue;
-			}
-
 			self::getAll( $type, false, $include, $exclude );
 
-			if ( !isset( self::$classes[ $type ][ $className[ 0 ] ] ) ) {
-				throw new ClassNotFoundException( $className[ 0 ] . ' does not exist' );
-			} else if ( $andRequire ) {
-				require_once self::$classes[ $type ][ $className[ 0 ] ][ self::CLASSFILE_KEY_FULLPATH ];
-			}
+			foreach($className as $idx => $class){
+				if ( class_exists( $className[ $idx ], false ) ) {
+					$files[ ] = array( self::CLASSFILE_KEY_CLASSNAME => $className[ $idx ] );
+					continue;
+				}
 
-			$files[ ] = self::$classes[ $type ][ $className[ 0 ] ];
+				if ( !isset( self::$classes[ $type ][ $className[ $idx ] ] ) ) {
+					throw new ClassNotFoundException( $className[ $idx ] . ' does not exist' );
+				} else if ( $andRequire ) {
+					require_once self::$classes[ $type ][ $className[ $idx ] ][ self::CLASSFILE_KEY_FULLPATH ];
+				}
+
+				$files[ ] = self::$classes[ $type ][ $className[ $idx ] ];
+			}
 		}
 
 		return $files;
