@@ -48,9 +48,11 @@ define([
 		menuBar: null,
 		backend: null,
 		listeners: null,
+		items: [],
 
 		constructor: function () {
 			this.listeners = [];
+			this.items = [];
 		},
 		postCreate: function () {
 			var me = this;
@@ -153,6 +155,8 @@ define([
 
 				// me.listeners.push(item.on(a11yclick, ));
 
+				me.items.push(item);
+
 				menu.addChild(item);
 			}
 		},
@@ -164,6 +168,12 @@ define([
 			}
 
 			me.listeners = [];
+
+			for (var i = 0, ilen = me.items.length; i < ilen; i++) {
+				me.items[i].destroyRecursive();
+			}
+
+			me.items = [];
 
 			me.menuBar.removeChild(me.domainGroupMenuItem);
 

@@ -721,9 +721,9 @@ define([
 		domainGroupSwitched: function (response) {
 			var me = this;
 
-			me.setConf(response.data);
-
 			me.clearInitListeners();
+
+			me.setConf(response.data);
 
 			me.addInitListener(function () {
 				me.setMenuBarItemsByUserConf();
