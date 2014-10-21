@@ -17,6 +17,7 @@ abstract class BaseDTForeignReference extends DataType {
 	protected $value;
 
 	protected $oldValue;
+	protected $lastValueSetInternally;
 
 	const CHANGE_ADD = 'add';
 	const CHANGE_REMOVE = 'remove';
@@ -146,7 +147,7 @@ abstract class BaseDTForeignReference extends DataType {
 		}
 	}
 
-	protected function _setValue( $data, $loaded ) {	
+	protected function _setValue( $data, $loaded, $setInternally = false ) {
 		$records = array();
 
 		$recordClass = $this->getRecordClass();
@@ -239,6 +240,8 @@ abstract class BaseDTForeignReference extends DataType {
 		$this->value = $records;
 
 		$this->isDirty = !$loaded; // TODO: only set dirty if value changed or we upgraded to !dirty
+
+		$this->lastValueSetInternally = $setInternally;
 	}
 
 	public function setValue( $data = NULL, $loaded = false ) {
@@ -497,7 +500,7 @@ abstract class BaseDTForeignReference extends DataType {
 			if ( !in_array( $originRecord, $val, true ) ) {
 				// if other record/value comes from db and we got a manually set value,
 				// tell other record that it's been removed
-				if ($loaded && $this->isDirty) {
+				if ($loaded && $this->isDirty && !$this->lastValueSetInternally) {
 					$basket = NULL;
 					$originRecord->notifyReferenceRemoved($this->record, $this->getForeignFieldName(), __FUNCTION__, $basket);
 				} else {
@@ -505,7 +508,7 @@ abstract class BaseDTForeignReference extends DataType {
 
 //				$this->_setValue( $val, $loaded );
 					// JB 23.1.2014 We actually can't know if the resulting value is the same as in db, so we set loaded false in any case
-					$this->_setValue( $val, false );
+					$this->_setValue( $val, false, true );
 				}
 			}
 		} else if ( $this->record->exists() ) { // this is needed so we don't dirty records because of notify as well as preventing recursion through hundreds of records
