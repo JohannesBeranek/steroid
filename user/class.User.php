@@ -473,15 +473,15 @@ class User {
 
 	public function getCurrentPermissions( $domainGroup = NULL, $language = NULL ) {
 		if ( $this->permissions === NULL ) {
-			// TODO: $domainGroup === NULL ?	
+			// TODO: $domainGroup === NULL ?
 			if ( !$domainGroup ) {
 				$domainGroup = $this->getSelectedDomainGroup();
 			}
-		
+
 			if ( $language === NULL ) {
 				$language = $this->getSelectedLanguage();
 			}
-			
+
 			$this->permissions = $this->storage->selectRecords(
 				'RCPermission', array(
 					'fields' => '*',

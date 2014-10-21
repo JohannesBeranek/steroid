@@ -16,6 +16,8 @@ abstract class BaseDTForeignReference extends DataType {
 	protected $changeStack;
 	protected $value;
 
+	protected $oldValue;
+
 	const CHANGE_ADD = 'add';
 	const CHANGE_REMOVE = 'remove';
 
@@ -58,6 +60,19 @@ abstract class BaseDTForeignReference extends DataType {
 		}
 		
 		unset($value);
+
+		$oldValue = $this->oldValue;
+		$this->oldValue = NULL;
+
+		if ( $oldValue !== NULL ) {
+			foreach ($oldValue as $val) {
+				$val->unloadField( $foreignFieldName );
+			}
+
+			unset($val);
+		}
+
+		unset($oldValue);
 		
 		parent::cleanup();
 		
@@ -189,6 +204,16 @@ abstract class BaseDTForeignReference extends DataType {
 			$records = $recs;
 		}
 
+		if ( !$this->hasBeenSet() ) {
+			if ( $loaded ) {
+				$this->oldValue = $records;
+			} else if ($this->record->exists()) {
+				$this->oldValue = $this->getForeignRecords();
+			} else {
+				$this->oldValue = array();
+			}
+		}
+
 		$this->addNestedRecords( $records );
 
 		if ( $loaded && $this->changeStack !== NULL ) {
@@ -222,26 +247,30 @@ abstract class BaseDTForeignReference extends DataType {
 		}
 
 
+
+
 //		$oldValue = $this->value !== NULL ? $this->value : array();
-		$oldValue = $this->value === NULL ? ( ( $loaded || !$this->record->exists() ) ? array() : $this->getForeignRecords() ) : $this->value;
+//		$oldValue = $this->value === NULL ? ( ( $loaded || !$this->record->exists() ) ? array() : $this->getForeignRecords() ) : $this->value;
 //		$oldValue = $this->record->getFieldValue( $this->fieldName );
 
 		$this->_setValue( $data, $loaded );
 
-		// notify
-		$foreignFieldName = $this->getForeignFieldName();
-		$basket = NULL;
+		if (!$loaded && $this->oldValue !== NULL) {
+			// notify
+			$foreignFieldName = $this->getForeignFieldName();
+			$basket = NULL;
 
-		// don't use array_diff here, as it does string comparison 
-		foreach ( $oldValue as $oldRec ) {
-			if ( !in_array( $oldRec, $this->value, true ) ) {
-				$oldRec->notifyReferenceRemoved( $this->record, $foreignFieldName, __FUNCTION__, $basket );
+			// don't use array_diff here, as it does string comparison
+			foreach ( $this->oldValue as $oldRec ) {
+				if ( !in_array( $oldRec, $this->value, true ) ) {
+					$oldRec->notifyReferenceRemoved( $this->record, $foreignFieldName, __FUNCTION__, $basket );
+				}
 			}
-		}
 
-		foreach ( $this->value as $newRec ) {
-			if ( !in_array( $newRec, $oldValue, true ) ) {
-				$newRec->notifyReferenceAdded( $this->record, $foreignFieldName, $loaded );
+			foreach ( $this->value as $newRec ) {
+				if ( !in_array( $newRec, $this->oldValue, true ) ) {
+					$newRec->notifyReferenceAdded( $this->record, $foreignFieldName, $loaded );
+				}
 			}
 		}
 	}
@@ -328,14 +357,14 @@ abstract class BaseDTForeignReference extends DataType {
 
 		$foreignFieldName = $this->getForeignFieldName();
 
-		$currentRecords = $this->getForeignRecords(); // shouldn't trigger re-adding, as loaded recs should be notified of removal upon load
+		// $currentRecords = $this->getForeignRecords(); // shouldn't trigger re-adding, as loaded recs should be notified of removal upon load
 
 		$keepRecords = array();
 
 		$newRecords = array();
 
 		// TODO: make it possible to use unique sorting key (at the moment we can get conflicts because old records don't get delete before new ones get inserted/updated)
-		foreach ( $currentRecords as $currentRecord ) {
+		foreach ( $this->oldValue as $currentRecord ) {
 			if ( !in_array( $currentRecord, $this->value, true ) ) {	
 				if ( $this->config[ 'requireSelf' ] ) {
 					$currentRecord->checkForDelete();
@@ -356,7 +385,7 @@ abstract class BaseDTForeignReference extends DataType {
 
 		// check new records
 		foreach ( $this->value as $setRecord ) {
-			if ( !in_array( $setRecord, $currentRecords, true ) ) {
+			if ( !in_array( $setRecord, $this->oldValue, true ) ) {
 				$newRecords[ ] = $setRecord; // is new record, save it
 			} 
 		}
@@ -366,6 +395,9 @@ abstract class BaseDTForeignReference extends DataType {
 		}
 
 		parent::afterSave( $isUpdate, $saveResult );
+
+		// trust in copy on write - this must not be a reference!
+		$this->oldValue = $this->value;
 		
 		$this->isDirty = false;
 	}
@@ -465,21 +497,21 @@ abstract class BaseDTForeignReference extends DataType {
 			if ( !in_array( $originRecord, $val, true ) ) {
 				// if other record/value comes from db and we got a manually set value,
 				// tell other record that it's been removed
-//				if ($loaded && $this->isDirty) {
-//					$basket = NULL;
-//					$originRecord->notifyReferenceRemoved($this->record, $this->getForeignFieldName(), __FUNCTION__, $basket);
-//				} else {
+				if ($loaded && $this->isDirty) {
+					$basket = NULL;
+					$originRecord->notifyReferenceRemoved($this->record, $this->getForeignFieldName(), __FUNCTION__, $basket);
+				} else {
 					$val[ ] = $originRecord;
 
 //				$this->_setValue( $val, $loaded );
 					// JB 23.1.2014 We actually can't know if the resulting value is the same as in db, so we set loaded false in any case
 					$this->_setValue( $val, false );
-//				}
+				}
 			}
 		} else if ( $this->record->exists() ) { // this is needed so we don't dirty records because of notify as well as preventing recursion through hundreds of records
 			if ( !$loaded ) {
 				$this->changeStack[ ] = array( self::CHANGE_ADD, $originRecord );
-			}
+			} // else we get the record reference anyway when this foreign ref is loaded
 		} else {
 			$this->_setValue( array( $originRecord ), false );
 		}
@@ -500,11 +532,19 @@ abstract class BaseDTForeignReference extends DataType {
 				
 			$value = $this->value;
 			$this->value = NULL;
-			
+
 			foreach ($value as $val) {
 				$val->unloadField( $foreignFieldName );
 			}
-			
+
+
+			$value = $this->oldValue;
+			$this->oldValue = NULL;
+
+			foreach ($value as $val) {
+				$val->unloadField( $foreignFieldName );
+			}
+
 			unset($value);
 			unset($val);
 			
