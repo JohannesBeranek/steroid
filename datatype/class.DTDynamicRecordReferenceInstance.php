@@ -6,6 +6,7 @@
 
 require_once STROOT . '/datatype/class.BaseDTRecordReference.php';
 require_once STROOT . '/datatype/class.DTInt.php';
+require_once STROOT . '/datatype/class.DTDynamicForeignReference.php';
 
 /**
  * @package steroid\datatype

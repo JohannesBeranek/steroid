@@ -30,6 +30,9 @@ require_once STROOT . '/datatype/class.BaseDTRecordReference.php';
 require_once STROOT . '/util/class.Config.php';
 require_once STROOT . '/util/array_diff_strict.php';
 
+require_once STROOT . '/cache/interface.ICache.php';
+require_once STROOT . '/cache/interface.IIncludeCache.php';
+
 
 /**
  * base record class
@@ -102,10 +105,12 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	const RECORD_STATUS_MODIFIED = 2;
 	const RECORD_STATUS_NOT_APPLICABLE = 3;
 
-	const CACHE_KEY = 'Record';
-	const CACHE_LOCK_KEY = 'Record.lock';
+	const CACHE_KEY = 'RecordInclude';
+	const CACHE_LOCK_KEY = 'RecordInclude.lock';
 
 	const CACHE_KEY_FOREIGN_REFERENCES = 'recordForeignReferences';
+	const CACHE_KEY_RECORD_CLASSES = 'recordClasses';
+	const CACHE_KEY_FIELD_DEFINITIONS = 'fieldDefinitions';
 	const CACHE_KEY_FILES = 'recordFileIncludes';
 
 	/** @var IRBStorage */
@@ -144,6 +149,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	private static $useCache;
 
 	private static $recordClasses;
+	private static $fieldDefinitions;
 
 	private static $saveOriginRecord;
 	private static $copyOriginRecord;
@@ -751,7 +757,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			if ( $fieldDefinitions === false ) {
 
 				$fieldDefinitions = static::getFieldDefinitionsCached();
-				static::addGeneratedFieldDefinitions( $fieldDefinitions );
 
 
 				if ( !is_array( $fieldDefinitions ) ) {
@@ -1177,125 +1182,98 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 * @return array
 	 */
 	final public static function getFieldDefinitionsCached() {
-		static $fieldDefinitions;
-
-		if ( $fieldDefinitions === NULL ) {
-			$calledClass = get_called_class();
-
-			if ( function_exists( 'apc_fetch' ) ) {
-				$key = WEBROOT . '_fd_' . $calledClass;
-				$fieldDefinitions = apc_fetch( $key );
-			} else {
-				$fieldDefinitions = false;
+		$calledClass = get_called_class();
+		
+		if ( !isset( self::$fieldDefinitions[ $calledClass ] ) ) {
+			if (self::$useCache === NULL) {
+				self::initCache();
 			}
-
-			if ( $fieldDefinitions === false ) {
-				$fieldDefinitions = static::getFieldDefinitions();
-
-				$classes = self::getRecordClasses();
-
-				$conf = Config::getDefault();
-				$authenticators = $conf->getSection('authenticator');
-
-				foreach($authenticators as $auth => $path){
-					require_once WEBROOT . '/' . $path;
-
-					// TODO: why only include auth with AUTH_TYPE_BE?
-// FIXME: auth classes should not be included here - would be good to find a way to decouple this from record class
-					if ( $auth::AUTH_TYPE === User::AUTH_TYPE_BE ) {
-						$classes[$auth] = $path;
-						break;
-					}
-				}
-
-				foreach ( $classes as $class => $classDefinition ) {
-					$newFields = $class::addToFieldDefinitions( $calledClass, $fieldDefinitions );
-
-					if ( $newFields && !empty( $newFields ) ) {
-						foreach ( $newFields as $fieldName => $fieldDef ) {
-							$fieldDef[ 'addedByClass' ] = $class;
-							$fieldDefinitions[ $fieldName ] = $fieldDef;
-						}
-					}
-
-				}
-
-				if ( isset( $key ) ) {
-					apc_store( $key, $fieldDefinitions );
-				}
-			}
+			
+			self::fillFieldDefinitions( $calledClass );
 		}
 
-		return $fieldDefinitions;
+		return self::$fieldDefinitions[ $calledClass ];
+	}
+	
+	final private static function initCache() {
+		
+		if ( self::$useCache === NULL ) {
+			if ( $cacheType = Config::key( 'record', 'cache' ) ) {
+				$cache = Cache::getBestMatch( $cacheType );
+
+				$checked = false;
+
+				if ( $cache->exists( self::CACHE_KEY ) ) {
+					try {						
+						self::includeRecordCache( $cache );
+						
+						self::$useCache = true;
+					} catch ( ErrorException $e ) { // might get a warning "exception" in case a file doesn't exist anymore - in that case we need to regenerate cache
+						if ( $e->getSeverity() === E_WARNING && $e->getFile() === __FILE__ ) {
+							// one of the included record classes doesn't exist anymore OR cache file does not exist, (re)create it
+							$cache->lock( self::CACHE_LOCK_KEY );
+
+							// cache might have been recreated in the mean time - try again (this way we prevent cache being created multiple times under high load)
+							try {
+								self::includeRecordCache( $cache );
+								
+								self::$useCache = true;
+							} catch ( ErrorException $e ) {
+								self::createRecordCache( $cache );
+							} catch ( Exception $e ) {
+								$cache->unlock( self::CACHE_LOCK_KEY );
+
+								throw $e;
+							}
+
+							$cache->unlock( self::CACHE_LOCK_KEY );
+						} else {
+							// rethrow
+							throw $e;
+						}
+					}
+				} else {
+					self::createRecordCache( $cache );
+				}
+
+			} else {
+				self::$useCache = false;
+
+				self::fillRecordClasses();
+			}
+		} else { // self::$useCache has already been set
+			self::fillRecordClasses();
+		}
+		
 	}
 
 	final private static function getRecordClasses() {
 		if ( self::$recordClasses === NULL ) { // runs once for all recordClasses
-			$classNames = array();
-
-			if ( self::$useCache === NULL ) {
-				if ( $cacheType = Config::key( 'record', 'cache' ) ) {
-					$cache = Cache::getBestMatch( $cacheType );
-
-					$checked = false;
-
-					if ( $cache->exists( self::CACHE_KEY ) ) {
-						try {
-							self::includeForeignReferenceCache( $cache );
-						} catch ( ErrorException $e ) { // might get a warning "exception" in case a file doesn't exist anymore - in that case we need to regenerate cache
-							if ( $e->getSeverity() === E_WARNING && $e->getFile() === __FILE__ ) {
-								// one of the included record classes doesn't exist anymore OR cache file does not exist, (re)create it
-								$cache->lock( self::CACHE_LOCK_KEY );
-
-								// cache might have been recreated in the mean time - try again (this way we prevent cache being created multiple times under high load)
-								try {
-									self::includeForeignReferenceCache( $cache );
-								} catch ( ErrorException $e ) {
-									self::createForeignReferenceCache( $cache );
-								} catch ( Exception $e ) {
-									$cache->unlock( self::CACHE_LOCK_KEY );
-
-									throw $e;
-								}
-
-								$cache->unlock( self::CACHE_LOCK_KEY );
-							} else {
-								// rethrow
-								throw $e;
-							}
-						}
-					} else {
-						self::createForeignReferenceCache( $cache );
-					}
-
-				} else {
-					self::$useCache = false;
-
-					self::fillRecordClasses();
-				}
-			} else { // self::$useCache has already been set
-				self::fillRecordClasses();
-			}
+			self::fillRecordClasses();
 		}
 
 		return self::$recordClasses;
 	}
 
-	final private static function includeForeignReferenceCache( $cache ) {
-		$cacheEntry = json_decode( $cache->get( self::CACHE_KEY ), true );
-
-		$includeFiles = $cacheEntry[ self::CACHE_KEY_FILES ];
-
-		foreach ( $includeFiles as $file ) {
-			include_once $file;
-			self::$useCache = true;
-			self::fillRecordClasses();
+	final private static function includeRecordCache( $cache ) {
+		if ($cache instanceof IIncludeCache) {
+			$cacheEntry = $cache->doRequireOnce( self::CACHE_KEY );	
+		} else {
+			$cacheEntry = json_decode( $cache->get( self::CACHE_KEY ), true );
+	
+			$includeFiles = $cacheEntry[ self::CACHE_KEY_FILES ];
+	
+			foreach ( $includeFiles as $file ) {
+				include_once $file;
+			}
 		}
-
+				
 		self::$foreignReferences = $cacheEntry[ self::CACHE_KEY_FOREIGN_REFERENCES ];
+		self::$recordClasses = $cacheEntry[ self::CACHE_KEY_RECORD_CLASSES ];
+		self::$fieldDefinitions = $cacheEntry[ self::CACHE_KEY_FIELD_DEFINITIONS ];
 	}
 
-	final private static function createForeignReferenceCache( $cache ) {
+	final private static function createRecordCache( $cache ) {
 		$recordClasses = ClassFinder::getAll( ClassFinder::CLASSTYPE_RECORD, false );
 
 		$filenames = array();
@@ -1310,26 +1288,47 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 				$filenames[ ] = $filename;
 			}
 
-			$cacheEntry[ self::CACHE_KEY_FILES ] = $filenames;
+			$cacheIncludes = $filenames;
 		} catch ( ErrorException $e ) {
 			// if we still fail here, just disable caching and go with classfinder
 			self::$useCache = false;
 		}
 
-		// if we get here, we might try to go a little farther and write
-		// complete foreign reference definitions
+		// write complete foreign reference definitions
+		
 		self::fillRecordClasses();
+		
+		$cacheEntry[ self::CACHE_KEY_RECORD_CLASSES ] = self::$recordClasses;
 
+		foreach ( self::$recordClasses as $className ) {
+			self::fillFieldDefinitions( $className );
+		}
 
-		foreach ( $recordClasses as $recordClass ) {
-			$className = $recordClass[ ClassFinder::CLASSFILE_KEY_CLASSNAME ];
-
+		foreach ( self::$recordClasses as $className ) {
 			self::fillForeignReferences( $className );
 		}
 
 		$cacheEntry[ self::CACHE_KEY_FOREIGN_REFERENCES ] = self::$foreignReferences;
+		$cacheEntry[ self::CACHE_KEY_FIELD_DEFINITIONS ] = self::$fieldDefinitions;
+		
+		if ($cache instanceof IIncludeCache) {
+			// better performance, but more code
+			$cacheString = "<?php\n";
+			
+			foreach ($cacheIncludes as $include) {
+				$cacheString .= "\ninclude_once '" . $include . "';";
+			}
+			
+			$cacheString .= "\nreturn " . var_export( $cacheEntry, true ) . ";";
+			
+			$cache->set( self::CACHE_KEY, $cacheString );
+		} else {
+			// worse performance, more compatibility
+			$cacheEntry[ self::CACHE_KEY_FILES ] = $cacheIncludes;
+			
+			$cache->set( self::CACHE_KEY, json_encode( $cacheEntry ) );
+		}
 
-		$cache->set( self::CACHE_KEY, json_encode( $cacheEntry ) );
 	}
 
 	/**
@@ -1341,17 +1340,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		$calledClass = get_called_class();
 
 		if ( !isset( self::$foreignReferences[ $calledClass ] ) ) { // runs once per recordClass
-
-			if ( self::$recordClasses === NULL ) { // runs once for all recordClasses
-				// we don't care about return value
-				self::getRecordClasses();
-
-				if ( self::$useCache !== false && isset( self::$foreignReferences[ $calledClass ] ) ) {
-					return self::$foreignReferences[ $calledClass ];
-				}
+			if (self::$useCache === NULL) {
+				self::initCache();
 			}
-
-			// ----
+				
 			self::fillForeignReferences( $calledClass );
 		}
 
@@ -1360,80 +1352,81 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 	// FIXME: use cache interface, integrate with other cache
 	final private static function fillRecordClasses() {
+		// ClassFinder has cache as well, so o need to branch based on self::$useCache
+		$recordClassInfos = ClassFinder::getAll( ClassFinder::CLASSTYPE_RECORD, true );
 
-		// Prevents missing inclusions
-		$recordClasses = ClassFinder::getAll( ClassFinder::CLASSTYPE_RECORD, true );
-
-		if ( function_exists( 'apc_fetch' ) ) {
-			$key = WEBROOT . '_Record::fillRecordClasses()';
-
-			self::$recordClasses = apc_fetch( $key );
-		} else {
-			self::$recordClasses = false;
+		foreach ( $recordClassInfos as $recordClassInfo ) {
+			$classNames[] = $recordClassInfo[ ClassFinder::CLASSFILE_KEY_CLASSNAME ];
 		}
 
-		if ( self::$recordClasses === false ) {
-			if ( self::$useCache === false ) {
-				// FIXME: ClassFinder getAll call should be here
+		self::$recordClasses = $classNames;
+	}
+	
+	final private static function fillFieldDefinitions( $calledClass ) {
+// FIXME: auth classes should not be included here - would be good to find a way to decouple this from record class
+		$conf = Config::getDefault();
+		$authenticators = $conf->getSection('authenticator');
 
-				foreach ( $recordClasses as $recordClass ) {
-					$className = $recordClass[ ClassFinder::CLASSFILE_KEY_CLASSNAME ];
+		foreach($authenticators as $auth => $path){
+			require_once WEBROOT . '/' . $path;
 
-					$classNames[ ] = $className;
-				}
-			} else { // use cache: all record classes should be included and thus existing by now
-				$recordClasses = get_declared_classes();
-
-				foreach ( $recordClasses as $recordClass ) {
-					if ( substr( $recordClass, 0, 2 ) == 'RC' ) {
-						$classNames[ ] = $recordClass;
-					}
-				}
-			}
-
-			self::$recordClasses = array_fill_keys( $classNames, array() );
-
-			foreach ( $classNames as $className ) {
-				$fieldDefs = $className::getOwnFieldDefinitions();
-
-				self::$recordClasses[ $className ] = array();
-
-				foreach ( $fieldDefs as $fieldName => $fieldDef ) {
-					// TODO: why do we only store record references?
-					if ( is_subclass_of( $fieldDef[ 'dataType' ], 'BaseDTRecordReference' ) ) {
-						self::$recordClasses[ $className ][ $fieldName ] = $fieldDef;
-					}
-				}
-			}
-
-			if ( isset( $key ) ) {
-				apc_store( $key, self::$recordClasses );
+			// TODO: why only include auth with AUTH_TYPE_BE?
+			if ( $auth::AUTH_TYPE === User::AUTH_TYPE_BE ) {
+				$classes[$auth] = $path;
+				break;
 			}
 		}
+
+// field definitions
+		$fieldDefinitions = $calledClass::getFieldDefinitions();
+
+		$classes = self::getRecordClasses();
+
+		foreach ( $classes as $className ) {
+			$newFields = $className::addToFieldDefinitions( $calledClass, $fieldDefinitions );
+
+			if ( $newFields && !empty( $newFields ) ) {
+				foreach ( $newFields as $fieldName => $fieldDef ) {
+					$fieldDef[ 'addedByClass' ] = $className;
+					$fieldDefinitions[ $fieldName ] = $fieldDef;
+				}
+			}
+
+		}
+
+		$calledClass::addGeneratedFieldDefinitions( $fieldDefinitions );
+		
+		foreach ($fieldDefinitions as $fieldName => &$fieldDef) {
+			$dt = $fieldDef['dataType'];
+			$dt::completeConfig($fieldDef, $calledClass, $fieldName);
+		}
+
+		self::$fieldDefinitions[ $calledClass ] = $fieldDefinitions;		
 	}
 
 	final private static function fillForeignReferences( $calledClass ) {
 		$foreignReferences = array();
 
-		foreach ( self::$recordClasses as $className => $referenceFields ) {
-			foreach ( $referenceFields as $fieldName => $fieldDef ) {
-				$dt = $fieldDef[ 'dataType' ];
-				$dt::getForeignReferences( $calledClass, $className, $fieldName, $fieldDef, $foreignReferences );
+		foreach ( self::$fieldDefinitions as $className => $fieldDefinitions) {
+			foreach ($fieldDefinitions as $fieldName => $fieldDef ) {
+				if ( is_subclass_of( $fieldDef[ 'dataType' ], 'BaseDTRecordReference' ) ) {
+					$dt = $fieldDef[ 'dataType' ];
+					$dt::getForeignReferences( $calledClass, $className, $fieldName, $fieldDef, $foreignReferences );
+				}
 			}
 		}
 
-		// check if we have predefined foreign references, those will override generated ones
-		$fieldDefinitions = $calledClass::getFieldDefinitionsCached();
-
-		foreach ( $fieldDefinitions as $fieldName => $fieldDefinition ) {
-			if ( strpos( $fieldName, ':' ) !== false ) {
-				$foreignReferences[ $fieldName ] = $fieldDefinition;
-			}
-		}
-
+	
 		foreach ( $foreignReferences as $fieldName => $foreignConfig ) {
 			$dt = $foreignReferences[ $fieldName ][ 'dataType' ];
 			$dt::completeConfig( $foreignReferences[ $fieldName ], $calledClass, $fieldName );
+		}
+		
+		// check if we have predefined foreign references, those will override generated ones
+		foreach ( self::$fieldDefinitions[$calledClass] as $fieldName => $fieldDefinition ) {
+			if ( strpos( $fieldName, ':' ) !== false ) {
+				$foreignReferences[ $fieldName ] = $fieldDefinition;
+			}
 		}
 
 		self::$foreignReferences[ $calledClass ] = $foreignReferences;

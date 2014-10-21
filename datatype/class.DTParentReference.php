@@ -55,7 +55,7 @@ class DTParentReference extends BaseDTRecordReference {
 	}
 
 	public static function getForeignReferences( $recordClass, $calledClass, $fieldName, $fieldDef, &$fieldNames ) {
-		if ( $fieldDef[ 'recordClass' ] == $recordClass ) {
+		if ( $fieldDef[ 'recordClass' ] === $recordClass ) {
 			$fieldNames[ $fieldName . ':' . $calledClass ] = DTParentForeignReference::getFieldDefinition();
 		}
 	}

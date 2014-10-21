@@ -53,9 +53,6 @@ abstract class ElementRecord extends Record implements IHandleArea {
 		$fieldDefinitions[ 'ctime' ] = DTCTime::getFieldDefinition();
 		$fieldDefinitions[ 'mtime' ] = DTMTime::getFieldDefinition();
 
-		// FIXME: shouldn't be needed
-		require_once STROOT . '/datatype/class.DTDynamicForeignReference.php';
-
 		$fieldDefinitions[ 'element:RCElementInArea' ] = DTDynamicForeignReference::getFieldDefinition( 'class', true ); // TODO: unhardcode 'class'?
 	}
 
