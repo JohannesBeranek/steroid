@@ -6,7 +6,7 @@ require_once STROOT . '/datatype/class.DTKey.php';
 
 require_once STROOT . '/storage/record/class.Record.php';
 
-require_once STROOT . '/storage/record/class.RTTest.php';
+require_once STROOT . '/storage/record/UT/class.RTTest.php';
 
 class UTDTParentReference extends PHPUnit_Framework_TestCase {
 

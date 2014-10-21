@@ -613,6 +613,16 @@ define([
 
 			me.backend.doStandBy();
 
+			if(action == 'previewRecord'){ // popup block workaround without having to use synchronous ajax call (http://stackoverflow.com/questions/4602964/how-do-i-prevent-google-chrome-from-blocking-my-popup)
+				var win = window.open('');
+				window.oldOpen = window.open;
+				window.open = function(url){
+					win.location = url;
+					window.open = oldOpen;
+					win.focus();
+				}
+			}
+
 			var conf = {
 				data: {
 					requestType: action,
@@ -622,8 +632,7 @@ define([
 					pubDate: pubDate,
 					pubTime: pubTime,
 					constants: constants,
-					additionalPublish: additionalPublish,
-					sync: action === 'previewRecord' ? true : false // action previewRecord needs sync to avoid popup blockers
+					additionalPublish: additionalPublish
 				},
 				error: function (response) {
 					me.handleError(response, action);
