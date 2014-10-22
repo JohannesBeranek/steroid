@@ -123,6 +123,10 @@ define({ root: ({
 		title: 'Domain group changed',
 		message: 'You have created or modified a domain group. Would you like to switch to it?'
 	},
+	DomainTakenException: {
+		title: 'Domain taken',
+		message: 'This domain is already taken by $rc $record.'
+	},
 	BtnOK: 'OK',
 	BtnMore: 'Details',
 	BtnYes: 'Yes',

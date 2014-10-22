@@ -39,6 +39,20 @@ class RCDomain extends Record {
 	protected function beforeSave( $isUpdate, $isFirst ) {
 		parent::beforeSave( $isUpdate, $isFirst );
 
+		//check if domain is taken
+		$existing = $this->storage->selectFirst( 'RCDomain', array( 'fields' => array( 'domainGroup.*' ), 'where' => array( 'domain', '=', array( $this->domain ) ) ) );
+
+		$existing = array_shift($existing);
+
+		if ( (int)$existing['primary'] !== $this->domainGroup->primary ) {
+			throw new DomainTakenException( 'This domain is already in use by "' . $existing['title'] . '"', array(
+				'rc' => 'RCDomainGroup',
+				'record' => $existing['title']
+			) );
+		}
+
+		//check primary/alias
+		// FIXME: doesnt really work
 		$returnCodeField = $this->getDataTypeFieldName( 'DTSteroidReturnCode' );
 		$domainGroupField = $this->getDataTypeFieldName( 'DTSteroidDomainGroup' );
 
@@ -85,3 +99,5 @@ class RCDomain extends Record {
 		}
 	}
 }
+
+class DomainTakenException extends SteroidException {}

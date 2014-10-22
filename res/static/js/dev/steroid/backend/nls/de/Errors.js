@@ -123,6 +123,10 @@ define({
 		title: 'Subwebänderung',
 		message: 'Sie haben ein Subweb erstellt oder verändert. Möchten Sie in dieses wechseln?'
 	},
+	DomainTakenException: {
+		title: 'Domain vergeben',
+		message: 'Diese Domain ist bereits bei $rc $record in Verwendung.'
+	},
 	BtnOK: 'OK',
 	BtnMore: 'Details',
 	BtnYes: 'Ja',
