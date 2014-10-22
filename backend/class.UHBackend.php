@@ -1557,9 +1557,12 @@ class UHBackend implements IURLHandler {
 				$this->hideRecord( $recordClass, $recordID, true );
 			}
 
+			$mainRecordTitle = $record->getTitle();
+			$mainRecordClass = get_class($record);
+
 			$record->delete();
 
-			$this->createDeletionNotifications( $record, $classes );
+			$this->createDeletionNotifications( $mainRecordClass, $mainRecordTitle, $classes );
 
 			$this->ajaxSuccess();
 		} else {
@@ -1567,7 +1570,7 @@ class UHBackend implements IURLHandler {
 		}
 	}
 
-	protected function createDeletionNotifications( IRecord $mainRecord, $classes = array() ) {
+	protected function createDeletionNotifications( $mainRecordClass, $mainRecordTitle, $classes = array() ) {
 		if ( empty( $classes ) ) {
 			return;
 		}
@@ -1612,8 +1615,8 @@ class UHBackend implements IURLHandler {
 					'nlsTitle' => '_messageBox.recordDeleted.title',
 					'nlsMessage' => '_messageBox.recordDeleted.text',
 					'nlsData' => json_encode( array(
-						'recordClass' => '#' . get_class( $mainRecord ) . '#',
-						'recordTitle' => $mainRecord->getTitle(),
+						'recordClass' => '#' . $mainRecordClass . '#',
+						'recordTitle' => $mainRecordTitle,
 						'domainGroup' => $this->user->getSelectedDomainGroup()->getTitle(),
 						'targetDomainGroup' => $domainGroupTitle,
 

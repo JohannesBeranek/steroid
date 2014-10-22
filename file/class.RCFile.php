@@ -175,7 +175,11 @@ class RCFile extends Record implements IFileInfo {
 
 	protected function _delete() {
 		$this->load( array( 'filename' ) ); // make sure filename is loaded so it can later on be accessed for unlinking
-		$this->storage->unlinkFile( $this );
+
+		$virtualFile = new VirtualFile(NULL, NULL, $this->filename);
+		$virtualFile->setStoredFilename($this->getStoredFilename());
+
+		$this->storage->unlinkFile( $virtualFile );
 
 		parent::_delete();
 	}
