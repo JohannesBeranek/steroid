@@ -283,7 +283,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		// disconnect fields
 		$this->fields = NULL;
 		
-		$this->storage = NULL;		
+		$this->storage = NULL;
 	}
 
 	public static function addHook( $object, $hookType, $recordClasses = NULL ) {
@@ -2244,6 +2244,11 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	}
 
 	public function checkForDelete() {
+		// checkForDelete may be called multiple times from different foreign references
+		if($this->deleted){
+			return true;
+		}
+
 		foreach ( $this->fields as $fieldName => $dt ) {
 			if ( $dt->checkForDelete() ) {
 				$this->delete();
@@ -2447,7 +2452,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 		$this->deleted = true;
 		
-		// remove from index 		
+		// remove from index
 		$this->removeFromIndex();		
 	}
 
