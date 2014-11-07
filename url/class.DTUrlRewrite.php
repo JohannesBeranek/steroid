@@ -159,9 +159,12 @@ class DTUrlRewrite extends BaseDTRecordReference {
 										
 										// try to safe the situation by deleting the other
 										// record, it should be dynamically recreated anyway
-										Log::write('Need to delete already connected rewrite record:', $foreignRewrite->rewrite, 'for url:', $urlRecord->url);
+										Log::write('Need to reconnect already connected rewrite record:', $foreignRewrite->rewrite, 'for url:', $urlRecord->url);
 										
-										$foreignRewrite->delete();
+						
+										// TODO: connect foreignRewrite to different url
+						
+										throw new Exception();
 									}
 								} else {
 									$pageUrlEntries = $urlRecord->{'url:RCPageUrl'};
