@@ -279,18 +279,18 @@ abstract class BaseDTRecordReference extends DataType {
 		if ( $this->record->{$this->fieldName} ) { // support lazy loading
 			$this->value->notifyReferenceRemoved( $this->record, $this->getForeignFieldName(), __FUNCTION__, $basket );
 
-			if($this->value !== NULL){
-				if ( $this->deletevalueonbeforedelete()) { // null check is needed for circular function calling
-					if ( !$this->value instanceof irecord ) {
-						throw new exception( debug::getstringrepresentation( $this->value ) . " = \$this->value, not instanceof irecord!" );
+			if ($this->value !== NULL) { // null check is needed for circular function calling
+				if ( $this->deleteValueOnBeforeDelete()) { 
+					if ( !$this->value instanceof IRecord ) {
+						throw new exception( debug::getstringrepresentation( $this->value ) . " = \$this->value, not instanceof IRecord!" );
 					}
 
 					$this->value->delete( $basket );
 				}
 
 				// help with gc
-				if ( $basket === null ) {
-					$this->value = null;
+				if ( $basket === NULL ) {
+					$this->value = NULL;
 				}
 			}
 		}

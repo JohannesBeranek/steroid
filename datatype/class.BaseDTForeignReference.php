@@ -416,6 +416,7 @@ abstract class BaseDTForeignReference extends DataType {
 	 * if datatype has been configured with requireSelf = true, it will delete all records of the configured recordClass which reference the datatype's record
 	 */
 	public function beforeDelete( array &$basket = NULL ) {
+// FIXME: this seems not 100% correct -
 		$foreignRecords = $this->getForeignRecords();
 
 		if ( isset( $this->config[ 'requireSelf' ] ) && $this->config[ 'requireSelf' ] ) {
@@ -425,6 +426,8 @@ abstract class BaseDTForeignReference extends DataType {
 				}
 			}
 		} else { // [JB 11.02.2013] even if foreign ref is not required we need to make sure that referencing record has it's value set to NULL
+		
+// FIXME: should only happen if basket is NULL, but then basket might be wrong as records requiring reference fields won't be put into basket
 			$foreignFieldName = $this->getForeignFieldName();
 
 			while ( $foreignRecord = array_pop( $foreignRecords ) ) {
