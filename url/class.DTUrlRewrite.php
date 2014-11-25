@@ -98,9 +98,7 @@ class DTUrlRewrite extends BaseDTRecordReference {
 			}
 		} 
 		
-		if (!isset($url)) {
-			// should not happen, but better be safe than sorry
-			
+		if (!isset($url)) {			
 			// try to fetch rewriteUrlRecord for other live status 
 			// to check if it has an url record attached
 			

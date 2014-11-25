@@ -147,6 +147,18 @@ abstract class BaseDTForeignReference extends DataType {
 		}
 	}
 
+	final private function ensureOldValue( $loaded, $records ) {
+		if ( $this->oldValue === NULL ) {
+			if ( $loaded ) {
+				$this->oldValue = $records;
+			} else if ($this->record->exists()) {
+				$this->oldValue = $this->getForeignRecords();
+			} else {
+				$this->oldValue = array();
+			}
+		}
+	}
+
 	protected function _setValue( $data, $loaded, $setInternally = false ) {
 		$records = array();
 
@@ -205,15 +217,7 @@ abstract class BaseDTForeignReference extends DataType {
 			$records = $recs;
 		}
 
-		if ( !$this->hasBeenSet() ) {
-			if ( $loaded ) {
-				$this->oldValue = $records;
-			} else if ($this->record->exists()) {
-				$this->oldValue = $this->getForeignRecords();
-			} else {
-				$this->oldValue = array();
-			}
-		}
+		$this->ensureOldValue( $loaded, $records );
 
 		$this->addNestedRecords( $records );
 
@@ -416,8 +420,9 @@ abstract class BaseDTForeignReference extends DataType {
 	 * if datatype has been configured with requireSelf = true, it will delete all records of the configured recordClass which reference the datatype's record
 	 */
 	public function beforeDelete( array &$basket = NULL ) {
-// FIXME: this seems not 100% correct -
+// FIXME: this seems not correct - should use current set records maybe?
 		$foreignRecords = $this->getForeignRecords();
+		
 
 		if ( isset( $this->config[ 'requireSelf' ] ) && $this->config[ 'requireSelf' ] ) {
 			while( $foreignRecord = array_pop($foreignRecords)) {
@@ -427,13 +432,15 @@ abstract class BaseDTForeignReference extends DataType {
 			}
 		} else { // [JB 11.02.2013] even if foreign ref is not required we need to make sure that referencing record has it's value set to NULL
 		
-// FIXME: should only happen if basket is NULL, but then basket might be wrong as records requiring reference fields won't be put into basket
-			$foreignFieldName = $this->getForeignFieldName();
-
-			while ( $foreignRecord = array_pop( $foreignRecords ) ) {
-				if ( $foreignRecord->{$foreignFieldName} !== NULL ) {
-					$foreignRecord->{$foreignFieldName} = NULL;
-					$foreignRecord->save();
+// FIXME: basket might be wrong as records requiring reference fields won't be put into basket
+			if ($basket === NULL) {
+				$foreignFieldName = $this->getForeignFieldName();
+	
+				while ( $foreignRecord = array_pop( $foreignRecords ) ) {
+					if ( $foreignRecord->{$foreignFieldName} !== NULL ) {
+						$foreignRecord->{$foreignFieldName} = NULL;
+						$foreignRecord->save();
+					}
 				}
 			}
 		}
