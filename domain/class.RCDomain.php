@@ -42,13 +42,15 @@ class RCDomain extends Record {
 		//check if domain is taken
 		$existing = $this->storage->selectFirst( 'RCDomain', array( 'fields' => array( 'domainGroup.*' ), 'where' => array( 'domain', '=', array( $this->domain ) ) ) );
 
-		$existing = array_shift($existing);
-
-		if ( (int)$existing['primary'] !== $this->domainGroup->primary ) {
-			throw new DomainTakenException( 'This domain is already in use by "' . $existing['title'] . '"', array(
-				'rc' => 'RCDomainGroup',
-				'record' => $existing['title']
-			) );
+		if ($existing !== NULL) {
+			$existing = array_shift($existing);
+	
+			if ( (int)$existing['primary'] !== $this->domainGroup->primary ) {
+				throw new DomainTakenException( 'This domain is already in use by "' . $existing['title'] . '"', array(
+					'rc' => 'RCDomainGroup',
+					'record' => $existing['title']
+				) );
+			}
 		}
 
 		//check primary/alias

@@ -25,6 +25,7 @@ abstract class BaseDTInteger extends DataType {
 		parent::afterSave( $isUpdate, $saveResult );
 
 		if ( $saveResult[ 'action' ] == RBStorage::SAVE_ACTION_CREATE && $this->config[ 'autoInc' ] ) {
+			error_log(get_class($this->record) . ' id:' . $saveResult[ 'insertID' ]);
 			$this->record->{$this->fieldName} = $saveResult[ 'insertID' ];
 		}
 	}
