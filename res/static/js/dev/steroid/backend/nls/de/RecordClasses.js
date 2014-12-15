@@ -231,7 +231,9 @@ define({
 		returnCode_values: {
 			200: 'Primär',
 			418: 'Alias'
-		}
+		},
+		redirectToUrl: 'Weiterleiten auf URL',
+		redirectToPage: 'Weiterleiten auf Seite'
 	},
 	RCDomainGroup: {
 		favicon: 'Favicon',

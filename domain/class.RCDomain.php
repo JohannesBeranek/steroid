@@ -32,7 +32,9 @@ class RCDomain extends Record {
 			'domainGroup' => DTSteroidDomainGroup::getFieldDefinition(),
 			'returnCode' => DTSteroidReturnCode::getFieldDefinition(),
 			'disableTracking' => DTBool::getFieldDefinition(),
-			'noSSL' => DTBool::getFieldDefinition()
+			'noSSL' => DTBool::getFieldDefinition(),
+			'redirectToUrl' => DTString::getFieldDefinition( 255, false, '', true ),
+			'redirectToPage' => DTRecordReference::getFieldDefinition( 'RCPage' )
 		);
 	}
 

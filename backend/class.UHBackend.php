@@ -1936,7 +1936,7 @@ class UHBackend implements IURLHandler {
 		$limitCount = $this->requestInfo->getPostParam( self::PARAM_LIMIT_COUNT );
 
 		if ( !$limitCount || $limitCount == 'Infinity' ) {
-			$limitCount = 9999;
+			$limitCount = NULL;
 		}
 
 		$sorting = json_decode( $this->requestInfo->getPostParam( self::PARAM_SORT ), true );

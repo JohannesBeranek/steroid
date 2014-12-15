@@ -221,7 +221,9 @@ define({ root: ({
 			200: 'Primary',
 			418: 'Alias'
 		},
-		noSSL: 'Disable SSL encryption'
+		noSSL: 'Disable SSL encryption',
+		redirectToUrl: 'Redirect to URL',
+		redirectToPage: 'Redirect to Page'
 	},
 	RCLanguage: {
 		iso639: 'ISO-639 code',

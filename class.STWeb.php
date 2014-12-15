@@ -24,6 +24,7 @@ require_once STROOT . '/domaingroup/class.RCDomainGroup.php';
 require_once STROOT . '/datatype/class.DTSteroidReturnCode.php';
 require_once STROOT . '/preview/class.RCPreviewSecret.php';
 
+require_once STROOT . '/url/class.UrlUtil.php';
 
 /**
  * Main class for Steroid Web
@@ -174,7 +175,26 @@ class STWeb extends ST {
 						User::init( $this->config, $this->requestInfo, $this->storage );
 						$this->user = User::getCurrent( $this->config, $this->requestInfo, $this->storage );
 
-						$this->requestInfo->setDomainRecord( $this->getDomainRecordFromRequest() );
+						$domainRecord = $this->getDomainRecordFromRequest();
+
+						if ( $domainRecord->redirectToUrl ) {
+							Responder::sendReturnCodeHeader( 302 );
+							header( 'Location: ' . UrlUtil::getRedirectUrl( $domainRecord->redirectToUrl ) );
+							
+							return;
+						} else if ( $domainRecord->redirectToPage ) {
+							// TODO: STWeb should not need to know about live states
+							$targetPage = $domainRecord->redirectToPage->getFamilyMember( array( 'live' => 1 ) );
+							
+							if ( $targetPage && $targetPage->live ) {								
+								Responder::sendReturnCodeHeader( 302 );
+								header( 'Location: ' . $targetPage->getUrlForPage( RCPage::ABSOLUTE_NO_PROTOCOL ));
+								
+								return;
+							}
+						}
+
+						$this->requestInfo->setDomainRecord( $domainRecord );
 						$domainGroupRecord = $this->requestInfo->getDomainGroupRecord();
 
 						do {
@@ -361,7 +381,9 @@ class STWeb extends ST {
 			'fields' => array(
 				'disableTracking',
 				'domain',
-				'domainGroup.*'
+				'domainGroup.*',
+				'redirectToUrl',
+				'redirectToPage'
 			),
 			'where' => array(
 				'domain',

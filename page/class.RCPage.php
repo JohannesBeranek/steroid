@@ -192,7 +192,7 @@ class RCPage extends Record {
 	 * @return string
 	 */
 	public function getUrlForPage( $page = NULL, $params = NULL, $forceAbsolute = NULL, $cancelParams = NULL ) {
-		if ( is_string( $page ) && $page !== 'http' && $page !== 'https' ) {
+		if ( is_string( $page ) && $page !== self::ABSOLUTE_HTTP && $page !== self::ABSOLUTE_HTTPS && $page !== self::ABSOLUTE_NO_PROTOCOL ) {
 			$urlParts = st_parse_url( $page );
 
 			$url = '';
@@ -270,7 +270,7 @@ class RCPage extends Record {
 			if ( !empty( $urlParts[ 'fragment' ] ) ) $url .= '#' . $urlParts[ 'fragment' ];
 
 		} else {
-			// $page is not string or $page === 'http' or $page === 'https'
+			// $page is not string or $page === 'http' or $page === 'https' or $page === ''
 			
 			if ( $page === NULL ) {
 				$page = $this;
@@ -279,7 +279,7 @@ class RCPage extends Record {
 				$forceAbsolute = $params;
 				$params = $page;
 				$page = $this;
-			} else if ( is_bool( $page ) || is_string( $page ) ) { // $page might be 'http' or 'https'
+			} else if ( is_bool( $page ) || is_string( $page ) ) { // $page might be 'http' or 'https' or ''
 				$forceAbsolute = $page;
 				$page = $this;
 			}
@@ -313,7 +313,9 @@ class RCPage extends Record {
 
 			$url = '';
 
-			if ( ( $urlRecord->domainGroup !== $this->domainGroup ) || $forceAbsolute ) {
+
+			if ( ( $urlRecord->domainGroup !== $this->domainGroup ) || $forceAbsolute || $forceAbsolute === self::ABSOLUTE_NO_PROTOCOL ) {
+				
 				$domains = $urlRecord->domainGroup->{'domainGroup:RCDomain'};
 
 				foreach ( $domains as $domain ) {
