@@ -182,7 +182,11 @@ define({
 	},
 	RCUser: {
 		_title: 'Name',
-		username: 'CRM ID'
+		username: 'CRM ID',
+		gender_values: {
+			m: 'Männlich',
+			f: 'Weiblich'
+		}
 	},
 	RCUrl: {
 		url: 'Url',
