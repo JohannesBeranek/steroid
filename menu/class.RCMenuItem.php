@@ -54,7 +54,8 @@ class RCMenuItem extends BaseMenuItem {
 			'subItemsFromPage' => DTBool::getFieldDefinition( true ),
 			'url' => DTString::getFieldDefinition( 255, false, NULL, true ),
 			'pagesFromRecordClass' => DTRecordClassSelect::getFieldDefinition( array( array( 'RCPage', 'pageTypeFilter' ) ), true ),
-			'icon' => DTImageRecordReference::getFieldDefinition( false )
+			'icon' => DTImageRecordReference::getFieldDefinition( false ),
+			'alignRight' => DTBool::getFieldDefinition()
 		);
 	}
 
@@ -69,6 +70,7 @@ class RCMenuItem extends BaseMenuItem {
 			'url',
 			'pagesFromRecordClass',
 			'icon',
+			'alignRight',
 			'parent:RCMenuItem',
 			'sorting'
 		);

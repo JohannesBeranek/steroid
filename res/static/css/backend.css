@@ -532,6 +532,12 @@ label.STInvalid, .STWidget.STInvalid > .dijitTitlePaneTitle > .dijitTitlePaneTit
 
 .STMenuItemContainer .STMenuItemContainer {
 	width: 100%;
+	position: relative;
+	left: 50px;
+}
+
+.STMenuItemContainer, .STMenuItem {
+	overflow: visible;
 }
 
 .STMenuItemContainer .STMenuItem {

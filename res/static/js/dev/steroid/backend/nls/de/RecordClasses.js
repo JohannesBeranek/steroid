@@ -281,6 +281,7 @@ define({
 		url: 'Externe Url',
 		showInMenu: 'Im Menü anzeigen',
 		subItemsFromPage: 'Unterseiten der ausgewählten Seite anzeigen',
-		pagesFromRecordClass: 'Untermenü aus folgenden Inhaltstypen generieren'
+		pagesFromRecordClass: 'Untermenü aus folgenden Inhaltstypen generieren',
+		alignRight: 'Rechts ausrichten'
 	}
 });

@@ -283,7 +283,8 @@ define({ root: ({
 		url: 'External url',
 		showInMenu: 'Show in menu',
 		subItemsFromPage: 'Display child pages in menu',
-		pagesFromRecordClass: 'Display other page types as children'
+		pagesFromRecordClass: 'Display other page types as children',
+		alignRight: 'Align right'
 	}
 }),
 	'de': true
