@@ -23,6 +23,7 @@ abstract class BaseDTRecordReference extends DataType {
 	protected $value;
 
 	protected $lastRawValue;
+	protected $lastPersistentRealValue;
 
 	public static function getRecordClassStatically( $fieldName, array $fieldDefinition ) {
 		return isset( $fieldDefinition[ 'recordClass' ] ) ? $fieldDefinition[ 'recordClass' ] : NULL;
@@ -77,6 +78,8 @@ abstract class BaseDTRecordReference extends DataType {
 		}
 		
 		unset($value);
+
+		unset($this->lastPersistentRealValue);
 		
 		parent::cleanup();
 		
@@ -116,6 +119,10 @@ abstract class BaseDTRecordReference extends DataType {
 
 			if ( !$skipReal ) {
 				$this->value = $data;
+
+				if ($loaded) {
+					$this->lastPersistentRealValue = $this->value;
+				}
 			}
 
 			if ( isset( $data->{Record::FIELDNAME_PRIMARY} ) || $data->exists() ) {
@@ -139,10 +146,18 @@ abstract class BaseDTRecordReference extends DataType {
 
 				if ( !$skipReal ) {
 					$this->value = NULL;
+
+					if ($loaded) {
+						$this->lastPersistentRealValue = NULL;
+					}
 				}
 			} else if ( is_array( $data ) ) {
 				if ( !$skipReal && $foreignRecordClass ) {
 					$this->value = $foreignRecordClass::get( $this->storage, $data, $loaded ? $loaded : Record::TRY_TO_LOAD );
+
+					if ($loaded) {
+						$this->lastPersistentRealValue = $this->value;
+					}
 				}
 
 				if ( !$skipRaw ) {
@@ -151,6 +166,10 @@ abstract class BaseDTRecordReference extends DataType {
 			} else if ( is_string( $data ) || is_int( $data ) ) {
 				if ( !$skipReal && $foreignRecordClass ) {
 					$this->value = $foreignRecordClass::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $data ), $loaded ? $loaded : Record::TRY_TO_LOAD );
+
+					if ($loaded) {
+						$this->lastPersistentRealValue = $this->value;
+					}
 				}
 
 				if ( !$skipRaw ) {
@@ -256,6 +275,10 @@ abstract class BaseDTRecordReference extends DataType {
 			$this->refresh();
 		} else if ( $valueHadBeenSet ) { // need to save record anyway as soon as it has been set, as record itself might not be dirty
 			$this->value->save();
+		}
+
+		if ($this->lastPersistentRealValue !== NULL) {
+			$this->lastPersistentRealValue->scheduleCheckOnSaveComplete();
 		}
 	}
 

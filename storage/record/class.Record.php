@@ -2805,18 +2805,20 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 		// BaseDTRecordReference notifies from doNotifications and beforeDelete
 		// BaseDTForeignReference notifies from setValue
-		if ( $triggeringFunction == 'beforeDelete' && $this->requireReferences() ) {
-			if ( self::$saveOriginRecord ) { // triggered by saving, so we might actually get a new reference later on
-				if ( !in_array( $this, self::$notifyOnSaveComplete, true ) ) {
-					self::$notifyOnSaveComplete[ ] = $this;
+		if ( $this->requireReferences() ) {
+			if( $triggeringFunction === 'beforeDelete'){
+				if ( self::$saveOriginRecord ) { // triggered by saving, so we might actually get a new reference later on
+					$this->scheduleCheckOnSaveComplete();
+
+					$this->deleteUnreferencedOnSaveFinish = true;
+
+					//
+					$this->deleteBasket =& $basket; // need to keep reference to basket for later deletion
+				} else if ( !$this->satisfyRequireReferences() ) { // purely triggered by deletion, so delete right away
+					$this->delete( $basket );
 				}
-
+			} else if ($triggeringFunction === 'doNotifications') {
 				$this->deleteUnreferencedOnSaveFinish = true;
-
-				//
-				$this->deleteBasket =& $basket; // need to keep reference to basket for later deletion
-			} else if ( !$this->satisfyRequireReferences() ) { // purely triggered by deletion, so delete right away
-				$this->delete( $basket );
 			}
 		}
 	}
@@ -2826,7 +2828,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$this->fields[ $reflectingFieldName ]->notifyReferenceAdded( $originRecord, $loaded );
 		}
 	}
-	
+
+
 	/**
 	 * Used by some fields, e.g. BaseDTRecordReference in notifyReferenceRemoved/-Added
 	 */
