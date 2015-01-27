@@ -540,10 +540,13 @@ define([
 
 			if (me.contentTypeMenus) {
 				for (type in me.contentTypeMenus) {
-					me.contentTypeMenus[type].destroyRecursive();
 					me.STMenuBar.removeChild(me.contentTypeMenus[type]);
+					me.contentTypeMenus[type].popup.destroyRecursive();
+					me.contentTypeMenus[type].destroyRecursive();
 				}
 			}
+
+			me.STMenuBar.selected = null; //fixes menuBar to stop working after domainGroup switch
 
 			me.contentTypeMenus = {};
 
