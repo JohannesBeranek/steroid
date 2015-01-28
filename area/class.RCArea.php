@@ -99,4 +99,19 @@ class RCArea extends ElementRecord {
 	protected function getCopiedForeignFields() {
 		return array( 'area:RCElementInArea' );
 	}
+
+	public function duplicate(){
+		$newArea = parent::duplicate();
+
+		$newElementsInArea = array();
+		$elementsInArea = $this->{'area:RCElementInArea'};
+
+		foreach($elementsInArea as $elementInArea){
+			$newElementsInArea[] = $elementInArea->duplicate($newArea);
+		}
+
+		$newArea->{'area:RCElementInArea'} = $newElementsInArea;
+
+		return $newArea;
+	}
 }

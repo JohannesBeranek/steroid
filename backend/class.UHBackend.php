@@ -1228,20 +1228,7 @@ class UHBackend implements IURLHandler {
 			);
 		}
 
-		$missingReferences = array();
-		$originRecords = array();
-		$copiedRecords = array();
-
-		$newPage = $page->copy( array(), $missingReferences, $originRecords, $copiedRecords, array( 'page:RCMenuItem' ) );
-
-		$newPage->parent = $parent;
-		$newPage->live = DTSteroidLive::LIVE_STATUS_PREVIEW;
-		$newPage->{'page:RCPageUrl'} = array();
-		$newPage->customUrl = NULL;
-		$newPage->title = $newPage->title . ' (copy)';
-		$newPage->domainGroup = $parent->domainGroup;
-		$newPage->creator = $this->user->record;
-
+		$newPage = $page->duplicate($parent);
 
 		$newPage->save();
 

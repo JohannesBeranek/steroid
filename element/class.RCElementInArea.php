@@ -88,4 +88,21 @@ class RCElementInArea extends Record {
 		return true;
 
 	}
+
+	public function duplicate(RCArea $newArea){
+		$values = array(
+			Record::FIELDNAME_PRIMARY => NULL,
+			'area' => $newArea,
+			Record::FIELDNAME_SORTING => $this->{Record::FIELDNAME_SORTING},
+			'class' => $this->class,
+			'element' => $this->element->duplicate(),
+			'fixed' => $this->fixed,
+			'columns' => $this->columns,
+			'hidden' => $this->hidden
+		);
+
+		$newElementInArea = RCElementInArea::get($this->storage, $values, false);
+
+		return $newElementInArea;
+	}
 }

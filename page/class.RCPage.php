@@ -659,6 +659,43 @@ class RCPage extends Record {
 	public function hideFromAffectedRecordData() {
 		return $this->pageType !== 'RCPage';
 	}
+
+	public function duplicate($newParent){
+
+		// duplicate basic values
+		$newPage = RCPage::get( $this->storage, array(
+			'title'       => $this->title . ' (copy)',
+			'language'    => $newParent->language,
+			'domainGroup' => $newParent->domainGroup,
+			'live'        => DTSteroidLive::LIVE_STATUS_PREVIEW,
+			'parent'      => $newParent,
+			'creator'     => $this->creator,
+			'pageType'    => $this->pageType,
+			'template'    => $this->template,
+			'description' => $this->description,
+			'robots'      => $this->robots,
+			'image'       => $this->image
+		), false );
+
+		// duplicate page areas and widgets
+		$newPageAreas = array();
+		$pageAreas = $this->{'page:RCPageArea'};
+
+		foreach($pageAreas as $pageArea){
+			$newPageAreas[] = RCPageArea::get($this->storage, array(
+				'page' => $newPage,
+				Record::FIELDNAME_SORTING => $pageArea->{Record::FIELDNAME_SORTING},
+				'columns' => $pageArea->columns,
+				'fixed' => $pageArea->fixed,
+				'key' => $pageArea->key,
+				'area' => $pageArea->area->duplicate()
+			), false);
+		}
+
+		$newPage->{'page:RCPageArea'} = $newPageAreas;
+
+		return $newPage;
+	}
 }
 
 class NoParentPageException extends SteroidException {
