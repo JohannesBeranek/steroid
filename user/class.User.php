@@ -579,6 +579,7 @@ class User {
 					case self::SELECTED_DOMAIN_GROUP:
 						$item = $this->storage->selectFirstRecord( 'RCDomainGroup', array( 'where' => array( Record::FIELDNAME_PRIMARY, '=', array( $itemPrimary ) ) ) );
 
+
 						if($item === NULL){
 							$perm = $this->storage->selectFirstRecord( 'RCDomainGroupLanguagePermissionUser', array( 'where' => array( 'user', '=', array( $this->record ) ) ) );
 							$item = $perm->domainGroup;

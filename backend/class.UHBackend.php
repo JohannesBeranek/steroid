@@ -2755,8 +2755,20 @@ class UHBackend implements IURLHandler {
 
 		$this->setLocalBEConf();
 
-		if ( !$this->user->getSelectedDomainGroup() ) {
-			$this->user->setSelectedDomainGroup( $this->urlRecord->domainGroup );
+		$selectedDomainGroup = $this->user->getSelectedDomainGroup();
+
+		if(!$selectedDomainGroup){
+			$perm = $this->storage->selectFirstRecord( 'RCDomainGroupLanguagePermissionUser', array(
+				'where' => array(
+					'user',
+					'=',
+					array( $this->user->record )
+				)
+			) );
+
+			$selectedDomainGroup = $perm->domainGroup;
+
+			$this->user->setSelectedDomainGroup($selectedDomainGroup);
 		}
 
 		if ( !$this->user->getSelectedLanguage() ) {
@@ -2769,7 +2781,7 @@ class UHBackend implements IURLHandler {
 		// $this->config[ 'interface' ][ 'languages' ][ 'current' ] = $this->user->record->backendPreference->language;
 		// $this->config[ 'interface' ][ 'themes' ][ 'current' ] = $this->user->record->backendPreference->theme;
 
-		$this->config[ 'system' ][ 'domainGroups' ][ 'current' ] = $this->user->getSelectedDomainGroup()->load()->getValues();
+		$this->config[ 'system' ][ 'domainGroups' ][ 'current' ] = $selectedDomainGroup->load()->getValues();
 
 		$this->config[ 'system' ][ 'languages' ][ 'current' ] = $this->user->getSelectedLanguage()->load()->getValues();
 

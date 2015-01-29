@@ -307,6 +307,10 @@ label.STInvalid, .STWidget.STInvalid > .dijitTitlePaneTitle > .dijitTitlePaneTit
 	margin: 0 0 10px 10px;
 }
 
+.RCSingleImage .STFileName {
+	width: 100%;
+}
+
 .dgrid .STFileName {
 	margin: 0;
 }
@@ -1250,3 +1254,21 @@ body.STDialogOpen #uiContainer {
 	background-color: #FFFFFF;
 }
 
+.RCTemplate .STDropContainer {
+	border: 1px dashed #5AAE60;
+	min-height: 50px;
+	overflow: hidden;
+}
+
+.RCTemplate .STDropContainer .STDropContainer {
+	border: none;
+	min-height: 0px;
+}
+
+.RCTemplate .panelFixed .STDropContainer {
+	margin-left: 157px;
+}
+
+.RCTemplate .panelFixed .STDropContainer .STDropContainer {
+	margin-left: 0px;
+}

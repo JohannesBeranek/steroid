@@ -526,6 +526,8 @@ define([
 								}
 
 								me.setUpActionButtons(response.actions || {});
+							} else {
+								me.backend.showError(response)
 							}
 						});
 
@@ -549,6 +551,8 @@ define([
 							}
 
 							me.setUpActionButtons(response.actions || {});
+						} else {
+							me.backend.showError(response)
 						}
 					});
 

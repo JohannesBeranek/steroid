@@ -60,7 +60,7 @@ class RCDomain extends Record {
 		$returnCodeField = $this->getDataTypeFieldName( 'DTSteroidReturnCode' );
 		$domainGroupField = $this->getDataTypeFieldName( 'DTSteroidDomainGroup' );
 
-		if ( $this->fields[ $returnCodeField ]->hasBeenSet() ) {
+		if ($this->fields[ $returnCodeField ]->hasBeenSet() ) {
 			$ownReturnCode = $this->{$returnCodeField};
 
 			$queryStruct = array( 'where' => array( 'domainGroup', '=', array( $this->{$domainGroupField} ) ) );
