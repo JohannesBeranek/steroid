@@ -241,8 +241,7 @@ define({
 	},
 	RCDomainGroup: {
 		favicon: 'Favicon',
-		notFoundPage: '404 Seite',
-		mayChangeTopicNodeHeadlines: 'Darf Überschriften auf Knotenseiten verändern'
+		notFoundPage: '404 Seite'
 	},
 	RCPermissionEntity: {
 		mayWrite: 'Schreibrechte',
