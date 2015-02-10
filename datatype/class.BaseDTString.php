@@ -45,5 +45,3 @@ class BaseDTString extends DataType {
 		}
 	}
 }
-
-?>

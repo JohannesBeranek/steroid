@@ -57,7 +57,7 @@ class DTSteroidPrimary extends BaseDTInteger implements IUseBitShift {
 	 *
 	 * @throws InvalidArgumentException
 	 */
-	public function afterSave( $isUpdate, array $saveResult ) {
+	public function afterSave( $isUpdate, array $saveResult, array $savePaths = NULL  ) {
 		if ($saveResult['action'] == RBStorage::SAVE_ACTION_CREATE) {
 			if (!($idField = $this->record->getDataTypeFieldName('DTSteroidID'))) {
 				throw new LogicException( get_class($this) . ' needs an DTSteroidID field in the same record, recordClass: "' . get_class($this->record) . '"' );

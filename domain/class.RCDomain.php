@@ -38,8 +38,8 @@ class RCDomain extends Record {
 		);
 	}
 
-	protected function beforeSave( $isUpdate, $isFirst ) {
-		parent::beforeSave( $isUpdate, $isFirst );
+	protected function beforeSave( $isUpdate, $isFirst, array $savePaths = NULL ) {
+		parent::beforeSave( $isUpdate, $isFirst, $savePaths );
 
 		//check if domain is taken
 		$existing = $this->storage->selectFirst( 'RCDomain', array( 'fields' => array( 'domainGroup.*' ), 'where' => array( 'domain', '=', array( $this->domain ) ) ) );

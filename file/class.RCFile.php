@@ -34,6 +34,8 @@ require_once STROOT . '/user/class.User.php';
 class RCFile extends Record implements IFileInfo {
 	const ALLOW_CREATE_IN_SELECTION = 1;
 	const BACKEND_TYPE = Record::BACKEND_TYPE_CONTENT;
+	
+	const ACTION_DUPLICATE = 'duplicateRecord';
 
 	private static $gfx;
 
@@ -136,7 +138,7 @@ class RCFile extends Record implements IFileInfo {
 		return $rec;
 	}
 
-	protected function beforeSave( $isUpdate, $isFirst ) {
+	protected function beforeSave( $isUpdate, $isFirst, array $savePaths = NULL ) {
 		if ( $isFirst ) {
 			if ( isset( $this->title ) && trim( $this->title ) == '' && isset( $this->downloadFilename ) ) {
 				$this->title = $this->downloadFilename;
@@ -146,7 +148,7 @@ class RCFile extends Record implements IFileInfo {
 				$filenameField = $this->beforeSaveFields[ 'filename' ];
 				unset( $this->beforeSaveFields[ 'filename' ] );
 
-				$filenameField->beforeSave( $isUpdate );
+				$filenameField->beforeSave( $isUpdate, $savePaths );
 
 				$fullFileName = $this->getFullFilename();
 				$this->storage->finishDownload( $fullFileName );
@@ -158,7 +160,7 @@ class RCFile extends Record implements IFileInfo {
 			}
 		}
 
-		parent::beforeSave( $isUpdate, $isFirst );
+		parent::beforeSave( $isUpdate, $isFirst, $savePaths );
 	}
 
 	protected static function getFileTypeRecordFromMimeType( $storage, $mimeType ) {
@@ -437,5 +439,25 @@ class RCFile extends Record implements IFileInfo {
 				'restrictToOwn' => 0
 			);
 		}
+	}
+	
+	public static function getAvailableActions( $mayWrite = false, $mayPublish = false, $mayHide = false, $mayDelete = false, $mayCreate = false ) {
+		$actions = parent::getAvailableActions( $mayWrite, $mayPublish, $mayHide, $mayDelete, $mayCreate );
+
+		if ($mayCreate) {
+			$actions[ ] = self::ACTION_DUPLICATE;
+		}
+		
+		return $actions;
+	}
+	
+	public static function handleBackendAction( $action, $requestInfo ) {
+		switch($action) {
+			case self::ACTION_DUPLICATE:
+				// TODO
+			break;
+			default:
+				throw new Exception('Unknown action: ' . $action);
+		}	
 	}
 }

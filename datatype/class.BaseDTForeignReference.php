@@ -108,12 +108,12 @@ abstract class BaseDTForeignReference extends DataType {
 		}
 	}
 
-	public function setRawValue( $data = NULL, $loaded = false ) {
+	public function setRawValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
 		// overwrite to do nothing
 	}
 
-	public function setRealValue( $data = NULL, $loaded = false ) {
-		$this->setValue( $data, $loaded );
+	public function setRealValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
+		$this->setValue( $data, $loaded, $path, $dirtyTracking );
 	}
 
 	protected function addNestedRecords( array &$records ) {
@@ -152,6 +152,7 @@ abstract class BaseDTForeignReference extends DataType {
 			if ( $loaded ) {
 				$this->oldValue = $records;
 			} else if ($this->record->exists()) {
+// FIXME: might override values of records in _setValue
 				$this->oldValue = $this->getForeignRecords();
 			} else {
 				$this->oldValue = array();
@@ -159,11 +160,13 @@ abstract class BaseDTForeignReference extends DataType {
 		}
 	}
 
-	protected function _setValue( $data, $loaded, $setInternally = false ) {
+// FIXME: implement dirtyTracking (currently it's just passed on) - this way we should be able to only save SOME of the referenced records
+	protected function _setValue( $data, $loaded, $setInternally = false, $path = NULL, array &$dirtyTracking = NULL ) {
 		$records = array();
 
 		$recordClass = $this->getRecordClass();
 		$hasSorting = $recordClass::fieldDefinitionExists( Record::FIELDNAME_SORTING );
+		$needMerge = false;
 
 		$foreignFieldName = $this->getForeignFieldName();
 
@@ -171,17 +174,116 @@ abstract class BaseDTForeignReference extends DataType {
 			throw new Exception( "Invalid data passed to " . get_class( $this->record ) . "->" . $this->fieldName );
 		}
 
+
 		foreach ( $data as $record ) {
 			if ( is_array( $record ) ) {
-				$record[ $foreignFieldName ] = $this->record; // make it easier / more likely to fetch indexed record
+				
 
-				$foreignRecord = $recordClass::get( $this->storage, $record, $loaded );
+				$record[ $foreignFieldName ] = $this->record; // make it easier / more likely to fetch indexed record
+				
+				if ($this->oldValue === NULL) {
+					$foreignRecord = $recordClass::get( $this->storage, $record, $loaded, $path, $dirtyTracking );
+				} else {
+					unset($foreignRecord);
+					
+					if (!isset($hasPrimaryField)) {
+						$hasPrimaryField = $recordClass::fieldDefinitionExists( Record::FIELDNAME_PRIMARY );
+					}
+					
+					if ($hasPrimaryField && isset( $record[Record::FIELDNAME_PRIMARY] )) {
+						
+						foreach ($this->oldValue as $oldRecord) {
+							if (isset($oldRecord->{Record::FIELDNAME_PRIMARY}) && $oldRecord->{Record::FIELDNAME_PRIMARY} === (int)$record[Record::FIELDNAME_PRIMARY]) {
+								$foreignRecord = $oldRecord;
+								
+								// also set any possible additional values
+								$foreignRecord->setValues($record, $loaded, $path, $dirtyTracking);
+								break;
+							}
+						}
+						
+						if (!isset($foreignRecord)) {
+							// fallback
+							$foreignRecord = $recordClass::get( $this->storage, $record, $loaded, $path, $dirtyTracking );
+						}
+					} else {
+						// need to check via other unique key
+						if (!isset($uniqueKeys)) {
+							$uniqueKeys = $recordClass::getUniqueKeys();
+							
+							// filter key on Record::FIELDNAME_PRIMARY
+							if ($hasPrimaryField) {
+								foreach($uniqueKeys as $key => $keyDef) {
+									if (count($keyDef['fieldNames']) === 1 && $keyDef['fieldNames'][0] === Record::FIELDNAME_PRIMARY) {
+										unset($uniqueKeys[$key]);
+										break;
+									}
+								}
+							}
+						}
+						
+						
+						if ($uniqueKeys) {
+							// only get here if recordClass has uniqueKeys besides Record::FIELDNAME_PRIMARY
+							foreach ($uniqueKeys as $keyDef) {
+								$hasAllFields = true;
+								
+								foreach($keyDef['fieldNames'] as $fieldName) {
+									if (!isset($record[$fieldName])) {
+										$hasAllFields = false;
+										break;
+									}
+								}
+								
+								if ($hasAllFields) {	
+									foreach ($this->oldValue as $oldRecord) {
+										$matchesAllFields = true;
+										
+										foreach($keyDef['fieldNames'] as $fieldName) {
+											if (!isset($oldRec->{$fieldName}) || $oldRec->{$fieldName} != $record[$fieldName]) {
+												// uses comparison with automatic type coercion as values in $record are not guaranteed to be of correct type
+												$matchesAllFields = false;
+												break;
+											}
+										}
+										
+										if ($matchesAllFields) {
+											$foreignRecord = $oldRecord;
+											
+											// also set any possible additional values
+											$foreignRecord->setValues($record, $loaded, $path, $dirtyTracking);
+											break;
+										}
+										
+									}
+									
+									if (isset($foreignRecord)) {
+										break;
+									}
+								}
+							}
+							
+							if (!isset($foreignRecord)) {
+								// no hit on any key
+								$foreignRecord = $recordClass::get( $this->storage, $record, $loaded, $path, $dirtyTracking );
+							}
+						} else {
+							 // no unique keys besides primary field - fallback
+							$foreignRecord = $recordClass::get( $this->storage, $record, $loaded, $path, $dirtyTracking );
+						}
+					}
+				}
+
 			} else if ( $record instanceof IRecord ) {
 				$foreignRecord = $record;
 			} else if ( $record === '' || $record === NULL ) { // ignore empty string and null values
 				continue;
 			} else {
 				throw new InvalidArgumentException( 'Can only set multiple instances of IRecord or data arrays as value of a foreign reference.' );
+			}
+			
+			if (!$foreignRecord || !($foreignRecord instanceof IRecord)) {
+				throw new Exception(Debug::getStringRepresentation($foreignRecord));
 			}
 
 			// TODO: this is problematic with values with same sorting values or mixed sets of values with sorting and values without sorting
@@ -193,9 +295,15 @@ abstract class BaseDTForeignReference extends DataType {
 					$rec = $records[ $sortValue ];
 
 					$records[ $sortValue ] = array( $rec );
+					
+					// use boolean to determine if we need merging later on (or can skip it) 
+					// for better performance in default case where we need no merging
+					
 				}
 
 				$records[ $sortValue ][ ] = $foreignRecord;
+				
+				$needMerge = true;
 			} else {
 				$records[ ] = $foreignRecord;
 			}
@@ -204,17 +312,19 @@ abstract class BaseDTForeignReference extends DataType {
 		if ( $hasSorting ) {
 			ksort( $records );
 
-			$recs = array();
-
-			foreach ( $records as $rcs ) {
-				if ( is_array( $rcs ) ) {
-					$recs = array_merge( $recs, array_values( $rcs ) );
-				} else {
-					$recs[ ] = $rcs;
+			if ($needMerge) {
+				$recs = array();
+	
+				foreach ( $records as $rcs ) {
+					if ( is_array( $rcs ) ) {
+						$recs = array_merge( $recs, array_values( $rcs ) );
+					} else {
+						$recs[ ] = $rcs;
+					}
 				}
+	
+				$records = $recs;
 			}
-
-			$records = $recs;
 		}
 
 		$this->ensureOldValue( $loaded, $records );
@@ -243,24 +353,24 @@ abstract class BaseDTForeignReference extends DataType {
 
 		$this->value = $records;
 
-		$this->isDirty = !$loaded; // TODO: only set dirty if value changed or we upgraded to !dirty
+		// TODO: only set dirty if value changed or we upgraded to !dirty
+		if ((bool)$loaded === $this->isDirty) {
+			$this->isDirty = !$loaded; 
+			
+			if (!$loaded) {
+				$dirtyTracking[$path] = true;
+			}
+		}
 
 		$this->lastValueSetInternally = $setInternally;
 	}
 
-	public function setValue( $data = NULL, $loaded = false ) {
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
 		if ( $data === NULL ) { // enable calling setValue with an empty array/NULL to remove all records
 			$data = array();
 		}
 
-
-
-
-//		$oldValue = $this->value !== NULL ? $this->value : array();
-//		$oldValue = $this->value === NULL ? ( ( $loaded || !$this->record->exists() ) ? array() : $this->getForeignRecords() ) : $this->value;
-//		$oldValue = $this->record->getFieldValue( $this->fieldName );
-
-		$this->_setValue( $data, $loaded );
+		$this->_setValue( $data, $loaded, false, $path, $dirtyTracking );
 
 		if (!$loaded && $this->oldValue !== NULL) {
 			// notify
@@ -351,7 +461,7 @@ abstract class BaseDTForeignReference extends DataType {
 	 *
 	 * @param array $saveResult
 	 */
-	public function afterSave( $isUpdate, array $saveResult ) {
+	public function afterSave( $isUpdate, array $saveResult, array $savePaths = NULL ) {		
 		$this->updateRecordPrimary();
 
 		if ( !$this->isDirty ) {
@@ -376,7 +486,7 @@ abstract class BaseDTForeignReference extends DataType {
 				if ( $this->config[ 'requireSelf' ] ) {
 					$currentRecord->checkForDelete();
 				} else {
-					$currentRecord->save();
+					$currentRecord->save( $savePaths );
 				}
 			} else {
 				$keepRecords[] = $currentRecord; // save existing record as well, might have new values (and record might not even be dirty itself, but some referenced record on xth level)
@@ -387,7 +497,7 @@ abstract class BaseDTForeignReference extends DataType {
 
 		// re-save existing records first, so we don't get into unique sorting key conflicts
 		foreach ( $keepRecords as $record ) {
-			$record->save();
+			$record->save( $savePaths );
 		}
 
 		// check new records
@@ -398,10 +508,10 @@ abstract class BaseDTForeignReference extends DataType {
 		}
 
 		foreach ( $newRecords as $record ) {
-			$record->save();
+			$record->save( $savePaths );
 		}
 
-		parent::afterSave( $isUpdate, $saveResult );
+		parent::afterSave( $isUpdate, $saveResult, $savePaths );
 
 		// trust in copy on write - this must not be a reference!
 		$this->oldValue = $this->value;
@@ -495,7 +605,7 @@ abstract class BaseDTForeignReference extends DataType {
 
 			if ( $basket === NULL && ( $key = array_search( $originRecord, $val, true ) ) !== false ) {
 				unset( $val[ $key ] );
-
+// FIXME: allow for dirty tracking
 				$this->_setValue( $val, false );
 			}
 		} else if ( $basket === NULL && $this->record->exists() ) { // this is needed so we don't dirty records because of notify as well as preventing recursion through hundreds of records
@@ -518,6 +628,7 @@ abstract class BaseDTForeignReference extends DataType {
 
 //				$this->_setValue( $val, $loaded );
 					// JB 23.1.2014 We actually can't know if the resulting value is the same as in db, so we set loaded false in any case
+// FIXME: allow for dirty tracking
 					$this->_setValue( $val, false, true );
 				}
 			}
@@ -526,6 +637,7 @@ abstract class BaseDTForeignReference extends DataType {
 				$this->changeStack[ ] = array( self::CHANGE_ADD, $originRecord );
 			} // else we get the record reference anyway when this foreign ref is loaded
 		} else {
+// FIXME: allow for dirty tracking
 			$this->_setValue( array( $originRecord ), false );
 		}
 	}

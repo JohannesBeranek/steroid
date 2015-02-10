@@ -186,12 +186,6 @@ define([
 
 			if (response.data.interface.languages.current == kernel.locale) {
 				require(["steroid/backend/Backend"], function (Backend) {
-//					if (window.Backend) {
-//						// FIXME: why is this necessary?
-					// FIXME: why doesn't this work?
-//						return;
-//					}
-
 					window.Backend = new Backend({ config: response.data });
 				});
 

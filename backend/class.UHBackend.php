@@ -144,7 +144,12 @@ class UHBackend implements IURLHandler {
 				// FIXME: don't use getGPParam - it should be well defined if it's a get or post param (and if it may be both, comment on it!)
 				$requestType = $this->requestInfo->getGPParam( self::PARAM_REQUEST_TYPE );
 
-				if ( $this->isBackendUser || $requestType == self::REQUEST_TYPE_LOGOUT || $requestType == self::REQUEST_TYPE_LOGIN_EXTENSION ) { // user is already logged out when reaching here, so we don't know if user was a backend user
+				if ( $requestType === self::REQUEST_TYPE_LOGOUT ) {
+					$this->logoutUser();
+				} else if ( $requestType === self::REQUEST_TYPE_LOGIN_EXTENSION ) {
+					 // TODO: no tx needed here
+					$this->loginExtensionRequest( $this->requestInfo->getGPParam( self::PARAM_EXTENSION_CLASS ), $this->requestInfo->getGPParam( self::PARAM_EXTENSION_METHOD ) );
+				} else if ( $this->isBackendUser ) { 
 					switch ( $requestType ) {
 						case self::REQUEST_TYPE_DOMAIN_GROUP:
 							$this->switchDomainGroup();
@@ -164,23 +169,17 @@ class UHBackend implements IURLHandler {
 						case self::REQUEST_TYPE_LIST:
 							$this->recordClassRequest( $this->requestInfo->getGPParam( self::PARAM_RECORDCLASS ) );
 							break;
-						case self::REQUEST_TYPE_LOGOUT:
-							$this->logoutUser();
-							break;
 						case self::REQUEST_TYPE_LOGIN:
 							$this->loginUser();
 							break;
 						case self::REQUEST_TYPE_GET_PROFILE_PAGE:
 							$this->getProfilePage();
 							break;
-						case self::REQUEST_TYPE_EXTENSION: // TODO: no tx needed here
+						case self::REQUEST_TYPE_EXTENSION:
 							$this->extensionRequest( $this->requestInfo->getGPParam( self::PARAM_EXTENSION_CLASS ), $this->requestInfo->getGPParam( self::PARAM_EXTENSION_METHOD ) );
 							break;
 						case self::REQUEST_TYPE_STATS:
 							$this->statRequest( $this->requestInfo->getGPParam( self::PARAM_STAT_TYPE ), $this->requestInfo->getGPParam( self::PARAM_STAT_CLASS ) );
-							break;
-						case self::REQUEST_TYPE_LOGIN_EXTENSION: // TODO: no tx needed here
-							$this->loginExtensionRequest( $this->requestInfo->getGPParam( self::PARAM_EXTENSION_CLASS ), $this->requestInfo->getGPParam( self::PARAM_EXTENSION_METHOD ) );
 							break;
 						case self::REQUEST_TYPE_INSERT_CLIPBOARD:
 							$this->insertFromClipboard( $this->requestInfo->getGPParam( self::PARAM_RECORDCLASS ), $this->requestInfo->getGPParam( self::PARAM_RECORD_ID ) );
@@ -221,6 +220,7 @@ class UHBackend implements IURLHandler {
 							$this->recordHideRequest( $this->requestInfo->getGPParam( self::PARAM_RECORDCLASS ), $this->requestInfo->getGPParam( self::PARAM_RECORD_ID ), $this->requestInfo->getGPParam( 'doAction' ) );
 							break;
 						case self::REQUEST_TYPE_SYNC_RECORD:
+							// FIXME: move to SyncRecord
 							$this->recordSyncRequest( $this->requestInfo->getGPParam( self::PARAM_RECORDCLASS ), $this->requestInfo->getGPParam( self::PARAM_RECORD_ID ) );
 							break;
 						case self::REQUEST_TYPE_DELETE_RECORD:
@@ -232,11 +232,13 @@ class UHBackend implements IURLHandler {
 						case self::REQUEST_TYPE_MESSAGES:
 							$this->getMessages( $this->requestInfo->getGPParam( self::PARAM_REQUEST_TIME ), $this->requestInfo->getGPParam( self::PARAM_CURRENTLY_EDITING ), $this->requestInfo->getGPParam( self::PARAM_CURRENTLY_EDITING_CLASS ), $this->requestInfo->getGPParam( self::PARAM_CURRENTLY_EDITING_PARENT ) );
 							break;
-						case self::REQUEST_TYPE_LOG: // TODO: no tx needed here
-							Log::write( "Log Request:", $this->requestInfo->getGPParam( json_decode( self::PARAM_MESSAGE, true ) ) );
+						case self::REQUEST_TYPE_LOG: 
+							// TODO: no tx needed here
+							Log::write( "Log Request:", json_decode( $this->requestInfo->getGPParam(  self::PARAM_MESSAGE ), true ) );
 							$this->ajaxSuccess();
 							break;
-						case self::REQUEST_TYPE_DOWNLOAD: // TODO: no tx needed here
+						case self::REQUEST_TYPE_DOWNLOAD: 
+							// TODO: no tx needed here
 							$this->handleDownload( $this->requestInfo->getQueryParam( self::PARAM_FILEPRIMARY ) );
 							break;
 						case self::REQUEST_TYPE_GETPUBDATE:
@@ -244,11 +246,24 @@ class UHBackend implements IURLHandler {
 							break;
 
 						default: // unknown ajax request by backendUser
-							throw new UnknownRequestException();
+							if ($recordClass = $this->requestInfo->getGPParam( self::PARAM_RECORDCLASS )) {
+								// dynamically require RC in case it's not loaded yet
+								if ( ClassFinder::find( array( $recordClass ), true ) ) {
+									// TODO: check if RC implements interface for handleBackendAction
+									// TODO: provide recordClass with a way to interact with backend functions
+									// try to forward request
+									$recordClass::handleBackendAction( $requestType, $this->requestInfo );
+								} else {
+									throw new UnknwonRequestException();
+								}
+							
+							} else {
+								throw new UnknownRequestException();
+							}
 
 					}
 				} else { // ajax request other than logout by not-backenduser
-					if ( $requestType == self::REQUEST_TYPE_LOGIN ) { // failed login
+					if ( $requestType === self::REQUEST_TYPE_LOGIN ) { // failed login
 						if ( $authException = User::getCurrent()->authException ) {
 							Log::write( "Auth Exception:", $authException );
 						}
@@ -1253,6 +1268,43 @@ class UHBackend implements IURLHandler {
 		$this->ajaxSuccess();
 	}
 
+	/**
+	 * Saves record as correct and efficient as possible
+	 * 
+	 * - load record with paths according to postData keys
+	 * - set data recursively, correctly tracking changes
+	 * - only save changed records
+	 */
+	final private function saveRecord( $recordClass, $postData ) {
+		
+		if (!$postData[Record::FIELDNAME_PRIMARY]) {
+			// in case record is a new one, simply use recordClass::get 
+			$record = $recordClass::get( $this->storage, $postData, false );
+	
+			$record->save();
+		} else {
+			// if record is an already existing one, we load the existing from db
+			$queryStruct = array(
+				RBStorage::SELECT_FIELDNAME_WHERE => array(
+					Record::FIELDNAME_PRIMARY, '=', array( $postData[Record::FIELDNAME_PRIMARY] )
+				),
+				RBStorage::SELECT_FIELDNAME_FIELDS => Record::arrayKeysToPathSet($postData)
+			);
+
+			$record = $this->storage->selectFirstRecord( $recordClass, $queryStruct, /* $start */ NULL, /* $getTotal */ NULL, /* $vals */ NULL, /* $name */ NULL, /* $noAutoSelect */ true );
+		
+			$dirtyTracking = array();
+		
+			$record->setValues( $postData, false, '', $dirtyTracking );
+			Log::write('dirty tracking', $dirtyTracking);
+			$savePaths = Record::getSavePathsFromDirtyTracking( $dirtyTracking );
+			Log::write('savePaths', $savePaths);
+			$record->save( $savePaths );
+		}
+			
+		return $record;
+	}
+
 	protected function recordSaveRequest( $recordClass = NULL ) {
 		if ( empty( $recordClass ) || !ClassFinder::find( array( $recordClass ), true ) ) {
 			throw new InvalidArgumentException( '$recordClassName must be set' );
@@ -1266,15 +1318,10 @@ class UHBackend implements IURLHandler {
 		if ( is_subclass_of( $recordClass, 'IRecord' ) ) {
 			$postData = $this->requestInfo->getPost();
 
-			$record = $recordClass::get( $this->storage, $postData, false );
-
-			$record->save();
-
-			$record->readOnly = true; // 4 bettah per4mance
+			$record = $this->saveRecord( $recordClass, $postData );
 
 			$this->updateContentEdit( $recordClass, $record );
 
-			$record->readOnly = false;
 
 			if ( $mTimeField = $recordClass::getDataTypeFieldName( 'DTMTime' ) ) {
 				$record->{$mTimeField} = $_SERVER[ 'REQUEST_TIME' ];
@@ -1717,6 +1764,9 @@ class UHBackend implements IURLHandler {
 			$contentEdit->recordPrimary->readOnly = true;
 
 			$contentEdit->save();
+			
+			$contentEdit->recordPrimary->readOnly = false;
+			
 		}
 
 		ClassFinder::find( $recordClassName, true );
@@ -1725,15 +1775,6 @@ class UHBackend implements IURLHandler {
 	}
 
 	protected function getRecordActionsForDomainGroup( $recordClassName, $record ) {
-//		if ( !( $domainGroupField = $recordClassName::getDataTypeFieldName( 'DTSteroidDomainGroup' ) ) && $this->user->isDev( $this->user->getSelectedDomainGroup()->primary ) ) {
-//			$actions[ ] = Record::ACTION_DELETE;
-//			$actions[ ] = Record::ACTION_SAVE;
-//
-//			if ( $recordClassName::getDataTypeFieldName( 'DTSteroidLive' ) ) {
-//				$actions[ ] = Record::ACTION_PUBLISH;
-//			}
-//		}
-
 		return $this->user->getRecordActionsForDomainGroup( $recordClassName, $record );
 	}
 

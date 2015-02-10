@@ -9,7 +9,7 @@ require_once STROOT . '/datatype/class.DataType.php';
  * basic class for integer type values
  */
 abstract class BaseDTEnum extends DataType {
-	public function setValue( $data = NULL, $loaded = false ) {
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
 		if ( $data && is_array( $data ) ) {
 			if ( count( $data ) > 1 || ( !$this->config[ 'nullable' ] && count( $data ) < 1 ) ) {
 				throw new InvalidArgumentException( '$data of ENUM field must be one value' );
@@ -26,7 +26,7 @@ abstract class BaseDTEnum extends DataType {
 			}
 		}
 
-		parent::setValue( $data === NULL ? NULL : (string)$data, $loaded );
+		parent::setValue( $data === NULL ? NULL : (string)$data, $loaded, $path, $dirtyTracking );
 	}
 
 	public static function getDefaultValue( IStorage $storage, $fieldName = NULL, array $fieldConf = NULL, array $extraParams = NULL ) {

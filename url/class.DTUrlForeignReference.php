@@ -74,7 +74,10 @@ class DTUrlForeignReference extends BaseDTForeignReference {
 		);
 	}
 
-	public function beforeSave( $isUpdate ) {
+// FIXME: should be moved to some setValue logic so we can use dirtyTracking!
+// -- custom url (DTSteroidUrl) could actively push setValue
+// -- change of title should be listened to
+	public function beforeSave( $isUpdate, array $savePaths = NULL ) {
 		$recordLiveFieldName = $this->record->getDataTypeFieldName( 'DTSteroidLive' );
 		$recordIsLive = $recordLiveFieldName && ( $recordLiveStatus = $this->record->getFieldValue($recordLiveFieldName) );
 
