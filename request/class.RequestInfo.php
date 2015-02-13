@@ -239,7 +239,7 @@ class RequestInfo implements IRequestInfo {
 				}	
 			break;
 			case self::PROXY_SAFE_FULL_URL:
-				$ret = ($this->getServerInfo(self::PROXY_SAFE_IS_HTTPS ? 'https' : 'http')) . '://' . $this->getServerInfo(self::PROXY_SAFE_HTTP_HOST) . $this->serverInfo['REQUEST_URI'];
+				$ret = ($this->getServerInfo(self::PROXY_SAFE_IS_HTTPS) ? 'https' : 'http') . '://' . $this->getServerInfo(self::PROXY_SAFE_HTTP_HOST) . $this->serverInfo['REQUEST_URI'];
 			break;
 			default:
 				$ret = isset($this->serverInfo[$name]) ? $this->serverInfo[$name] : $unsetValue;
