@@ -2811,6 +2811,10 @@ class UHBackend implements IURLHandler {
 				)
 			) );
 
+			if($perm === NULL){
+				throw new LoginFailException("No permissions for user");
+			}
+
 			$selectedDomainGroup = $perm->domainGroup;
 
 			$this->user->setSelectedDomainGroup($selectedDomainGroup);
