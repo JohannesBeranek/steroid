@@ -112,6 +112,10 @@ define({ root: ({
 		title: 'Unsaved changes',
 		message: 'There are unsaved changes, do you really want to continue?'
 	},
+	revertRecord: {
+		title: 'Revert to live',
+		message: 'Any changes you have made will be overwritten by the live version. Continue?'
+	},
 	affected: {
 		hide: 'References that will be hidden: ',
 		'delete': 'References that will be deleted: ',

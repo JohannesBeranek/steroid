@@ -112,6 +112,10 @@ define({
 		title: 'Ungespeicherte Änderungen',
 		message: 'Ihre Änderungen wurden noch nicht gespeichert. Möchten Sie trotzdem schließen?'
 	},
+	revertRecord: {
+		title: 'Auf Liveversion zurücksetzen',
+		message: 'Beim Zurücksetzen auf die Liveversion gehen alle vorgenommenen Änderungen verloren. Trotzdem fortfahren?'
+	},
 	affected: {
 		hide: 'References that will be hidden: ',
 		'delete': 'References that will be deleted: ',

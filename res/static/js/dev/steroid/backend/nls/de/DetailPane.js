@@ -4,6 +4,7 @@ define({
 	BTClose: 'Schließen',
 	BTReset: 'Zurücksetzen',
 	BTsaveRecord: 'Speichern',
+	BTduplicateRecord: 'Duplizieren',
 	BTpublishRecord: 'Speichern und Veröffentlichen',
 	BTpublishOnly: 'Veröffentlichen',
 	BTdeleteRecord: 'Löschen',

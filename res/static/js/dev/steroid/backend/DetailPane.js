@@ -655,6 +655,24 @@ define([
 				hasPreviousAction = true;
 			}
 
+			if(action == 'revertRecord'){
+				var dialog = new YesNoDialog({
+					messageType: 'revertRecord',
+					onYes: function () {
+						dialog.hide();
+						me.backend.STServerComm.sendAjax(conf); // FIXME: use deferred?
+					},
+					onNo: function () {
+						dialog.hide();
+						me.backend.hideStandBy();
+					}
+				});
+
+				dialog.show();
+
+				return;
+			}
+
 			dojo.when(previousActionDef, function (response) {
 				if (hasPreviousAction) {
 					if (response && response.success) {
