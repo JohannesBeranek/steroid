@@ -2812,7 +2812,7 @@ class UHBackend implements IURLHandler {
 			) );
 
 			if($perm === NULL){
-				throw new LoginFailException("No permissions for user");
+				throw new LoginFailException("No permissions for user with primary " . $this->user->record->primary);
 			}
 
 			$selectedDomainGroup = $perm->domainGroup;
