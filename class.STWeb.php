@@ -192,6 +192,10 @@ class STWeb extends ST {
 								
 								return;
 							}
+						} else if ( !Config::key('web', 'disableHTTPS') && ( $domainMatch = Config::key( 'web', 'preferHTTPS') ) && preg_match( $domainMatch, $domainRecord->domain ) ) {
+							$this->redirectToHTTPS();
+							
+							return;
 						}
 
 						$this->requestInfo->setDomainRecord( $domainRecord );

@@ -42,6 +42,8 @@ cache = "file"
 ;allow usage of qt, qc, tt, qbt query parameters
 ;enableDebugParameter = true
 ;disableHTTPS = true
+;always redirect to HTTPS, except if disabled in backend, for domains matching regex
+;preferHTTPS = /^([^\.]+\.)?example\.com$/
 
 ;optional ; possible values: "scssc", "sass", false
 ;scss_cli = "scssc"

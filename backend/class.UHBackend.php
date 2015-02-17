@@ -1294,12 +1294,16 @@ class UHBackend implements IURLHandler {
 			$record = $this->storage->selectFirstRecord( $recordClass, $queryStruct, /* $start */ NULL, /* $getTotal */ NULL, /* $vals */ NULL, /* $name */ NULL, /* $noAutoSelect */ true );
 		
 			$dirtyTracking = array();
-		
-			$record->setValues( $postData, false, '', $dirtyTracking );
-			Log::write('dirty tracking', $dirtyTracking);
+// should be used once dirtyTracking + savePaths are working without bugs (increased performance and less permission problems)
+/*			$record->setValues( $postData, false, '', $dirtyTracking );
+			
 			$savePaths = Record::getSavePathsFromDirtyTracking( $dirtyTracking );
-			Log::write('savePaths', $savePaths);
+
 			$record->save( $savePaths );
+*/
+			$record->setValues( $postData, false );
+			$record->save();
+
 		}
 			
 		return $record;
