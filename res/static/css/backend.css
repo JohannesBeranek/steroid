@@ -1272,3 +1272,7 @@ body.STDialogOpen #uiContainer {
 .RCTemplate .panelFixed .STDropContainer .STDropContainer {
 	margin-left: 0px;
 }
+
+body .redactor_box_fullscreen {
+	z-index: 100 !important;
+}
