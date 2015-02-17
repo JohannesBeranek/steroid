@@ -14,7 +14,7 @@ class UHUrlRewrite implements IURLHandler {
 		$urlRewriteRecords = $url->{'url:RCUrlRewrite'};
 		
 		if (empty($urlRewriteRecords) || count($urlRewriteRecords) !== 1) {
-			throw new Exception();
+			throw new Exception("Unable to find RCUrlRewrite for url record");
 		}
 		
 		$urlRewriteRecord = reset($urlRewriteRecords);

@@ -5,10 +5,6 @@
 
 require_once STROOT . '/element/class.ElementRecord.php';
 
-require_once STROOT . '/datatype/class.DTKey.php';
-require_once STROOT . '/datatype/class.DTSteroidPrimary.php';
-require_once STROOT . '/datatype/class.DTSteroidID.php';
-require_once STROOT . '/datatype/class.DTSteroidLive.php';
 require_once STROOT . '/datatype/class.DTString.php';
 
 /**

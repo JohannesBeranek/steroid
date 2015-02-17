@@ -21,8 +21,8 @@ class DTDate extends BaseDTDateTime {
 		);
 	}
 
-	public function setValue( $data = NULL, $loaded = false ) {
-		parent::setValue( ctype_digit($data) ? date( "Y-m-d", intval($data) ) : $data, $loaded );
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
+		parent::setValue( ctype_digit($data) ? date( "Y-m-d", intval($data) ) : $data, $loaded, $path, $dirtyTracking );
 	}
 
 	public static function getDefaultValue( IStorage $storage, $fieldName = NULL, array $fieldConf = NULL, array $extraParams = NULL ) {

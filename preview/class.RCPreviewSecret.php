@@ -70,8 +70,8 @@ class RCPreviewSecret extends Record {
 		return $page->getUrlForPage( $page, $previewSecret->getPreviewParam( true ), 'http', true );
 	}
 	
-	protected function beforeSave( $isUpdate, $isFirst ) {
-		parent::beforeSave( $isUpdate, $isFirst ); // let creator + ctime be filled
+	protected function beforeSave( $isUpdate, $isFirst, array $savePaths = NULL ) {
+		parent::beforeSave( $isUpdate, $isFirst, $savePaths ); // let creator + ctime be filled
 		
 		if ($isFirst && !$this->fields['secret']->hasBeenSet() && !$this->exists()) {
 			$this->secret = Transform::md5_base64( $this->creator->{Record::FIELDNAME_PRIMARY} . '|' . $this->ctime );

@@ -38,7 +38,7 @@ require_once STROOT . '/cache/interface.IIncludeCache.php';
  * base record class
  *
  * TODO:
- * - unify functon naming
+ * - unify function naming
  * - declare more functions final
  * - don't use __get internally
  * - rename protected variables to starting with _ so we never get a conflict with fieldNames
@@ -1432,18 +1432,18 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		self::$foreignReferences[ $calledClass ] = $foreignReferences;
 	}
 
-	public function fillUpValues( array $values, $loaded ) {
+	public function fillUpValues( array $values, $loaded, $path = NULL, array &$dirtyTracking = NULL ) {
 		foreach ( $values as $fieldName => $value ) {
 			if ( !isset( $this->fields[ $fieldName ] ) ) {
 				throw new Exception( 'Trying to set ' . Debug::getStringRepresentation( $value ) . ' on field ' . $fieldName . ', but ' . get_called_class() . ' has no such field.' );
 			}
 
 			if ( !$this->fields[ $fieldName ]->hasBeenSet() ) {
-				$this->_setValue( $fieldName, $value, $loaded );
+				$this->_setValue( $fieldName, $value, $loaded, $path, $dirtyTracking );
 			} else if ( is_array( $value ) && ( $rec = $this->{$fieldName} ) && $rec instanceof IRecord ) { // BaseDTRecordReference
-				$this->fields[ $fieldName ]->fillUpValues( $value, $loaded );
+				$this->fields[ $fieldName ]->fillUpValues( $value, $loaded, $path . '.' . $fieldName, $dirtyTracking );
 			} else if ( !$loaded ) {
-				$this->_setValue( $fieldName, $value, $loaded );
+				$this->_setValue( $fieldName, $value, $loaded, $path, $dirtyTracking );
 			} // else if ($loaded) -> values have already been set in ::get when constructing new record OR we already have such a record and don't want to override already set values
 		}
 	}
@@ -1453,10 +1453,11 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	}
 
 	// TODO: automatically switch $loaded = false to TRY_TO_LOAD if at least one complete unique key or the primary key was passed?
-	final public static function get( IRBStorage $storage, array $values = NULL, $loaded = true ) {
+	final public static function get( IRBStorage $storage, array $values = NULL, $loaded = true, $path = NULL, array &$dirtyTracking = NULL ) {
 		$recordClass = get_called_class();
 
 		if ( empty( $values ) ) {
+			// no need for dirtyTracking here, as we're creating an empty record anyway
 			return new $recordClass( $storage );
 		}
 
@@ -1592,8 +1593,9 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 					if ( $i ) {
 						$rec = $storage->selectFirstRecord( $recordClass, array( 'fields' => $fields, 'where' => $where ) );
 
-						if ( $rec ) { // as storage might not load all values, we just fill them up (think about record references)
-							$rec->fillUpValues( $values, true );
+						if ( $rec ) {
+							 // as storage might not load all values, we just fill them up (think about record references)
+							$rec->fillUpValues( $values, true, $path, $dirtyTracking );
 							return $rec;
 						}
 
@@ -1603,12 +1605,11 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 				$loaded = false;
 			}
-
-			return new $recordClass( $storage, $values, $loaded === true );
+			return new $recordClass( $storage, $values, $loaded === true, $path, $dirtyTracking );
 		}
 
 		// TODO: shouldn't we just always override all values?
-		$pt->fillUpValues( $values, $loaded === true );
+		$pt->fillUpValues( $values, $loaded === true, $path, $dirtyTracking );
 
 		return $pt;
 	}
@@ -1807,7 +1808,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 // ------------- Constructor ------------ 
 
 	// no lazy instancing of fields here as we can't do much without touching all fields (see beforeSave/beforeDelete/...) 
-	protected function __construct( IRBStorage $storage, array $values = NULL, $loaded = true ) {
+	protected function __construct( IRBStorage $storage, array $values = NULL, $loaded = true, $path = NULL, array &$dirtyTracking = NULL ) {
 		$this->storage = $storage;
 
 		$this->_id = self::$_idCounter++;
@@ -1829,7 +1830,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		}
 
 		if ( $values !== NULL ) {
-			$this->setValues( $values, $loaded );
+			$this->setValues( $values, $loaded, $path, $dirtyTracking );
 		}
 	}
 
@@ -1872,7 +1873,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 *
 	 * @throws InvalidArgumentException
 	 */
-	protected function _setValue( $fieldName, $value, $loaded = false ) {
+	protected function _setValue( $fieldName, $value, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
 		if ( !isset( $this->fields[ $fieldName ] ) ) {
 			throw new InvalidArgumentException( '[' . get_called_class() . '] Invalid fieldname: "' . $fieldName . '"' );
 		} else if ( $this->deleted ) {
@@ -1885,7 +1886,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$this->removeFromIndex();
 		}
 
-		$this->fields[ $fieldName ]->setValue( $value, $loaded );
+		$this->fields[ $fieldName ]->setValue( $value, $loaded, $path . '.' . $fieldName, $dirtyTracking );
 
 		if ( $isIndexField ) {
 			$this->index();
@@ -1896,7 +1897,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		}
 	}
 
-	public function setValues( array $values, $loaded = false ) {
+// FIXME: add parameter(s) to pass back dirtied paths
+	public function setValues( array $values, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
 		// doesn't use _setValue anymore ; better performance, less recursion, and removes some problems with infinite recursion via notifications
 		if ( $this->deleted ) {
 			throw new LogicException( 'Trying to _setValue on deleted record of type ' . get_called_class() . ' with values ' . Debug::getStringRepresentation( $this->values ) );
@@ -1932,20 +1934,26 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			if ( $this->indexed && $indexedField ) {
 				$this->removeFromIndex();
 			}
-
-			$this->fields[ $fieldName ]->setRawValue( $value, $loaded );
-
-			// WRONG: need to reindex after each value, cause we might have a foreign reference with a reference to this record, which in turn would ::get a new Record resulting in an indexing conflict later on
-			// -> this is a problem when changing values of multiple fields of a key, as between changing the values we might get an already taken key
-			// FIX: setRawValue might never set anything but raw values		
+			
+			// setRawValue must never set anything but raw values!
+			if ($path === NULL) {
+				$this->fields[ $fieldName ]->setRawValue( $value, $loaded );	
+			} else {
+				$this->fields[ $fieldName ]->setRawValue( $value, $loaded, $path . '.' . $fieldName, $dirtyTracking );
+			}
 		}
 
 		if ( $indexedField ) {
 			$this->index();
 		}
 
+		
 		foreach ( $vals as $fieldName => $value ) {
-			$this->fields[ $fieldName ]->setRealValue( $value, $loaded );
+			if ($path === NULL) {
+				$this->fields[ $fieldName ]->setRealValue( $value, $loaded );
+			} else {
+				$this->fields[ $fieldName ]->setRealValue( $value, $loaded, $path . '.' . $fieldName, $dirtyTracking );
+			}
 		}
 
 		if ( $loaded ) {
@@ -2163,18 +2171,22 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	/**
 	 * called before the record is saved, calls beforeSave() on each of its fields
 	 */
-	protected function beforeSave( $isUpdate, $isFirst ) {
+	protected function beforeSave( $isUpdate, $isFirst, array $savePaths = NULL ) {
 		if ( isset( Record::$trackedFields ) ) {
 			while ( $field = array_shift( $this->beforeSaveFields ) ) {
-				self::$currentSavePath[ ] = $field->getFieldName();
+				$fieldName = $field->getFieldName();
+				
+				self::$currentSavePath[ ] = $fieldName;
 
-				$field->beforeSave( $isUpdate );
+				$field->beforeSave( $isUpdate, $savePaths === NULL ? NULL : ( isset($savePaths[$fieldName]) ? $savePaths[$fieldName] : array()) );
 
 				array_pop( self::$currentSavePath );
 			}
 		} else {
 			while ( $field = array_shift( $this->beforeSaveFields ) ) {
-				$field->beforeSave( $isUpdate );
+				$fieldName = $field->getFieldName();
+				
+				$field->beforeSave( $isUpdate, $savePaths === NULL ? NULL : ( isset($savePaths[$fieldName]) ? $savePaths[$fieldName] : array()) );
 			}
 		}
 
@@ -2183,17 +2195,21 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	/**
 	 * called after the record has been saved, calls afterSave() on each of its fields
 	 */
-	protected function afterSave( $isUpdate, $isFirst, array $saveResult ) {
+	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array $savePaths = NULL ) {
 		if ( isset( Record::$trackedFields ) ) {
 			while ( $field = array_shift( $this->afterSaveFields ) ) {
-				self::$currentSavePath[ ] = $field->getFieldName();
+				$fieldName = $field->getFieldName();
+				
+				self::$currentSavePath[ ] = $fieldName;
 
-				$field->afterSave( $isUpdate, $saveResult );
+				$field->afterSave( $isUpdate, $saveResult, $savePaths === NULL ? NULL : ( isset($savePaths[$fieldName]) ? $savePaths[$fieldName] : array())  );
 				array_pop( self::$currentSavePath );
 			}
 		} else {
 			while ( $field = array_shift( $this->afterSaveFields ) ) {
-				$field->afterSave( $isUpdate, $saveResult );
+				$fieldName = $field->getFieldName();
+				
+				$field->afterSave( $isUpdate, $saveResult, $savePaths === NULL ? NULL : ( isset($savePaths[$fieldName]) ? $savePaths[$fieldName] : array()) );
 			}
 		}
 	}
@@ -2329,10 +2345,39 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			}
 		}
 	}
+	
+	final private static function getSavePathsFromDirtyTrackingHelper( array $pathParts, array &$savePaths ) {
+		if ($pathParts) {
+			$key = array_shift($pathParts);
+			
+			if (!isset($savePaths[$key]) || $savePaths[$key] === true) {
+				$savePaths[$key] = array();
+			} 
+			
+			self::getSavePathsFromDirtyTrackingHelper($pathParts, $savePaths[$key]);
+			
+		} else {
+			$savePaths[] = true;
+		}
+	}
+	
+	final public static function getSavePathsFromDirtyTracking( array $dirtyTracking ) {
+		$savePaths = array();
+		
+		foreach( $dirtyTracking as $path => $val ) {
+			if ($val) {
+				$pathParts = explode('.', substr($path, 1));
+				
+				self::getSavePathsFromDirtyTrackingHelper($pathParts, $savePaths);
+				
+				
+			}
+		}
+		
+		return $savePaths;
+	}
 
-	public function save() {
-
-
+	public function save( $savePaths = NULL ) {
 		// [beranek_johannes] 06.08.2014: added check for $this->currentlySaving to prevent 
 		// change in skipSave and readOnly while saving to influence saving
 		if ( !$this->currentlySaving ) {
@@ -2372,6 +2417,11 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		$isFirst = !$this->currentlySaving;
 
 		if ( $isFirst ) { // prevent recursion loop
+			if ($savePaths !== NULL && !$savePaths) {
+				// skip further saving in case savePaths was passed and no path is remaining
+				return;
+			} 
+		
 			$this->currentlySaving = true;
 
 			$this->saveInit();
@@ -2379,8 +2429,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 
 		if ( $this->beforeSaveFields ) {
-			// parameters after the first 2 are superfluous but should help when debugging
-			$this->beforeSave( $this->saveIsUpdate, $isFirst, get_called_class() );
+			// parameters after the first 3 are superfluous but should help when debugging
+			$this->beforeSave( $this->saveIsUpdate, $isFirst, $savePaths, get_called_class() );
 		}
 
 		if ( !$this->hasSaved ) {
@@ -2415,8 +2465,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		}
 
 		if ( $this->afterSaveFields ) {
-			// parameters after the first 3 are superfluous but should help when debugging
-			$this->afterSave( $this->saveIsUpdate, $isFirst, $this->saveResult, get_called_class() );
+			// parameters after the first 4 are superfluous but should help when debugging
+			$this->afterSave( $this->saveIsUpdate, $isFirst, $this->saveResult, $savePaths, get_called_class() );
 		}
 
 		if ( $isFirst ) {
@@ -2643,6 +2693,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $newStack;
 	}
 
+// !!! this does not support path or dirtytracking, so should not be used when dirtyTracking is needed!
 	public function __set( $fieldName, $value ) {
 		$this->_setValue( $fieldName, $value );
 	}
@@ -2660,8 +2711,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$fields = array_merge( $fields, array( $sortingField ) );
 		}
 
-		if ( static::fieldDefinitionExists( 'primary' ) ) {
-			$fields = array_merge( $fields, array( static::FIELDNAME_PRIMARY ) );
+		if ( static::fieldDefinitionExists( self::FIELDNAME_PRIMARY ) ) {
+			$fields = array_merge( $fields, array( self::FIELDNAME_PRIMARY ) );
 		}
 
 		if ( $this->exists() ) {
@@ -3730,6 +3781,34 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		}
 
 		$classes[ $domainGroup ][ $currentClass ][ $data[ 'title' ] ] = $data;
+	}
+
+	final private static function arrayKeysToPathSetLoop( $arr, $path, array &$set ) {
+		foreach ($arr as $k => $v) {
+			if (is_int($k)) {
+				self::arrayKeysToPathSetLoop($v, $path, $set);
+			} else {
+				if (is_array($v)) {
+					self::arrayKeysToPathSetLoop($v, $path . $k . '.', $set);
+				} else {
+					$p = $path . $k;
+					
+					if ( !in_array($p, $set, true )) {
+						$set[] = $path . $k;
+					}
+				}
+			}
+		}
+		
+	}
+
+	final public static function arrayKeysToPathSet( $arr ) {
+		$set = array();
+		
+		self::arrayKeysToPathSetLoop($arr, '', $set);
+		
+
+		return $set;
 	}
 }
 

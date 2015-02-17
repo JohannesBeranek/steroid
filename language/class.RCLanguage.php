@@ -60,7 +60,7 @@ class RCLanguage extends Record {
 		);
 	}
 
-	protected function afterSave( $isUpdate, $isFirst, array $saveResult ) {
+	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array $savePaths = NULL ) {
 		if ( !$isUpdate && !$this->hasCreatedNewPermissions ) {
 			$this->hasCreatedNewPermissions = true;
 
@@ -71,7 +71,7 @@ class RCLanguage extends Record {
 			}
 		}
 
-		parent::afterSave( $isUpdate, $isFirst, $saveResult );
+		parent::afterSave( $isUpdate, $isFirst, $saveResult, $savePaths );
 	}
 
 	protected function copyPermissionsForUser( $user ) {

@@ -66,12 +66,12 @@ class DTStaticInlinePermissionEdit extends BaseDTStaticInlineRecordEdit {
 		return $permissions;
 	}
 
-	public function setValue( $data = NULL, $loaded = false ) {
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
 		if ( !$loaded && is_array( $data ) ) {
 			$data = self::generatePermissions( $this->storage, $data );
 		}
 
-		parent::setValue( $data, $loaded );
+		parent::setValue( $data, $loaded, $path, $dirtyTracking );
 	}
 
 	protected static function fillForcedPermissions( array &$permissions ) {
@@ -83,5 +83,3 @@ class DTStaticInlinePermissionEdit extends BaseDTStaticInlineRecordEdit {
 	}
 
 }
-
-?>

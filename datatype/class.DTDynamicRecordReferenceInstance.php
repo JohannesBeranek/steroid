@@ -37,13 +37,17 @@ class DTDynamicRecordReferenceInstance extends BaseDTRecordReference {
 	public static function getTitleFields( $fieldName, $config ) {
 		return NULL;
 	}
-	
-	public function fillUpValues( array $values, $loaded ) {
+
+	public function fillUpValues( array $values, $loaded, $path = NULL, array &$dirtyTracking = NULL ) {
 		if (($recordClass = $this->getRecordClass()) && $this->value && !($this->value instanceof $recordClass)) {
-			$this->record->setValues( array($this->fieldName => NULL), false );
+			// need to remove added fieldname part on path again
+			$pathParts = explode('.', $path);
+			array_pop($pathParts);
+			
+			$this->record->setValues( array($this->fieldName => NULL), false, implode('.', $pathparts), $dirtyTracking );
 		}
 
-		parent::fillUpValues($values, $loaded);
+		parent::fillUpValues($values, $loaded, $path, $dirtyTracking);
 		
 		$this->tryUpdateValue();
 	}
@@ -59,13 +63,14 @@ class DTDynamicRecordReferenceInstance extends BaseDTRecordReference {
 		
 		return $ret;
 	}
-	
-	protected function _setValue( $data, $loaded, $skipRaw = false, $skipReal = false ) {
+
+	protected function _setValue( $data, $loaded, $skipRaw = false, $skipReal = false, $path = NULL, array &$dirtyTracking = NULL ) {
 		if ($data === NULL || $data === '' || ($recordClass = $this->getRecordClass())) {
 			$this->tempValue = NULL;
 			
-			parent::_setValue($data, $loaded, $skipRaw, $skipReal);
+			parent::_setValue($data, $loaded, $skipRaw, $skipReal, $path, $dirtyTracking);
 		} else {
+// FIXME: losing dirtyTracking here!
 			// TODO: merge tempValue?
 			$this->tempValue = $data;
 
@@ -98,10 +103,10 @@ class DTDynamicRecordReferenceInstance extends BaseDTRecordReference {
 		return $this->value;
 	}
 	
-	public function beforeSave( $isUpdate ) {
+	public function beforeSave( $isUpdate, array $savePaths = NULL ) {
 		$this->tryUpdateValue();
 		
-		parent::beforeSave( $isUpdate );
+		parent::beforeSave( $isUpdate, $savePaths );
 	}
 	
 	public function beforeDelete( array &$basket = NULL ) {

@@ -544,8 +544,8 @@ class RCPage extends Record {
 		return $actions;
 	}
 
-	public function beforeSave( $isUpdate, $isFirst ) {
-		parent::beforeSave( $isUpdate, $isFirst );
+	public function beforeSave( $isUpdate, $isFirst, array $savePaths = NULL ) {
+		parent::beforeSave( $isUpdate, $isFirst, $savePaths );
 
 		// prevent creation of second start page
 		if ( $this->parent === NULL ) {
@@ -616,7 +616,7 @@ class RCPage extends Record {
 	}
 
 	// FIXME: we should not skip field notification but instead handle it differently if needed in fields afterSave function
-	protected function afterSave( $isUpdate, $isFirst, array $saveResult ) {
+	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array $savePaths = NULL ) {
 		unset( $this->afterSaveFields[ 'parent' ] );
 
 		foreach ( $this->afterSaveFields as $fieldName => $field ) {
@@ -631,7 +631,7 @@ class RCPage extends Record {
 			}
 		}
 
-		parent::afterSave( $isUpdate, $isFirst, $saveResult );
+		parent::afterSave( $isUpdate, $isFirst, $saveResult, $savePaths );
 	}
 
 	// FIXME: we should not skip field notification but instead handle it differently if needed in fields beforeDelete function

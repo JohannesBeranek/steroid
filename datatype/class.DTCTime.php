@@ -19,7 +19,7 @@ class DTCTime extends DTDateTime {
 	 *
 	 * sets the creation time of a record
 	 */
-	public function beforeSave( $isUpdate ) {
+	public function beforeSave( $isUpdate, array $savePaths = NULL ) {
 		if (!$isUpdate) {
 			$this->setValue($_SERVER['REQUEST_TIME']); // TODO get request time from context
 		}

@@ -52,6 +52,8 @@ class User {
 	protected $permsInDomainGroup;
 	protected $availableRecordClasses;
 	protected $availableWizards;
+	
+	private static $cache = array();
 
 
 	const PARAM_LOGIN = 'login';
@@ -114,7 +116,6 @@ class User {
 		$authenticatorClass = StringFilter::filterClassName( $loginVal );
 
 		if ( $authenticator = static::getAuthenticator( $authenticatorClass, $conf, $storage ) ) {
-
 			$user->authenticate( $authenticator, $requestInfo );
 
 			return static::createSessionAfterAuth( $user, $authenticatorClass );
@@ -124,7 +125,9 @@ class User {
 	}
 
 	public static function createSessionAfterAuth( User $user, $authenticatorClass ) {
-		if ( !isset( $user->authException ) ) {
+		if ( isset( $user->authException ) ) {
+			Log::write($user->authException);
+		} else {
 			static::createNewSession();
 
 			if ( $user->record ) {
@@ -163,10 +166,11 @@ class User {
 			$record = $recordClass::get( $this->storage, $identity, Record::TRY_TO_LOAD );
 		}
 
-		$domainGroup = $this->getSelectedDomainGroup()->primary;
 
-		if ( $record->exists() && $domainGroupField = $recordClass::getDataTypeFieldName( 'DTSteroidDomainGroup' ) ) {
-			$domainGroup = $record->{$domainGroupField};
+		if ( $record->exists() && ( $domainGroupField = $recordClass::getDataTypeFieldName( 'DTSteroidDomainGroup' ) ) ) {
+			$domainGroup = $record->{$domainGroupField}; // TODO: use raw value so we don't need to load record?
+		} else {
+			$domainGroup = $this->getSelectedDomainGroup();
 		}
 
 		$recordClassPermissions = $this->getRecordClassPermissionsForDomainGroup( $recordClass, $domainGroup );
@@ -182,36 +186,43 @@ class User {
 		return $recordClass::getAvailableActions( $mayWrite, $mayPublish, $mayHide, $mayDelete, $mayCreate );
 	}
 
+
+
 	public function getRecordClassPermissionsForDomainGroup( $recordClass, $domainGroup = NULL ) {
 		if ( !$domainGroup ) {
 			$domainGroup = $this->getSelectedDomainGroup();
 		}
+		
+		$key =  WEBROOT . ' getRecordClassPermissionsForDomainGroup ' . $recordClass . ' ' . ($domainGroup instanceof IRecord ? $domainGroup->primary : $domainGroup) . ' ' . $this->getSelectedLanguage()->primary . ' ' . $this->record->primary;
 
-		$currentPerms = $this->getPermissionsForDomainGroup( $domainGroup );
+		if (!isset(self::$cache[$key])) {
+			$currentPerms = $this->getPermissionsForDomainGroup( $domainGroup );
+	
+			$perms = $this->storage->select( 'RCPermissionEntity', array( 'fields' => '*', 'where' => array( 'permissionEntity:RCPermissionPermissionEntity.permission', '=', $currentPerms, 'AND', 'recordClass', '=', array( $recordClass ) ) ) );
+	
+			$combinedPerms = array_pop( $perms );
+	
+			foreach ( $perms as $perm ) {
+				$combinedPerms[ 'mayWrite' ] |= (bool)$perm[ 'mayWrite' ];
+				$combinedPerms[ RCPermission::ACTION_PERMISSION_PUBLISH ] |= (bool)$perm[ RCPermission::ACTION_PERMISSION_PUBLISH ];
+				$combinedPerms[ RCPermission::ACTION_PERMISSION_DELETE ] |= (bool)$perm[ RCPermission::ACTION_PERMISSION_DELETE ];
+				$combinedPerms[ RCPermission::ACTION_PERMISSION_HIDE ] |= (bool)$perm[ RCPermission::ACTION_PERMISSION_HIDE ];
+				$combinedPerms[ RCPermission::ACTION_PERMISSION_CREATE ] |= (bool)$perm[ RCPermission::ACTION_PERMISSION_CREATE ];
+				$combinedPerms[ 'restrictToOwn' ] &= (bool)$perm[ 'restrictToOwn' ];
+				$combinedPerms[ 'isDependency' ] &= (bool)$perm[ 'isDependency' ];
+			
+			}
+			
+			self::$cache[$key] = $combinedPerms;
+		}	
+			
+			
 
-		$perms = $this->storage->select( 'RCPermissionEntity', array( 'fields' => '*', 'where' => array( 'permissionEntity:RCPermissionPermissionEntity.permission', '=', $currentPerms, 'AND', 'recordClass', '=', array( $recordClass ) ) ) );
-
-		if ( count( $perms ) < 2 ) {
-			return array_shift( $perms );
-		}
-
-		$combinedPerms = array_shift( $perms );
-
-		foreach ( $perms as $perm ) {
-			$combinedPerms[ 'mayWrite' ] |= (bool)$perm[ 'mayWrite' ];
-			$combinedPerms[ RCPermission::ACTION_PERMISSION_PUBLISH ] |= (bool)$perm[ RCPermission::ACTION_PERMISSION_PUBLISH ];
-			$combinedPerms[ RCPermission::ACTION_PERMISSION_DELETE ] |= (bool)$perm[ RCPermission::ACTION_PERMISSION_DELETE ];
-			$combinedPerms[ RCPermission::ACTION_PERMISSION_HIDE ] |= (bool)$perm[ RCPermission::ACTION_PERMISSION_HIDE ];
-			$combinedPerms[ RCPermission::ACTION_PERMISSION_CREATE ] |= (bool)$perm[ RCPermission::ACTION_PERMISSION_CREATE ];
-			$combinedPerms[ 'restrictToOwn' ] &= (bool)$perm[ 'restrictToOwn' ];
-			$combinedPerms[ 'isDependency' ] &= (bool)$perm[ 'isDependency' ];
-		}
-
-		return $combinedPerms;
+		return self::$cache[$key];
 	}
 
 	public function getPermissionsForDomainGroup( $domainGroup ) {
-		return $this->storage->selectRecords(
+		$recs = $this->storage->selectRecords(
 			'RCPermission', array(
 				'fields' => '*',
 				'vals' => array( $this->record, $this->getSelectedLanguage(), $domainGroup ),
@@ -227,6 +238,8 @@ class User {
 				)
 			)
 		);
+
+		return $recs;
 	}
 
 	public function loadFromSession() {
@@ -503,17 +516,7 @@ class User {
 		return $this->permissions;
 	}
 
-	public function isDev( $domainGroup ) {
-		$permissions = $this->getPermissionsForDomainGroup( $domainGroup );
 
-		foreach ( $permissions as $permission ) {
-			if ( $permission->title === self::PERMISSION_TITLE_DEV ) {
-				return true;
-			}
-		}
-
-		return false;
-	}
 
 
 	/**
