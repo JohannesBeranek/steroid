@@ -1291,7 +1291,7 @@ class UHBackend implements IURLHandler {
 				RBStorage::SELECT_FIELDNAME_FIELDS => Record::arrayKeysToPathSet($postData)
 			);
 
-			$record = $this->storage->selectFirstRecord( $recordClass, $queryStruct, /* $start */ NULL, /* $getTotal */ NULL, /* $vals */ NULL, /* $name */ NULL, /* $noAutoSelect */ true );
+			$record = $this->storage->selectFirstRecord( $recordClass, $queryStruct, /* $start */ NULL, /* $getTotal */ NULL, /* $vals */ NULL, /* $name */ NULL, /* $noAutoSelect */ false );
 		
 			$dirtyTracking = array();
 
