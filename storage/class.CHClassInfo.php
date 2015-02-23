@@ -29,7 +29,7 @@ class CHClassInfo extends CLIHandler {
 			$this->classTypes = array(
 				ClassFinder::CLASSTYPE_DATATYPE,
 				ClassFinder::CLASSTYPE_RECORD,
-				ClassFinder::CLASSTYPE_UNITTEST,
+//				ClassFinder::CLASSTYPE_UNITTEST,
 				ClassFinder::CLASSTYPE_URLHANDLER,
 				ClassFinder::CLASSTYPE_CLIHANDLER
 			);
@@ -44,10 +44,10 @@ class CHClassInfo extends CLIHandler {
 					case '--datatype':
 						$this->classTypes[ ] = ClassFinder::CLASSTYPE_DATATYPE;
 						break;
-					case '-t':
-					case '--unittest':
-						$this->classTypes[ ] = ClassFinder::CLASSTYPE_UNITTEST;
-						break;
+//					case '-t':
+//					case '--unittest':
+//						$this->classTypes[ ] = ClassFinder::CLASSTYPE_UNITTEST;
+//						break;
 					case '-c':
 					case '--clihandler':
 						$this->classTypes[ ] = ClassFinder::CLASSTYPE_CLIHANDLER;
@@ -249,7 +249,7 @@ class CHClassInfo extends CLIHandler {
 				'options:' => array(
 					'-r, --recordclass' => 'only show record classes',
 					'-d, --datatype' => 'only show datatypes',
-					'-t, --unittest' => 'only show unittests',
+//					'-t, --unittest' => 'only show unittests',
 					'-c, --clihandler' => 'only show cli handlers',
 					'-h, --urlhandler' => 'only show url handlers',
 					'-s, --createinselectiononly' => 'only show record classes that can be created in record selection',

@@ -31,7 +31,9 @@ class DTUrlRewrite extends BaseDTRecordReference {
 	private static function getNewUrl( IRBStorage $storage, RCPage $page, $prefix = NULL, $suffix = NULL, $liveState = NULL ) {		
 		$ct = 0;
 		$urlLast = ( $prefix === NULL ? '' : $prefix ) . ( $suffix === NULL ? '' : $suffix );
-		$urlBase = rtrim( $page->getUrlForPage( $page, false ), '/' ) . '/';
+		
+		// trim + adding slash is needed so root page url works the same as others
+		$urlBase = rtrim( $page->getUrlForPage( $page, false ), '/' ) . '/'; 
 		
 		$domainGroup = $page->domainGroup;
 		
@@ -50,6 +52,8 @@ class DTUrlRewrite extends BaseDTRecordReference {
 
 			$newUrl = $urlBase . $urlLast;
 
+			// TODO: cache query
+			// TODO: also use already existing records (maybe via record index?)
 			$urlRow = $storage->selectFirst( 'RCUrl', array(
 				'fields' => array('primary'),
 				'where' => array(
