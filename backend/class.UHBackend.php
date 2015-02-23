@@ -1042,8 +1042,8 @@ class UHBackend implements IURLHandler {
 				'action' => 'publish'
 			) );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER on ALL
+		$userFilter = new PermissionStorageFilter( $this->user, NULL );
 		$this->storage->registerFilter( $userFilter );
 
 		$previewRecord = $recordClass::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $recordPrimary ), Record::TRY_TO_LOAD );
@@ -1077,8 +1077,8 @@ class UHBackend implements IURLHandler {
 				'action' => 'publish'
 			) );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER on recordClass
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClass );
 		$this->storage->registerFilter( $userFilter );
 
 		$previewRecord = $recordClass::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $recordID ), Record::TRY_TO_LOAD );
@@ -1291,18 +1291,16 @@ class UHBackend implements IURLHandler {
 				RBStorage::SELECT_FIELDNAME_FIELDS => Record::arrayKeysToPathSet($postData)
 			);
 
-			$record = $this->storage->selectFirstRecord( $recordClass, $queryStruct, /* $start */ NULL, /* $getTotal */ NULL, /* $vals */ NULL, /* $name */ NULL, /* $noAutoSelect */ true );
+			$record = $this->storage->selectFirstRecord( $recordClass, $queryStruct, /* $start */ NULL, /* $getTotal */ NULL, /* $vals */ NULL, /* $name */ NULL, /* $noAutoSelect */ false );
 		
 			$dirtyTracking = array();
-// should be used once dirtyTracking + savePaths are working without bugs (increased performance and less permission problems)
-/*			$record->setValues( $postData, false, '', $dirtyTracking );
+
+			$record->setValues( $postData, false, '', $dirtyTracking );
 			
 			$savePaths = Record::getSavePathsFromDirtyTracking( $dirtyTracking );
 
 			$record->save( $savePaths );
-*/
-			$record->setValues( $postData, false );
-			$record->save();
+
 
 		}
 			
@@ -1313,8 +1311,8 @@ class UHBackend implements IURLHandler {
 		if ( empty( $recordClass ) || !ClassFinder::find( array( $recordClass ), true ) ) {
 			throw new InvalidArgumentException( '$recordClassName must be set' );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER on recordClass
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClass );
 		$this->storage->registerFilter( $userFilter );
 
 		$this->isIframe = $this->requestInfo->getGPParam( 'isIframe' );
@@ -1453,8 +1451,8 @@ class UHBackend implements IURLHandler {
 		if ( empty( $recordClass ) || empty( $recordID ) || !ClassFinder::find( array( $recordClass ), true ) ) {
 			throw new InvalidArgumentException( '$recordClassName and $recordID must be set' );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClass );
 		$this->storage->registerFilter( $userFilter );
 
 		try {
@@ -1486,8 +1484,8 @@ class UHBackend implements IURLHandler {
 				'action' => 'hide'
 			) );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClass );
 		$this->storage->registerFilter( $userFilter );
 
 		try {
@@ -1510,8 +1508,8 @@ class UHBackend implements IURLHandler {
 		if ( empty( $recordClass ) || empty( $recordID ) || !ClassFinder::find( array( $recordClass ), true ) ) {
 			throw new InvalidArgumentException( '$recordClassName and $recordID must be set' );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClass );
 		$this->storage->registerFilter( $userFilter );
 
 		$previewRecord = $recordClass::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $recordID ) );
@@ -1563,8 +1561,8 @@ class UHBackend implements IURLHandler {
 				'action' => 'delete'
 			) );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClass );
 		$this->storage->registerFilter( $userFilter );
 
 		$record = $recordClass::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $recordID ) );
@@ -1696,8 +1694,8 @@ class UHBackend implements IURLHandler {
 			// in case user has no permission, transaction will be rolled back, and thus change to content edit will be undone
 			$this->updateContentEdit( $recordClassName, $recordID, $previousRecordClass, $previousRecordID );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClassName );
 		$this->storage->registerFilter( $userFilter );
 
 		if ( $recordID === 'new' ) {
@@ -1884,8 +1882,8 @@ class UHBackend implements IURLHandler {
 		if ( !$filePrimary ) {
 			throw new InvalidArgumentException( 'invalid file primary' );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, 'RCFile' );
 		$this->storage->registerFilter( $userFilter );
 
 		$record = $this->storage->selectFirstRecord( 'RCFile', array( 'fields' => '*', 'where' => array( Record::FIELDNAME_PRIMARY, '=', array( $filePrimary ) ) ) );
@@ -1958,8 +1956,8 @@ class UHBackend implements IURLHandler {
 				'rc' => $recordClassName
 			) );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClassName );
 		$this->storage->registerFilter( $userFilter );
 
 		$fieldsToSelect = $this->getQueryFields( $recordClassName::getExpandedListFields( $this->user ) );

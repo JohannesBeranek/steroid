@@ -3784,22 +3784,26 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	}
 
 	final private static function arrayKeysToPathSetLoop( $arr, $path, array &$set ) {
-		foreach ($arr as $k => $v) {
-			if (is_int($k)) {
-				self::arrayKeysToPathSetLoop($v, $path, $set);
+		foreach ( $arr as $k => $v ) {
+			if ( is_int( $k ) ) {
+				if ( is_array( $v ) ) {
+					self::arrayKeysToPathSetLoop( $v, $path, $set );
+				} else {
+					$set[ ] = substr( $path, 0, - 1 );
+				}
 			} else {
-				if (is_array($v)) {
-					self::arrayKeysToPathSetLoop($v, $path . $k . '.', $set);
+				if ( is_array( $v ) ) {
+					self::arrayKeysToPathSetLoop( $v, $path . $k . '.', $set );
 				} else {
 					$p = $path . $k;
-					
-					if ( !in_array($p, $set, true )) {
-						$set[] = $path . $k;
+
+					if ( ! in_array( $p, $set, true ) ) {
+						$set[ ] = $p;
 					}
 				}
 			}
 		}
-		
+
 	}
 
 	final public static function arrayKeysToPathSet( $arr ) {
