@@ -246,10 +246,6 @@ class RCFile extends Record implements IFileInfo {
 			$extension = pathinfo( $this->downloadFilename, PATHINFO_EXTENSION );
 		}
 
-		if ( !isset( $downloadFilenameBase ) ) {
-			$downloadFilenameBase = basename( $this->filename );
-		}
-
 		if ( !isset( $extension ) || $extension === '' ) {
 			$extension = pathinfo( $this->filename, PATHINFO_EXTENSION );
 		}
@@ -257,6 +253,10 @@ class RCFile extends Record implements IFileInfo {
 		if ( $this->title !== NULL && trim( $this->title ) !== '' ) {
 			$downloadFilename = $this->title;
 		} else {
+			if ( !isset( $downloadFilenameBase ) ) {
+				$downloadFilenameBase = basename( $this->filename );
+			}
+			
 			$downloadFilename = pathinfo( $downloadFilenameBase, PATHINFO_FILENAME ); // PATHINFO_FILENAME : PHP >= 5.2.0
 		}
 
@@ -307,8 +307,19 @@ class RCFile extends Record implements IFileInfo {
 		// as per request (some mail clients don't handle spaces and the like well)
 		// $filename = rawurlencode($filename);
 
-		$fn = pathinfo( $filename, PATHINFO_FILENAME );
+		if (!is_string($filename)) {
+			throw new Exception('Got non-string for filename');
+		}
+		
 		$ext = pathinfo( $filename, PATHINFO_EXTENSION );
+		
+		// do not use PATHINFO_BASENAME here, as it will make trouble with 
+		// filenames which have '/' in them (may happen if nice download url is taken from file record title for example)
+		if ($ext) {
+			$fn = substr($filename, 0, - strlen($ext) - 1);
+		} else {
+			$fn = $filename;
+		}
 
 		$fn = UrlUtil::generateUrlPartFromString( $fn );
 
