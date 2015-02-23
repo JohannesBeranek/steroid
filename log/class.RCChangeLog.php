@@ -60,7 +60,7 @@ class RCChangeLog extends Record {
 		return \Michelf\Markdown::defaultTransform( $this->text );
 	}
 
-	public function afterSave( $isUpdate, $isFirst, array $saveResult, array $savePaths = NULL ) {
+	public function afterSave( $isUpdate, $isFirst, array $saveResult, array &$savePaths = NULL ) {
 		if ( !$isUpdate && $isFirst ) {
 			$this->sendNotificationMail();
 		}

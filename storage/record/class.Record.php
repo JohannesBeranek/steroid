@@ -2171,22 +2171,38 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	/**
 	 * called before the record is saved, calls beforeSave() on each of its fields
 	 */
-	protected function beforeSave( $isUpdate, $isFirst, array $savePaths = NULL ) {
+	protected function beforeSave( $isUpdate, $isFirst, array &$savePaths = NULL ) {
 		if ( isset( Record::$trackedFields ) ) {
 			while ( $field = array_shift( $this->beforeSaveFields ) ) {
 				$fieldName = $field->getFieldName();
 				
 				self::$currentSavePath[ ] = $fieldName;
 
-				$field->beforeSave( $isUpdate, $savePaths === NULL ? NULL : ( isset($savePaths[$fieldName]) ? $savePaths[$fieldName] : array()) );
+				if ($savePaths !== NULL && !isset( $savePaths[ $fieldName ])) {
+					$savePaths[$fieldName] = array();
+				}
+
+				if ( $savePaths === null ) {
+					$field->beforeSave( $isUpdate, $savePaths );
+				} else {
+					$field->beforeSave( $isUpdate, $savePaths[ $fieldName ] );
+				}
 
 				array_pop( self::$currentSavePath );
 			}
 		} else {
 			while ( $field = array_shift( $this->beforeSaveFields ) ) {
 				$fieldName = $field->getFieldName();
-				
-				$field->beforeSave( $isUpdate, $savePaths === NULL ? NULL : ( isset($savePaths[$fieldName]) ? $savePaths[$fieldName] : array()) );
+
+				if ( $savePaths !== NULL && ! isset( $savePaths[ $fieldName ] ) ) {
+					$savePaths[ $fieldName ] = array();
+				}
+
+				if ($savePaths === NULL) {
+					$field->beforeSave( $isUpdate, $savePaths );
+				} else {
+					$field->beforeSave( $isUpdate, $savePaths[ $fieldName ] );
+				}
 			}
 		}
 
@@ -2195,21 +2211,38 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	/**
 	 * called after the record has been saved, calls afterSave() on each of its fields
 	 */
-	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array $savePaths = NULL ) {
+	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array &$savePaths = NULL ) {
 		if ( isset( Record::$trackedFields ) ) {
 			while ( $field = array_shift( $this->afterSaveFields ) ) {
 				$fieldName = $field->getFieldName();
 				
 				self::$currentSavePath[ ] = $fieldName;
 
-				$field->afterSave( $isUpdate, $saveResult, $savePaths === NULL ? NULL : ( isset($savePaths[$fieldName]) ? $savePaths[$fieldName] : array())  );
+				if ( $savePaths !== null && ! isset( $savePaths[ $fieldName ] ) ) {
+					$savePaths[ $fieldName ] = array();
+				}
+
+				if ($savePaths === NULL) {
+					$field->afterSave( $isUpdate, $saveResult, $savePaths );
+				} else {
+					$field->afterSave( $isUpdate, $saveResult, $savePaths[ $fieldName ] );
+				}
+
 				array_pop( self::$currentSavePath );
 			}
 		} else {
 			while ( $field = array_shift( $this->afterSaveFields ) ) {
 				$fieldName = $field->getFieldName();
-				
-				$field->afterSave( $isUpdate, $saveResult, $savePaths === NULL ? NULL : ( isset($savePaths[$fieldName]) ? $savePaths[$fieldName] : array()) );
+
+				if ( $savePaths !== null && ! isset( $savePaths[ $fieldName ] ) ) {
+					$savePaths[ $fieldName ] = array();
+				}
+
+				if ( $savePaths === null ) {
+					$field->afterSave( $isUpdate, $saveResult, $savePaths );
+				} else {
+					$field->afterSave( $isUpdate, $saveResult, $savePaths[ $fieldName ] );
+				}
 			}
 		}
 	}
@@ -3565,7 +3598,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 	public function getLiveStatus() {
 		if ( !$this->exists() ) {
-			throw new LogicException( 'Cannot get status of non-existing record' );
+			throw new LogicException( 'Cannot get status of non-existing record of class ' . get_called_class() );
 		}
 
 		if ( !static::getDataTypeFieldName( 'DTSteroidLive' ) ) {

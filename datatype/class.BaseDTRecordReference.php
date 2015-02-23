@@ -302,7 +302,7 @@ abstract class BaseDTRecordReference extends DataType {
 	 *
 	 * @throws RecordReferenceMismatchException
 	 */
-	public function beforeSave( $isUpdate, array $savePaths = NULL ) {
+	public function beforeSave( $isUpdate, array &$savePaths = NULL ) {
 		$valueHadBeenSet = isset( $this->value );
 
 		if ( $this->config[ 'requireForeign' ] && !isset( $this->record->{$this->fieldName} ) && !$this->record->exists() ) { // TODO: change to some generic pre-save-validation-fail exception so it can be caught centrally

@@ -60,7 +60,7 @@ class RCLanguage extends Record {
 		);
 	}
 
-	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array $savePaths = NULL ) {
+	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array &$savePaths = NULL ) {
 		if ( !$isUpdate && !$this->hasCreatedNewPermissions ) {
 			$this->hasCreatedNewPermissions = true;
 

@@ -57,7 +57,7 @@ class DTSteroidLanguage extends BaseDTRecordReference implements IContributeBitS
 		$calculationFields[get_called_class()] = '(' . (int)$this->values[$this->colName] . ' & ' . static::FIELD_BIT_WIDTH . ') << ' . static::FIELD_BIT_POSITION;
 	}
 
-	public function beforeSave( $isUpdate, array $savePaths = NULL ){
+	public function beforeSave( $isUpdate, array &$savePaths = NULL ){
 		if(!$this->hasBeenSet() && !$this->record->exists()){
 			$user = User::getCurrent();
 

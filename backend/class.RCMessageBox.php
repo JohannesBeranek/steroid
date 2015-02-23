@@ -72,7 +72,7 @@ class RCMessageBox extends Record {
 		return User::getUsersByDomainGroup( $this->storage, $this->domainGroup );
 	}
 
-	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array $savePaths = NULL ) {
+	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array &$savePaths = NULL ) {
 		$conf = Config::get( 'localconf' );
 
 		$modeConf = $conf->getSection( 'mode' );

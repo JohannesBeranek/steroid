@@ -151,7 +151,7 @@ abstract class DataType implements IDataType {
 		return !empty( $this->config[ 'nullable' ] ) ? array_key_exists( $this->colName, $this->values ) : !empty( $this->values[ $this->colName ] );
 	}
 
-	public function beforeSave( $isUpdate, array $savePaths = NULL ) {
+	public function beforeSave( $isUpdate, array &$savePaths = NULL ) {
 		// stub
 	}
 
@@ -172,7 +172,7 @@ abstract class DataType implements IDataType {
 		}
 	}
 
-	public function afterSave( $isUpdate, array $saveResult, array $savePaths = NULL ) {
+	public function afterSave( $isUpdate, array $saveResult, array &$savePaths = NULL ) {
 		// stub
 	}
 

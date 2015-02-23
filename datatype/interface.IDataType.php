@@ -58,7 +58,7 @@ interface IDataType {
 	 * 
 	 * @param bool $isUpdate
 	 */
-	public function beforeSave( $isUpdate, array $savePaths = NULL );
+	public function beforeSave( $isUpdate, array &$savePaths = NULL );
 
 	/**
 	 * After save
@@ -68,7 +68,7 @@ interface IDataType {
 	 * @param bool $isUpdate
 	 * @param array $saveResult
 	 */
-	public function afterSave( $isUpdate, array $saveResult, array $savePaths = NULL );
+	public function afterSave( $isUpdate, array $saveResult, array &$savePaths = NULL );
 
 	/**
 	 * Before delete

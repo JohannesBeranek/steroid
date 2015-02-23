@@ -138,7 +138,7 @@ class RCFile extends Record implements IFileInfo {
 		return $rec;
 	}
 
-	protected function beforeSave( $isUpdate, $isFirst, array $savePaths = NULL ) {
+	protected function beforeSave( $isUpdate, $isFirst, array &$savePaths = NULL ) {
 		if ( $isFirst ) {
 			if ( isset( $this->title ) && trim( $this->title ) == '' && isset( $this->downloadFilename ) ) {
 				$this->title = $this->downloadFilename;

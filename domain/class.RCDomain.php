@@ -38,7 +38,7 @@ class RCDomain extends Record {
 		);
 	}
 
-	protected function beforeSave( $isUpdate, $isFirst, array $savePaths = NULL ) {
+	protected function beforeSave( $isUpdate, $isFirst, array &$savePaths = NULL ) {
 		parent::beforeSave( $isUpdate, $isFirst, $savePaths );
 
 		//check if domain is taken

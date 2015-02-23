@@ -35,7 +35,7 @@ class RCDomainGroup extends Record {
 		);
 	}
 
-	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array $savePaths = NULL ) {
+	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array &$savePaths = NULL ) {
 		if ( !$isUpdate && $isFirst ) {
 			if ( $this->parent ) {
 				$this->copyPermissionsFromParent();

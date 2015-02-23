@@ -21,7 +21,7 @@ abstract class BaseDTInteger extends DataType {
 		}
 	}
 
-	public function afterSave( $isUpdate, array $saveResult, array $savePaths = NULL  ) {
+	public function afterSave( $isUpdate, array $saveResult, array &$savePaths = NULL  ) {
 		parent::afterSave( $isUpdate, $saveResult );
 
 		if ( $saveResult[ 'action' ] == RBStorage::SAVE_ACTION_CREATE && $this->config[ 'autoInc' ] ) {

@@ -103,7 +103,7 @@ class DTDynamicRecordReferenceInstance extends BaseDTRecordReference {
 		return $this->value;
 	}
 	
-	public function beforeSave( $isUpdate, array $savePaths = NULL ) {
+	public function beforeSave( $isUpdate, array &$savePaths = NULL ) {
 		$this->tryUpdateValue();
 		
 		parent::beforeSave( $isUpdate, $savePaths );

@@ -77,7 +77,7 @@ class DTFile extends BaseDTString {
 		parent::setValue( $data, $loaded, $path, $dirtyTracking );
 	}
 
-	public function beforeSave( $isUpdate, array $savePaths = NULL ) {
+	public function beforeSave( $isUpdate, array &$savePaths = NULL ) {
 		if ($this->uploadedFile) {
 			$this->storage->uploadFile($this->uploadedFile);
 				

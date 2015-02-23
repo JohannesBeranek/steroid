@@ -207,7 +207,7 @@ class DTSteroidPage extends BaseDTRecordReference {
 	}
 
 	// FIXME: move logic to setValue listener
-	public function beforeSave( $isUpdate, array $savePaths = NULL ) {
+	public function beforeSave( $isUpdate, array &$savePaths = NULL ) {
 		$this->value = $this->record->{$this->fieldName};
 
 		if ( $isUpdate ) {
