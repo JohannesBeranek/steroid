@@ -237,4 +237,8 @@ abstract class ElementRecord extends Record implements IHandleArea {
 
 		return $newElement;
 	}
+
+	public function getRewrites(){
+		return NULL;
+	}
 }
