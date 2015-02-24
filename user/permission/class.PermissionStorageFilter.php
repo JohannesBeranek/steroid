@@ -66,7 +66,8 @@ class PermissionStorageFilter implements IRBStorageFilter {
 		
 		if (!array_key_exists($rc, $perms) || !$perms[$rc]['mayWrite']) {
 			throw new AccessDeniedException( 'Access denied for recordClass "' . $rc . '" when trying to save record with values ' . Debug::getStringRepresentation($record->getValues()), array(
-				'rc' => $rc
+				'rc' => $rc,
+				'record' => $record->getTitle()
 			));
 		}		
 	}

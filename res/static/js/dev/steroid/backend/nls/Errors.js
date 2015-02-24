@@ -50,7 +50,7 @@ define({ root: ({
 	},
 	AccessDeniedException: {
 		title: 'Access denied',
-		message: 'You are not allowed to access "$rc" in current subweb'
+		message: 'You are not allowed to access $rc "$record" in current subweb'
 	},
 	ActionDeniedException: {
 		title: 'Action denied',

@@ -221,6 +221,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	protected $autoIncSet;
 	protected $hasSaved;
 	protected $saveResult;
+	protected $savePaths;
 
 
 	/**
@@ -2411,9 +2412,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	}
 
 	public function save( &$savePaths = NULL ) {
-		if(get_called_class() !== 'RCLog'){
-			Log::write('Save ' . get_called_class() . ' ' . $this->getTitle(), $savePaths);
-		}
 		// [beranek_johannes] 06.08.2014: added check for $this->currentlySaving to prevent 
 		// change in skipSave and readOnly while saving to influence saving
 		if ( !$this->currentlySaving ) {
@@ -2453,6 +2451,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		$isFirst = !$this->currentlySaving;
 
 		if ( $isFirst ) { // prevent recursion loop
+			$this->savePaths = $savePaths;
+
 			if ($savePaths !== NULL && !$savePaths) {
 				// skip further saving in case savePaths was passed and no path is remaining
 				return;
@@ -2466,7 +2466,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 		if ( $this->beforeSaveFields ) {
 			// parameters after the first 3 are superfluous but should help when debugging
-			$this->beforeSave( $this->saveIsUpdate, $isFirst, $savePaths, get_called_class() );
+			$this->beforeSave( $this->saveIsUpdate, $isFirst, $this->savePaths, get_called_class() );
 		}
 
 		if ( !$this->hasSaved ) {
@@ -2502,7 +2502,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 		if ( $this->afterSaveFields ) {
 			// parameters after the first 4 are superfluous but should help when debugging
-			$this->afterSave( $this->saveIsUpdate, $isFirst, $this->saveResult, $savePaths, get_called_class() );
+			$this->afterSave( $this->saveIsUpdate, $isFirst, $this->saveResult, $this->savePaths, get_called_class() );
 		}
 
 		if ( $isFirst ) {
@@ -2513,6 +2513,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$this->updateDirtyAfterSaveFields = NULL;
 			// $this->saveIsUpdate = NULL; // we keep this for after save hooks
 			$this->hasSaved = NULL;
+			$this->savePaths = NULL;
 
 			if ( self::$saveOriginRecord === $this ) {
 				self::$saveOriginRecord = NULL;

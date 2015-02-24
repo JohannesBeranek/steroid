@@ -462,7 +462,6 @@ abstract class BaseDTForeignReference extends DataType {
 	 * @param array $saveResult
 	 */
 	public function afterSave( $isUpdate, array $saveResult, array &$savePaths = NULL ) {
-		Log::write(get_class($this->record) . ':' . $this->fieldName . ' (' . $this->record->getTitle() . ')', $savePaths);
 		$this->updateRecordPrimary();
 
 		if ( !$this->isDirty ) {

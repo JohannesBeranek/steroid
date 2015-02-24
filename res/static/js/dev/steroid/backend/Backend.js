@@ -64,7 +64,7 @@ define([
 		debugMode: false,
 		moduleContainer: null,
 		toaster: null,
-		checkMessages: false,
+		checkMessages: true,
 		messageTimer: null,
 		messageInterval: 30,
 		suspendValueWatches: false,

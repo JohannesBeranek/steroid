@@ -50,7 +50,7 @@ define({
 	},
 	AccessDeniedException: {
 		title: 'Zugriff verweigert',
-		message: 'Sie haben im aktuellen Subweb keine Zugriffsberechtigung auf den Inhaltstyp "$rc"'
+		message: 'Sie haben im aktuellen Subweb keine Zugriffsberechtigung auf den Inhaltstyp $rc "$record"'
 	},
 	ActionDeniedException: {
 		title: 'Aktion verweigert',
