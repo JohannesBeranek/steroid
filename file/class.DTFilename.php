@@ -23,7 +23,7 @@ class DTFilename extends DTString {
 		// TODO: normalize value
 		
 
-		parent::beforeSave( $isUpdate );
+		parent::beforeSave( $isUpdate, $savePaths );
 	}
 
 }

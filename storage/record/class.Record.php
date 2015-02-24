@@ -2182,7 +2182,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 					$savePaths[$fieldName] = array();
 				}
 
-				if ( $savePaths === null ) {
+				if ( $savePaths === NULL ) {
 					$field->beforeSave( $isUpdate, $savePaths );
 				} else {
 					$field->beforeSave( $isUpdate, $savePaths[ $fieldName ] );
@@ -2410,7 +2410,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $savePaths;
 	}
 
-	public function save( $savePaths = NULL ) {
+	public function save( &$savePaths = NULL ) {
+		if(get_called_class() !== 'RCLog'){
+			Log::write('Save ' . get_called_class() . ' ' . $this->getTitle(), $savePaths);
+		}
 		// [beranek_johannes] 06.08.2014: added check for $this->currentlySaving to prevent 
 		// change in skipSave and readOnly while saving to influence saving
 		if ( !$this->currentlySaving ) {
