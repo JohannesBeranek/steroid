@@ -213,7 +213,7 @@ define([
 			me.dndManager = new DndManager({});
 
 			me.STViewPort = new BorderContainer({
-				style: 'width: 100%;height: 36px;overflow:hidden;padding:0;position:relative;',
+				style: 'width: 100%;height: 50px;overflow:hidden;padding:0;position:relative;',
 				gutters: false
 			});
 
