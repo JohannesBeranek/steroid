@@ -2619,6 +2619,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		if ( $this->deleted ) {
 			throw new Exception( 'Trying to access deleted record' );
 		}
+
+		if ( !isset( $this->fields ) ) {
+			throw new LogicException( 'Unable to access field value on cleaned up record');
+		}
 		
 		if ( !isset( $this->fields[ $fieldName ] ) ) {
 			throw new InvalidFieldAccessException( 'Record of class "' . get_called_class() . '" has no field "' . $fieldName . '"' );
