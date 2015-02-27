@@ -251,10 +251,24 @@ class UHBackend implements IURLHandler {
 								if ( ClassFinder::find( array( $recordClass ), true ) ) {
 									// TODO: check if RC implements interface for handleBackendAction
 									// TODO: provide recordClass with a way to interact with backend functions
+									//TODO: remove duplicate code from recordSaveRequest
 									// try to forward request
-									$recordClass::handleBackendAction( $requestType, $this->requestInfo );
+									$originalRecord = $recordClass::handleBackendAction( $this->storage, $requestType, $this->requestInfo );
+
+									$values = $originalRecord->getFormValues( array_keys( $originalRecord->getFormFields( $this->storage ) ) );
+
+									$values = $this->setRecordStati( $recordClass, array( $values ) );
+
+									$actions = $this->getRecordActionsForDomainGroup( $recordClass, $values[ 0 ] );
+
+									$recordClass::modifyActionsForRecordInstance( $values[ 0 ], $actions );
+
+									$this->ajaxSuccess(array(
+										'items' => $values,
+										'actions' => $actions
+									));
 								} else {
-									throw new UnknwonRequestException();
+									throw new UnknownRequestException();
 								}
 							
 							} else {

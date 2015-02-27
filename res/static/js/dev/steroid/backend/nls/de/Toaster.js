@@ -3,6 +3,7 @@ define({
 	createRecord: 'Eintrag wurde erstellt',
 	publishRecord: 'Eintrag wurde veröffentlich',
 	deleteRecord: 'Eintrag wurde gelöscht',
+	duplicateRecord: 'Eintrag wurde dupliziert',
 	hideRecord: 'Eintrag wurde versteckt',
 	revertRecord: 'Eintrag wurde zurückgesetzt',
 	previewRecord: 'Preview wurde erstellt',

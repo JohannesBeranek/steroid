@@ -462,13 +462,63 @@ class RCFile extends Record implements IFileInfo {
 		return $actions;
 	}
 	
-	public static function handleBackendAction( $action, $requestInfo ) {
+	public static function handleBackendAction( RBStorage $storage, $action, $requestInfo ) {
 		switch($action) {
 			case self::ACTION_DUPLICATE:
-				// TODO
+				$primary = $requestInfo->getPostParam( 'recordID' );
+
+				$fileRec = RCFile::get($storage, array(Record::FIELDNAME_PRIMARY => $primary), Record::TRY_TO_LOAD);
+
+				if(!$fileRec->exists()){
+					throw new RecordDoesNotExistException();
+				}
+
+				$data = $fileRec->getData();
+				$fileName = $fileRec->getStoredFileName();
+
+				$newRec = self::create($storage, $data, $fileName, NULL, NULL, User::getCurrent()->record);
+
+				$newRec->domainGroup = $fileRec->domainGroup;
+
+				$fieldsToCopy = self::getEditableFormFields();
+
+				foreach($fieldsToCopy as $fieldName){
+					if($fieldName == 'filename' || $fieldName == 'renderConfig'){
+						continue;
+					}
+
+					$newRec->{$fieldName} = $fileRec->{$fieldName};
+				}
+
+				$newRec->title = $fileRec->title . ' (duplicate)';
+
+				$topics = $fileRec->collect('file:RCFileTopic.topic');
+				$persons = $fileRec->collect( 'file:RCFilePerson.person' );
+				$newTopics = array();
+				$newPersons = array();
+
+				foreach($topics as $topic){
+					$newTopics[] = array(
+						'topic' => $topic
+					);
+				}
+
+				foreach ( $persons as $person ) {
+					$newPersons[ ] = array(
+						'person' => $person
+					);
+				}
+
+				$newRec->{'file:RCFileTopic'} = $newTopics;
+				$newRec->{'file:RCFilePerson'} = $newPersons;
+
+				$newRec->save();
+
+				return $fileRec;
 			break;
 			default:
 				throw new Exception('Unknown action: ' . $action);
+				break;
 		}	
 	}
 }

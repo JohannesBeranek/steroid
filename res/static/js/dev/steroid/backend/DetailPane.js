@@ -803,6 +803,9 @@ define([
 			var formValid = me.formValid;
 
 			switch (action) {
+				case 'duplicateRecord':
+					button.set('disabled', !me.recordCanDuplicate(me.record));
+					break;
 				case 'reset':
 					button.set('disabled', !formDirty || me.readOnly);
 					break;
@@ -863,6 +866,11 @@ define([
 			return !!record.primary;
 		},
 		recordCanPreview: function (record) {
+			var me = this;
+
+			return record && record.primary;
+		},
+		recordCanDuplicate: function (record) {
 			var me = this;
 
 			return record && record.primary;
