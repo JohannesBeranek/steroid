@@ -55,8 +55,12 @@ class RCDomain extends Record {
 			}
 		}
 
+		//exit early so we don't set this back to primary if a new primary domain is being saved
+		if(!self::isSaveOriginRecord($this)){
+			return;
+		}
+
 		//check primary/alias
-		// FIXME: doesnt really work
 		$returnCodeField = $this->getDataTypeFieldName( 'DTSteroidReturnCode' );
 		$domainGroupField = $this->getDataTypeFieldName( 'DTSteroidDomainGroup' );
 
@@ -74,7 +78,8 @@ class RCDomain extends Record {
 
 			$siblingDomains = $this->storage->selectRecords( get_called_class(), $queryStruct );
 
-			if ( $ownReturnCode != DTSteroidReturnCode::RETURN_CODE_PRIMARY ) { // set to primary if this is the only domain or no other domain is primary
+			// set to primary if this is the only domain or no other domain is primary
+			if ( $ownReturnCode != DTSteroidReturnCode::RETURN_CODE_PRIMARY ) {
 				if ( empty( $siblingDomains ) ) {
 					$this->{$returnCodeField} = DTSteroidReturnCode::RETURN_CODE_PRIMARY;
 				} else {
@@ -92,7 +97,8 @@ class RCDomain extends Record {
 				}
 			}
 
-			if ( !empty( $siblingDomains ) && $ownReturnCode == DTSteroidReturnCode::RETURN_CODE_PRIMARY ) { // set current primary to alias if this is now primary
+			// set current primary to alias if this is now primary
+			if ( !empty( $siblingDomains ) && $ownReturnCode == DTSteroidReturnCode::RETURN_CODE_PRIMARY ) {
 				foreach ( $siblingDomains as $domain ) {
 					if ( $domain->{$returnCodeField} == DTSteroidReturnCode::RETURN_CODE_PRIMARY ) {
 						$domain->{$returnCodeField} = DTSteroidReturnCode::RETURN_CODE_ALIAS;

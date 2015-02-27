@@ -2534,6 +2534,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $this;
 	}
 
+	final public static function isSaveOriginRecord(IRecord $record){
+		return self::$saveOriginRecord === null || self::$saveOriginRecord === $record;
+	}
+
 	protected function _delete() {
 		$this->storage->deleteRecord( $this );
 
