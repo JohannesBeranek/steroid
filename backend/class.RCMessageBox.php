@@ -72,8 +72,12 @@ class RCMessageBox extends Record {
 		return User::getUsersByDomainGroup( $this->storage, $this->domainGroup );
 	}
 
-	protected function afterSave( $isUpdate, $isFirst, array $saveResult ) {
-		if ( !$isUpdate && $isFirst ) {
+	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array &$savePaths = NULL ) {
+		$conf = Config::get( 'localconf' );
+
+		$modeConf = $conf->getSection( 'mode' );
+
+		if ( $modeConf[ 'installation' ] === 'production' && !$isUpdate && $isFirst ) {
 			$users = $this->getReceivers();
 
 			$emailProviders = ClassFinder::getAll( ClassFinder::CLASSTYPE_EMAIL_PROVIDER, true );
@@ -88,11 +92,8 @@ class RCMessageBox extends Record {
 				$providerArr = reset( $emailProviders );
 				$provider = $providerArr[ 'className' ];
 
-				$conf = Config::get( 'localconf' );
 				$emailConf = $conf->getSection( 'email' );
 				$from = $emailConf[ 'systemFromAddress' ];
-
-				$modeConf = $conf->getSection( 'mode' );
 
 				foreach ( $users as $user ) {
 					$mtranetUsers = $user->{'user:RCMtranetUser'};
@@ -130,15 +131,11 @@ class RCMessageBox extends Record {
 
 					$title = !empty( $title ) ? NLS::replaceObjectNames( $title, $user->backendPreference->language ) : '';
 
-					$response = $provider::send( $to, $from, $title, NULL, $text );
-
-					if ( $modeConf[ 'installation' ] === 'development' ) {
-						break;
-					}
+					$provider::send( $to, $from, $title, NULL, $text ); // we ignore the response here as there isn't much we can do in case of an error anyway
 				}
 			}
 		}
 
-		parent::afterSave( $isUpdate, $isFirst, $saveResult );
+		parent::afterSave( $isUpdate, $isFirst, $saveResult, $savePaths );
 	}
 }

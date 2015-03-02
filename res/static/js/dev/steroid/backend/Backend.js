@@ -213,7 +213,7 @@ define([
 			me.dndManager = new DndManager({});
 
 			me.STViewPort = new BorderContainer({
-				style: 'width: 100%;height: 36px;overflow:hidden;padding:0;position:relative;',
+				style: 'width: 100%;height: 50px;overflow:hidden;padding:0;position:relative;',
 				gutters: false
 			});
 
@@ -540,10 +540,13 @@ define([
 
 			if (me.contentTypeMenus) {
 				for (type in me.contentTypeMenus) {
-					me.contentTypeMenus[type].destroyRecursive();
 					me.STMenuBar.removeChild(me.contentTypeMenus[type]);
+					me.contentTypeMenus[type].popup.destroyRecursive();
+					me.contentTypeMenus[type].destroyRecursive();
 				}
 			}
+
+			me.STMenuBar.selected = null; //fixes menuBar to stop working after domainGroup switch
 
 			me.contentTypeMenus = {};
 
@@ -721,9 +724,9 @@ define([
 		domainGroupSwitched: function (response) {
 			var me = this;
 
-			me.setConf(response.data);
-
 			me.clearInitListeners();
+
+			me.setConf(response.data);
 
 			me.addInitListener(function () {
 				me.setMenuBarItemsByUserConf();

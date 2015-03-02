@@ -526,6 +526,8 @@ define([
 								}
 
 								me.setUpActionButtons(response.actions || {});
+							} else {
+								me.backend.showError(response)
 							}
 						});
 
@@ -549,6 +551,8 @@ define([
 							}
 
 							me.setUpActionButtons(response.actions || {});
+						} else {
+							me.backend.showError(response)
 						}
 					});
 
@@ -649,6 +653,24 @@ define([
 			if ((action == 'publishRecord' || action == 'delayPublish') && !!me.form.getDirtyNess() && !doAction) {
 				previousActionDef = me.saveRecord(true);
 				hasPreviousAction = true;
+			}
+
+			if(action == 'revertRecord'){
+				var dialog = new YesNoDialog({
+					messageType: 'revertRecord',
+					onYes: function () {
+						dialog.hide();
+						me.backend.STServerComm.sendAjax(conf); // FIXME: use deferred?
+					},
+					onNo: function () {
+						dialog.hide();
+						me.backend.hideStandBy();
+					}
+				});
+
+				dialog.show();
+
+				return;
 			}
 
 			dojo.when(previousActionDef, function (response) {
@@ -781,6 +803,9 @@ define([
 			var formValid = me.formValid;
 
 			switch (action) {
+				case 'duplicateRecord':
+					button.set('disabled', !me.recordCanDuplicate(me.record));
+					break;
 				case 'reset':
 					button.set('disabled', !formDirty || me.readOnly);
 					break;
@@ -841,6 +866,11 @@ define([
 			return !!record.primary;
 		},
 		recordCanPreview: function (record) {
+			var me = this;
+
+			return record && record.primary;
+		},
+		recordCanDuplicate: function (record) {
 			var me = this;
 
 			return record && record.primary;

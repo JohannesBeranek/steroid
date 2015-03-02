@@ -125,6 +125,8 @@ define([
 		doInsert: function (parent) {
 			var me = this;
 
+			me.backend.doStandBy();
+
 			me.backend.STServerComm.sendAjax({
 				data: {
 					requestType: 'copyPage',
@@ -132,11 +134,15 @@ define([
 					parent: parent
 				},
 				success: function (response) {
+					me.backend.hideStandBy();
+
 					if (response && response.success) {
 						me.copySuccess(response);
 					}
 				},
 				error: function (response) {
+					me.backend.hideStandBy();
+
 					if (response.error === 'RecordDoesNotExistException') {
 						me.remove();
 					}

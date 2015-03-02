@@ -206,7 +206,8 @@ class DTSteroidPage extends BaseDTRecordReference {
 		$this->value->parent = $parentPage;
 	}
 
-	public function beforeSave( $isUpdate ) {
+	// FIXME: move logic to setValue listener
+	public function beforeSave( $isUpdate, array &$savePaths = NULL ) {
 		$this->value = $this->record->{$this->fieldName};
 
 		if ( $isUpdate ) {
@@ -221,7 +222,7 @@ class DTSteroidPage extends BaseDTRecordReference {
 
 		$this->setParentPage();
 
-		parent::beforeSave( $isUpdate );
+		parent::beforeSave( $isUpdate, $savePaths );
 	}
 
 	protected static function getRequiredPermissions( $fieldDef, $fieldName, $currentForeignPerms, $permissions, $owningRecordClass ) {

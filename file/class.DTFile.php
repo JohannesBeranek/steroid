@@ -42,7 +42,7 @@ class DTFile extends BaseDTString {
 		unset($this->uploadedFile);
 	}
 
-	public function setValue( $data = NULL, $loaded = false ) {
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
 
 		if (is_array($data)) { // can not be $loaded
 			if (isset($data['filename']) && !isset($data['tmp_name'])) {
@@ -74,10 +74,10 @@ class DTFile extends BaseDTString {
 			}
 		}
 		
-		parent::setValue( $data, $loaded );
+		parent::setValue( $data, $loaded, $path, $dirtyTracking );
 	}
 
-	public function beforeSave( $isUpdate ) {
+	public function beforeSave( $isUpdate, array &$savePaths = NULL ) {
 		if ($this->uploadedFile) {
 			$this->storage->uploadFile($this->uploadedFile);
 				

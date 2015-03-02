@@ -90,7 +90,7 @@ interface IRecord {
 	 *
 	 * @return mixed
 	 */
-	public function save();
+	public function save( &$savePaths = NULL );
 
 
 	/**

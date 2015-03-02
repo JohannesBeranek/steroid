@@ -307,6 +307,10 @@ label.STInvalid, .STWidget.STInvalid > .dijitTitlePaneTitle > .dijitTitlePaneTit
 	margin: 0 0 10px 10px;
 }
 
+.RCSingleImage .STFileName {
+	width: 100%;
+}
+
 .dgrid .STFileName {
 	margin: 0;
 }
@@ -532,6 +536,12 @@ label.STInvalid, .STWidget.STInvalid > .dijitTitlePaneTitle > .dijitTitlePaneTit
 
 .STMenuItemContainer .STMenuItemContainer {
 	width: 100%;
+	position: relative;
+	left: 50px;
+}
+
+.STMenuItemContainer, .STMenuItem {
+	overflow: visible;
 }
 
 .STMenuItemContainer .STMenuItem {
@@ -573,6 +583,11 @@ label.STInvalid, .STWidget.STInvalid > .dijitTitlePaneTitle > .dijitTitlePaneTit
 .STDropContainer {
 	width: auto !important;
 	height: auto !important;
+	max-width: 100%;
+}
+
+.STDropContainer > div {
+	max-width: 100%;
 }
 
 .STMenuItem .STDropContainer {
@@ -1239,3 +1254,25 @@ body.STDialogOpen #uiContainer {
 	background-color: #FFFFFF;
 }
 
+.RCTemplate .STDropContainer {
+	border: 1px dashed #5AAE60;
+	min-height: 50px;
+	overflow: hidden;
+}
+
+.RCTemplate .STDropContainer .STDropContainer {
+	border: none;
+	min-height: 0px;
+}
+
+.RCTemplate .panelFixed .STDropContainer {
+	margin-left: 157px;
+}
+
+.RCTemplate .panelFixed .STDropContainer .STDropContainer {
+	margin-left: 0px;
+}
+
+body .redactor_box_fullscreen {
+	z-index: 100 !important;
+}

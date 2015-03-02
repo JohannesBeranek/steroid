@@ -191,7 +191,11 @@ define({ root: ({
 	},
 	RCUser: {
 		_title: 'Name',
-		username: 'CRM ID'
+		username: 'CRM ID',
+		gender_values: {
+			m: 'Male',
+			f: 'Female'
+		}
 	},
 	RCUrl: {
 		url: 'Url',
@@ -221,7 +225,9 @@ define({ root: ({
 			200: 'Primary',
 			418: 'Alias'
 		},
-		noSSL: 'Disable SSL encryption'
+		noSSL: 'Disable SSL encryption',
+		redirectToUrl: 'Redirect to URL',
+		redirectToPage: 'Redirect to Page'
 	},
 	RCLanguage: {
 		iso639: 'ISO-639 code',
@@ -281,7 +287,8 @@ define({ root: ({
 		url: 'External url',
 		showInMenu: 'Show in menu',
 		subItemsFromPage: 'Display child pages in menu',
-		pagesFromRecordClass: 'Display other page types as children'
+		pagesFromRecordClass: 'Display other page types as children',
+		alignRight: 'Align right'
 	}
 }),
 	'de': true

@@ -53,9 +53,6 @@ abstract class ElementRecord extends Record implements IHandleArea {
 		$fieldDefinitions[ 'ctime' ] = DTCTime::getFieldDefinition();
 		$fieldDefinitions[ 'mtime' ] = DTMTime::getFieldDefinition();
 
-		// FIXME: shouldn't be needed
-		require_once STROOT . '/datatype/class.DTDynamicForeignReference.php';
-
 		$fieldDefinitions[ 'element:RCElementInArea' ] = DTDynamicForeignReference::getFieldDefinition( 'class', true ); // TODO: unhardcode 'class'?
 	}
 
@@ -194,5 +191,54 @@ abstract class ElementRecord extends Record implements IHandleArea {
 		}
 
 		return $pages;
+	}
+
+	public function duplicate(){
+		$values = array();
+		$fields = $this->getOwnFieldDefinitions();
+
+		foreach($fields as $fieldName => $fieldDef){
+			if(in_array($fieldDef['dataType'], array('DTSteroidPrimary', 'DTSteroidID', 'DTMTime', 'DTCTime', 'DTPubStartDateTime', 'DTPubEndDateTime'))){
+				$values[$fieldName] = NULL;
+			} else {
+				$values[$fieldName] = $this->{$fieldName};
+			}
+		}
+
+		$class = get_called_class();
+
+		$newElement = $class::get( $this->storage, $values, false );
+
+		$formFields = $this->getFormFields($this->storage);
+
+		foreach($formFields as $fieldName => $formField){
+			if(is_subclass_of($formField['dataType'], 'BaseDTForeignReference')){
+				$foreignFieldName = $this->fields[ $fieldName ]->getForeignFieldName();
+				$foreignRecordClass = $this->fields[ $fieldName ]->getRecordClass();
+
+				$foreignRecs = $this->{$fieldName};
+				$foreignRecValues = array();
+
+				foreach($foreignRecs as $foreignRec){
+					$values = $foreignRec->getValues();
+					$newValues = array();
+
+					foreach($values as $colName => $value){
+						$newValues[str_replace('_primary', '', $colName)] = $value;
+					}
+
+					$newValues[$foreignFieldName] = $newElement;
+					$foreignRecValues[] = $foreignRecordClass::get($this->storage, $newValues, false);
+				}
+
+				$newElement->{$fieldName} = $foreignRecValues;
+			}
+		}
+
+		return $newElement;
+	}
+
+	public function getRewrites(){
+		return NULL;
 	}
 }

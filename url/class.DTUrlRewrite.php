@@ -31,7 +31,9 @@ class DTUrlRewrite extends BaseDTRecordReference {
 	private static function getNewUrl( IRBStorage $storage, RCPage $page, $prefix = NULL, $suffix = NULL, $liveState = NULL ) {		
 		$ct = 0;
 		$urlLast = ( $prefix === NULL ? '' : $prefix ) . ( $suffix === NULL ? '' : $suffix );
-		$urlBase = rtrim( $page->getUrlForPage( $page, false ), '/' ) . '/';
+		
+		// trim + adding slash is needed so root page url works the same as others
+		$urlBase = rtrim( $page->getUrlForPage( $page, false ), '/' ) . '/'; 
 		
 		$domainGroup = $page->domainGroup;
 		
@@ -50,6 +52,8 @@ class DTUrlRewrite extends BaseDTRecordReference {
 
 			$newUrl = $urlBase . $urlLast;
 
+			// TODO: cache query
+			// TODO: also use already existing records (maybe via record index?)
 			$urlRow = $storage->selectFirst( 'RCUrl', array(
 				'fields' => array('primary'),
 				'where' => array(
@@ -98,9 +102,7 @@ class DTUrlRewrite extends BaseDTRecordReference {
 			}
 		} 
 		
-		if (!isset($url)) {
-			// should not happen, but better be safe than sorry
-			
+		if (!isset($url)) {			
 			// try to fetch rewriteUrlRecord for other live status 
 			// to check if it has an url record attached
 			
@@ -147,12 +149,23 @@ class DTUrlRewrite extends BaseDTRecordReference {
 								if ($foreignRewrites) {
 									$foreignRewrite = reset($foreignRewrites);
 									
-									if ($rewriteUrlRecordReturn === $foreignRewrite) {
+									if (count($foreignRewrites) > 1) {
+										// should not happen
+										throw new Exception();
+									} else if ($rewriteUrlRecordReturn === $foreignRewrite) {
 										// should not happen
 										throw new Exception();
 									} else {
 										// other rewrite record is already connected to url
 										// this should not happen
+										
+										// try to safe the situation by deleting the other
+										// record, it should be dynamically recreated anyway
+										Log::write('Need to reconnect already connected rewrite record:', $foreignRewrite->rewrite, 'for url:', $urlRecord->url);
+										
+						
+										// TODO: connect foreignRewrite to different url
+						
 										throw new Exception();
 									}
 								} else {

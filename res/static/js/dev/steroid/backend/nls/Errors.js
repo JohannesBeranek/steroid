@@ -50,7 +50,7 @@ define({ root: ({
 	},
 	AccessDeniedException: {
 		title: 'Access denied',
-		message: 'You are not allowed to access "$rc" in current subweb'
+		message: 'You are not allowed to access $rc "$record" in current subweb'
 	},
 	ActionDeniedException: {
 		title: 'Action denied',
@@ -112,6 +112,10 @@ define({ root: ({
 		title: 'Unsaved changes',
 		message: 'There are unsaved changes, do you really want to continue?'
 	},
+	revertRecord: {
+		title: 'Revert to live',
+		message: 'Any changes you have made will be overwritten by the live version. Continue?'
+	},
 	affected: {
 		hide: 'References that will be hidden: ',
 		'delete': 'References that will be deleted: ',
@@ -122,6 +126,10 @@ define({ root: ({
 	domainGroupModified: {
 		title: 'Domain group changed',
 		message: 'You have created or modified a domain group. Would you like to switch to it?'
+	},
+	DomainTakenException: {
+		title: 'Domain taken',
+		message: 'This domain is already taken by $rc $record.'
 	},
 	BtnOK: 'OK',
 	BtnMore: 'Details',

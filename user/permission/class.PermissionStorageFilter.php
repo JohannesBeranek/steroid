@@ -13,10 +13,12 @@ require_once STROOT . '/user/class.DTSteroidCreator.php';
  */
 class PermissionStorageFilter implements IRBStorageFilter {
 	protected $user;
+	protected $primaryRecordClass;
 	protected $disable;
 	
-	public function __construct( User $user ) {
+	public function __construct( User $user, $primaryRecordClass ) {
 		$this->user = $user;
+		$this->primaryRecordClass = $primaryRecordClass;
 
 		$this->getPerms();
 	}
@@ -33,8 +35,9 @@ class PermissionStorageFilter implements IRBStorageFilter {
 	public function injectSelectFilter( $rc, &$conf, &$additionalJoinConf ) {
 		if ($this->disable) return; // disable is only used internally
 		
-		// exclude permission related stuff from select filter, so we don't get problems just by checking permissions
-		if ($rc === 'RCPermission' || $rc === 'RCDomainGroupLanguagePermissionUser' || $rc === 'RCPermissionEntity' || $rc === 'RCPermissionPermissionEntity') return;
+		// limit select filtering to primaryRecordClass - may be false, which means completely disabling select filter
+		// in case of null, checks all record classes
+		if ($rc !== $this->primaryRecordClass && $this->primaryRecordClass !== NULL) return;
 		
 		$perms = $this->getPerms();
 		
@@ -63,7 +66,8 @@ class PermissionStorageFilter implements IRBStorageFilter {
 		
 		if (!array_key_exists($rc, $perms) || !$perms[$rc]['mayWrite']) {
 			throw new AccessDeniedException( 'Access denied for recordClass "' . $rc . '" when trying to save record with values ' . Debug::getStringRepresentation($record->getValues()), array(
-				'rc' => $rc
+				'rc' => $rc,
+				'record' => $record->getTitle()
 			));
 		}		
 	}

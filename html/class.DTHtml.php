@@ -49,11 +49,11 @@ class DTHtml extends BaseDTText {
 		);
 	}
 
-	public function setValue( $data = NULL, $loaded = false ) {
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
 //		if (!$loaded && ($this->config[ 'allowed' ] !== true  &&  !HtmlUtil::isValid( $data, $this->config[ 'allowed' ] ) ) ) {
 //			throw new InvalidValueForFieldException( 'Invalid data, message: ' . HtmlUtil::getLastInvalidMessage() );
 //		}
 
-		parent::setValue( $data, $loaded );
+		parent::setValue( $data, $loaded, $path, $dirtyTracking );
 	}
 }

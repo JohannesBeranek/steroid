@@ -182,7 +182,11 @@ define({
 	},
 	RCUser: {
 		_title: 'Name',
-		username: 'CRM ID'
+		username: 'CRM ID',
+		gender_values: {
+			m: 'Männlich',
+			f: 'Weiblich'
+		}
 	},
 	RCUrl: {
 		url: 'Url',
@@ -231,12 +235,13 @@ define({
 		returnCode_values: {
 			200: 'Primär',
 			418: 'Alias'
-		}
+		},
+		redirectToUrl: 'Weiterleiten auf URL',
+		redirectToPage: 'Weiterleiten auf Seite'
 	},
 	RCDomainGroup: {
 		favicon: 'Favicon',
-		notFoundPage: '404 Seite',
-		mayChangeTopicNodeHeadlines: 'Darf Überschriften auf Knotenseiten verändern'
+		notFoundPage: '404 Seite'
 	},
 	RCPermissionEntity: {
 		mayWrite: 'Schreibrechte',
@@ -279,6 +284,7 @@ define({
 		url: 'Externe Url',
 		showInMenu: 'Im Menü anzeigen',
 		subItemsFromPage: 'Unterseiten der ausgewählten Seite anzeigen',
-		pagesFromRecordClass: 'Untermenü aus folgenden Inhaltstypen generieren'
+		pagesFromRecordClass: 'Untermenü aus folgenden Inhaltstypen generieren',
+		alignRight: 'Rechts ausrichten'
 	}
 });

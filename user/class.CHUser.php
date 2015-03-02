@@ -116,6 +116,17 @@ class CHUser extends CLIHandler {
 
 				echo 'User with primary ' . $userRecord->{Record::FIELDNAME_PRIMARY} . ' should now have all permissions for backend.' . "\n";
 				break;
+			case 'giveperm':
+				if (count($params) !== 3) {
+					$this->notifyError( $this->getUsageText( $called, $command, $params ) );
+					return EXIT_FAILURE;
+				}
+				
+				$userRecord = $this->givePerm($params[1], $params[2]);
+
+				echo 'User with primary ' . $userRecord->{Record::FIELDNAME_PRIMARY} . ' should now have perm on all domain groups.' . "\n";
+				break;
+				
 			default:
 				$this->notifyError( $this->getUsageText( $called, $command, $params ) );
 				return EXIT_FAILURE;
@@ -179,8 +190,81 @@ class CHUser extends CLIHandler {
 		}
 	}
 
-	public function makeDev($userPrimary = NULL){
-		if($userPrimary === NULL){
+	final public function givePerm($permissionPrimary, $userPrimary) {
+		$tx = $this->storage->startTransaction();
+
+		try {
+			// check if we already have a special dev permission
+			$devPerm = $this->getPermRecord($permissionPrimary);
+
+			if ( $devPerm === null ) {
+				throw new LogicException( 'Unable to find perm with given primary.' );
+			}
+
+			// fetch user
+			$userRecord = RCUser::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $userPrimary ) );
+
+			// connect permission to user
+			$userPermissions = $userRecord->{'user:RCDomainGroupLanguagePermissionUser'};
+			$devDomainGroups = array();
+			$devLanguages = array();
+
+			foreach ( $userPermissions as $userPermission ) {
+				if ( $userPermission->permission === $devPerm ) {
+					$devDomainGroups[ ] = $userPermission->domainGroup;
+					$devLanguages[ ] = $userPermission->language;
+				}
+			}
+
+			$allDomainGroups = $this->storage->selectRecords( 'RCDomainGroup' );
+			$allLanguages = $this->storage->selectRecords( 'RCLanguage', array( 'where' => array( RCLanguage::getDataTypeFieldName( 'DTSteroidLive' ), '=', array( DTSteroidLive::LIVE_STATUS_PREVIEW ) ) ) );
+
+			$addedDomainGroups = 0;
+			$addedLanguages = 0;
+
+			foreach ( $allDomainGroups as $dg ) {
+				foreach ( $allLanguages as $lang ) {
+					if ( !in_array( $dg, $devDomainGroups, true ) ) {
+						$userPermission = RCDomainGroupLanguagePermissionUser::get( $this->storage, array( 'domainGroup' => $dg, 'user' => $userRecord, 'permission' => $devPerm, 'language' => $lang ), false );
+						$userPermission->save();
+
+						$userPermissions[ ] = $userPermission;
+						$addedDomainGroups++;
+					}
+
+					if ( !in_array( $lang, $devLanguages, true ) ) {
+						$userPermission = RCDomainGroupLanguagePermissionUser::get( $this->storage, array( 'domainGroup' => $dg, 'user' => $userRecord, 'permission' => $devPerm, 'language' => $lang ), false );
+						$userPermission->save();
+
+						$userPermissions[ ] = $userPermission;
+						$addedLanguages++;
+					}
+				}
+			}
+
+			if ( $addedDomainGroups ) {
+				echo 'Added ' . $addedDomainGroups . ' domaingroups to user' . "\n";
+			}
+
+			if ( $addedLanguages ) {
+				echo 'Added ' . $addedLanguages . ' languages to user' . "\n";
+			}
+
+			// allow user to backend
+			// $userRecord->is_backendAllowed = 1;
+			$userRecord->save();
+
+			$tx->commit();
+		} catch ( Exception $e ) {
+			$tx->rollback();
+			throw $e;
+		}
+
+		return $userRecord;
+	}
+
+	public function makeDev($userPrimary){
+		if ($userPrimary === NULL){
 			throw new Exception('userPrimary must be set');
 		}
 
@@ -259,6 +343,10 @@ class CHUser extends CLIHandler {
 	protected function getDevPermRecord() {
 		return $this->storage->selectFirstRecord( 'RCPermission', array( 'where' => array( 'title', '=', array( User::PERMISSION_TITLE_DEV ) ) ) );
 	}
+	
+	protected function getPermRecord( $permissionPrimary ) {
+		return $this->storage->selectFirstRecord( 'RCPermission', array( 'where' => array( 'primary', '=', array( $permissionPrimary ))));
+	}
 
 	public function getUsageText( $called, $command, array $params ) {
 		return $this->formatUsageArguments( array(
@@ -269,7 +357,8 @@ class CHUser extends CLIHandler {
 				'available methods:' => array(
 					'list' => 'list available users by their username + primary',
 					'show username' => 'list data of all user with given username',
-					'makedev primary' => 'give user with given primary dev permission',
+					'makedev USERPRIMARY' => 'give user with given primary dev permission',
+					'giveperm PERMPRIMARY USERPRIMARY' => 'give user permission on all domain groups',
 					'syncdevperm' => 'syncs dev permission',
 					'syncperm' => 'syncs all permissions'
 				)

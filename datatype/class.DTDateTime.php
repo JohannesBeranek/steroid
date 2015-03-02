@@ -22,14 +22,14 @@ class DTDateTime extends BaseDTDateTime {
 		);
 	}
 
-	public function setValue( $data = NULL, $loaded = false ) {
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
 		if ($data === '') {
 			$data = NULL;
 		} elseif ( ctype_digit( $data ) || is_int( $data ) || is_float( $data ) ) {
 			$data = date( self::FORMAT_SAVE, intval( $data ) );
 		}
 		
-		parent::setValue( $data, $loaded );
+		parent::setValue( $data, $loaded, $path, $dirtyTracking );
 	}
 
 	public static function getDefaultValue( IStorage $storage, $fieldName = NULL, array $fieldConf = NULL, array $extraParams = NULL ) {

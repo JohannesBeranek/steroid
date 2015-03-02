@@ -35,7 +35,7 @@ class RCDomainGroup extends Record {
 		);
 	}
 
-	protected function afterSave( $isUpdate, $isFirst, array $saveResult ) {
+	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array &$savePaths = NULL ) {
 		if ( !$isUpdate && $isFirst ) {
 			if ( $this->parent ) {
 				$this->copyPermissionsFromParent();
@@ -45,7 +45,7 @@ class RCDomainGroup extends Record {
 		}
 
 		// needs to be called after adding perms as foreign reference, so they get saved as well
-		parent::afterSave( $isUpdate, $isFirst, $saveResult );
+		parent::afterSave( $isUpdate, $isFirst, $saveResult, $savePaths );
 	}
 
 	protected function copyPermissionsForUser( $user ) {

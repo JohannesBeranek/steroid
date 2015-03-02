@@ -34,6 +34,8 @@ require_once STROOT . '/user/class.User.php';
 class RCFile extends Record implements IFileInfo {
 	const ALLOW_CREATE_IN_SELECTION = 1;
 	const BACKEND_TYPE = Record::BACKEND_TYPE_CONTENT;
+	
+	const ACTION_DUPLICATE = 'duplicateRecord';
 
 	private static $gfx;
 
@@ -136,7 +138,7 @@ class RCFile extends Record implements IFileInfo {
 		return $rec;
 	}
 
-	protected function beforeSave( $isUpdate, $isFirst ) {
+	protected function beforeSave( $isUpdate, $isFirst, array &$savePaths = NULL ) {
 		if ( $isFirst ) {
 			if ( isset( $this->title ) && trim( $this->title ) == '' && isset( $this->downloadFilename ) ) {
 				$this->title = $this->downloadFilename;
@@ -146,7 +148,7 @@ class RCFile extends Record implements IFileInfo {
 				$filenameField = $this->beforeSaveFields[ 'filename' ];
 				unset( $this->beforeSaveFields[ 'filename' ] );
 
-				$filenameField->beforeSave( $isUpdate );
+				$filenameField->beforeSave( $isUpdate, $savePaths );
 
 				$fullFileName = $this->getFullFilename();
 				$this->storage->finishDownload( $fullFileName );
@@ -158,7 +160,7 @@ class RCFile extends Record implements IFileInfo {
 			}
 		}
 
-		parent::beforeSave( $isUpdate, $isFirst );
+		parent::beforeSave( $isUpdate, $isFirst, $savePaths );
 	}
 
 	protected static function getFileTypeRecordFromMimeType( $storage, $mimeType ) {
@@ -175,7 +177,11 @@ class RCFile extends Record implements IFileInfo {
 
 	protected function _delete() {
 		$this->load( array( 'filename' ) ); // make sure filename is loaded so it can later on be accessed for unlinking
-		$this->storage->unlinkFile( $this );
+
+		$virtualFile = new VirtualFile(NULL, NULL, $this->filename);
+		$virtualFile->setStoredFilename($this->getStoredFilename());
+
+		$this->storage->unlinkFile( $virtualFile );
 
 		parent::_delete();
 	}
@@ -240,10 +246,6 @@ class RCFile extends Record implements IFileInfo {
 			$extension = pathinfo( $this->downloadFilename, PATHINFO_EXTENSION );
 		}
 
-		if ( !isset( $downloadFilenameBase ) ) {
-			$downloadFilenameBase = basename( $this->filename );
-		}
-
 		if ( !isset( $extension ) || $extension === '' ) {
 			$extension = pathinfo( $this->filename, PATHINFO_EXTENSION );
 		}
@@ -251,6 +253,10 @@ class RCFile extends Record implements IFileInfo {
 		if ( $this->title !== NULL && trim( $this->title ) !== '' ) {
 			$downloadFilename = $this->title;
 		} else {
+			if ( !isset( $downloadFilenameBase ) ) {
+				$downloadFilenameBase = basename( $this->filename );
+			}
+			
 			$downloadFilename = pathinfo( $downloadFilenameBase, PATHINFO_FILENAME ); // PATHINFO_FILENAME : PHP >= 5.2.0
 		}
 
@@ -301,8 +307,19 @@ class RCFile extends Record implements IFileInfo {
 		// as per request (some mail clients don't handle spaces and the like well)
 		// $filename = rawurlencode($filename);
 
-		$fn = pathinfo( $filename, PATHINFO_FILENAME );
+		if (!is_string($filename)) {
+			throw new Exception('Got non-string for filename');
+		}
+		
 		$ext = pathinfo( $filename, PATHINFO_EXTENSION );
+		
+		// do not use PATHINFO_BASENAME here, as it will make trouble with 
+		// filenames which have '/' in them (may happen if nice download url is taken from file record title for example)
+		if ($ext) {
+			$fn = substr($filename, 0, - strlen($ext) - 1);
+		} else {
+			$fn = $filename;
+		}
 
 		$fn = UrlUtil::generateUrlPartFromString( $fn );
 
@@ -433,5 +450,75 @@ class RCFile extends Record implements IFileInfo {
 				'restrictToOwn' => 0
 			);
 		}
+	}
+	
+	public static function getAvailableActions( $mayWrite = false, $mayPublish = false, $mayHide = false, $mayDelete = false, $mayCreate = false ) {
+		$actions = parent::getAvailableActions( $mayWrite, $mayPublish, $mayHide, $mayDelete, $mayCreate );
+
+		if ($mayCreate) {
+			$actions[ ] = self::ACTION_DUPLICATE;
+		}
+		
+		return $actions;
+	}
+	
+	public static function handleBackendAction( RBStorage $storage, $action, $requestInfo ) {
+		switch($action) {
+			case self::ACTION_DUPLICATE:
+				$primary = $requestInfo->getPostParam( 'recordID' );
+
+				$fileRec = RCFile::get($storage, array(Record::FIELDNAME_PRIMARY => $primary), Record::TRY_TO_LOAD);
+
+				if(!$fileRec->exists()){
+					throw new RecordDoesNotExistException();
+				}
+
+				$data = $fileRec->getData();
+				$fileName = $fileRec->getStoredFileName();
+
+				$newRec = self::create($storage, $data, $fileName, NULL, NULL, User::getCurrent()->record);
+
+				$newRec->domainGroup = $fileRec->domainGroup;
+
+				$fieldsToCopy = self::getEditableFormFields();
+
+				foreach($fieldsToCopy as $fieldName){
+					if($fieldName == 'filename' || $fieldName == 'renderConfig'){
+						continue;
+					}
+
+					$newRec->{$fieldName} = $fileRec->{$fieldName};
+				}
+
+				$newRec->title = $fileRec->title . ' (duplicate)';
+
+				$topics = $fileRec->collect('file:RCFileTopic.topic');
+				$persons = $fileRec->collect( 'file:RCFilePerson.person' );
+				$newTopics = array();
+				$newPersons = array();
+
+				foreach($topics as $topic){
+					$newTopics[] = array(
+						'topic' => $topic
+					);
+				}
+
+				foreach ( $persons as $person ) {
+					$newPersons[ ] = array(
+						'person' => $person
+					);
+				}
+
+				$newRec->{'file:RCFileTopic'} = $newTopics;
+				$newRec->{'file:RCFilePerson'} = $newPersons;
+
+				$newRec->save();
+
+				return $fileRec;
+			break;
+			default:
+				throw new Exception('Unknown action: ' . $action);
+				break;
+		}	
 	}
 }

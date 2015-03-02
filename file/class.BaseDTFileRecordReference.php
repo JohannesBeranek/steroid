@@ -10,12 +10,12 @@ require_once STROOT . '/storage/record/class.Record.php';
  * @package steroid\datatype
  */
 class BaseDTFileRecordReference extends BaseDTRecordReference {
-	protected function _setValue( $data, $loaded, $skipRaw = false, $skipReal = false ) {		
+	protected function _setValue( $data, $loaded, $skipRaw = false, $skipReal = false, $path = '', array &$dirtyTracking = NULL ) {		
 		if ( is_array( $data ) && array_key_exists( 'tmp_name', $data ) ) {
 			$data = RCFile::get( $this->storage, array( 'filename' => $data ), false );
 		}
 
-		parent::_setValue( $data, $loaded, $skipRaw, $skipReal );
+		parent::_setValue( $data, $loaded, $skipRaw, $skipReal, $path, $dirtyTracking );
 		
 		
 		if ((isset($this->config['allowedTypes']) || isset($this->config['allowedCategories'])) && isset($this->value) && ($filetype = $this->value->filetype) && !$loaded) {

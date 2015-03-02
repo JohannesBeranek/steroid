@@ -192,7 +192,7 @@ class RCPage extends Record {
 	 * @return string
 	 */
 	public function getUrlForPage( $page = NULL, $params = NULL, $forceAbsolute = NULL, $cancelParams = NULL ) {
-		if ( is_string( $page ) && $page !== 'http' && $page !== 'https' ) {
+		if ( is_string( $page ) && $page !== self::ABSOLUTE_HTTP && $page !== self::ABSOLUTE_HTTPS && $page !== self::ABSOLUTE_NO_PROTOCOL ) {
 			$urlParts = st_parse_url( $page );
 
 			$url = '';
@@ -270,7 +270,7 @@ class RCPage extends Record {
 			if ( !empty( $urlParts[ 'fragment' ] ) ) $url .= '#' . $urlParts[ 'fragment' ];
 
 		} else {
-			// $page is not string or $page === 'http' or $page === 'https'
+			// $page is not string or $page === 'http' or $page === 'https' or $page === ''
 			
 			if ( $page === NULL ) {
 				$page = $this;
@@ -279,7 +279,7 @@ class RCPage extends Record {
 				$forceAbsolute = $params;
 				$params = $page;
 				$page = $this;
-			} else if ( is_bool( $page ) || is_string( $page ) ) { // $page might be 'http' or 'https'
+			} else if ( is_bool( $page ) || is_string( $page ) ) { // $page might be 'http' or 'https' or ''
 				$forceAbsolute = $page;
 				$page = $this;
 			}
@@ -313,7 +313,9 @@ class RCPage extends Record {
 
 			$url = '';
 
-			if ( ( $urlRecord->domainGroup !== $this->domainGroup ) || $forceAbsolute ) {
+
+			if ( ( $urlRecord->domainGroup !== $this->domainGroup ) || $forceAbsolute || $forceAbsolute === self::ABSOLUTE_NO_PROTOCOL ) {
+				
 				$domains = $urlRecord->domainGroup->{'domainGroup:RCDomain'};
 
 				foreach ( $domains as $domain ) {
@@ -542,8 +544,8 @@ class RCPage extends Record {
 		return $actions;
 	}
 
-	public function beforeSave( $isUpdate, $isFirst ) {
-		parent::beforeSave( $isUpdate, $isFirst );
+	public function beforeSave( $isUpdate, $isFirst, array &$savePaths = NULL ) {
+		parent::beforeSave( $isUpdate, $isFirst, $savePaths );
 
 		// prevent creation of second start page
 		if ( $this->parent === NULL ) {
@@ -614,7 +616,7 @@ class RCPage extends Record {
 	}
 
 	// FIXME: we should not skip field notification but instead handle it differently if needed in fields afterSave function
-	protected function afterSave( $isUpdate, $isFirst, array $saveResult ) {
+	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array &$savePaths = NULL ) {
 		unset( $this->afterSaveFields[ 'parent' ] );
 
 		foreach ( $this->afterSaveFields as $fieldName => $field ) {
@@ -629,7 +631,7 @@ class RCPage extends Record {
 			}
 		}
 
-		parent::afterSave( $isUpdate, $isFirst, $saveResult );
+		parent::afterSave( $isUpdate, $isFirst, $saveResult, $savePaths );
 	}
 
 	// FIXME: we should not skip field notification but instead handle it differently if needed in fields beforeDelete function
@@ -656,6 +658,43 @@ class RCPage extends Record {
 
 	public function hideFromAffectedRecordData() {
 		return $this->pageType !== 'RCPage';
+	}
+
+	public function duplicate($newParent){
+
+		// duplicate basic values
+		$newPage = RCPage::get( $this->storage, array(
+			'title'       => $this->title . ' (copy)',
+			'language'    => $newParent->language,
+			'domainGroup' => $newParent->domainGroup,
+			'live'        => DTSteroidLive::LIVE_STATUS_PREVIEW,
+			'parent'      => $newParent,
+			'creator'     => $this->creator,
+			'pageType'    => $this->pageType,
+			'template'    => $this->template,
+			'description' => $this->description,
+			'robots'      => $this->robots,
+			'image'       => $this->image
+		), false );
+
+		// duplicate page areas and widgets
+		$newPageAreas = array();
+		$pageAreas = $this->{'page:RCPageArea'};
+
+		foreach($pageAreas as $pageArea){
+			$newPageAreas[] = RCPageArea::get($this->storage, array(
+				'page' => $newPage,
+				Record::FIELDNAME_SORTING => $pageArea->{Record::FIELDNAME_SORTING},
+				'columns' => $pageArea->columns,
+				'fixed' => $pageArea->fixed,
+				'key' => $pageArea->key,
+				'area' => $pageArea->area->duplicate()
+			), false);
+		}
+
+		$newPage->{'page:RCPageArea'} = $newPageAreas;
+
+		return $newPage;
 	}
 }
 

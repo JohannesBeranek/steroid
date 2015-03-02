@@ -30,9 +30,14 @@ interface IDataType {
 	 *
 	 * @param null $data the value according to datatype
 	 * @param bool $loaded whether the value was read from db (will not set the field dirty then)
-	 * @param string $fieldName as which fieldName is the data being set
+	 * @param string $path pass empty string to use dirtyTracking or path to be prepended
+	 * @param array &$dirtyTracking pass array to track dirtied paths
 	 */
-	public function setValue( $data = NULL, $loaded = false );
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL );
+	
+	public function setRealValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL );
+	
+	public function setRawValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL );
 
 
 	/**
@@ -53,7 +58,7 @@ interface IDataType {
 	 * 
 	 * @param bool $isUpdate
 	 */
-	public function beforeSave( $isUpdate );
+	public function beforeSave( $isUpdate, array &$savePaths = NULL );
 
 	/**
 	 * After save
@@ -63,7 +68,7 @@ interface IDataType {
 	 * @param bool $isUpdate
 	 * @param array $saveResult
 	 */
-	public function afterSave( $isUpdate, array $saveResult );
+	public function afterSave( $isUpdate, array $saveResult, array &$savePaths = NULL );
 
 	/**
 	 * Before delete
@@ -94,4 +99,7 @@ interface IDataType {
 	public static function fillTitleFields( $fieldName, &$titleFields, $config );
 	
 	public function refresh();
+	
+	public function fillUpValues( array $values, $loaded, $path = NULL, array &$dirtyTracking = NULL );
+		
 }

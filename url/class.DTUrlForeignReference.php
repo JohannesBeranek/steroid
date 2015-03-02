@@ -74,7 +74,10 @@ class DTUrlForeignReference extends BaseDTForeignReference {
 		);
 	}
 
-	public function beforeSave( $isUpdate ) {
+// FIXME: should be moved to some setValue logic so we can use dirtyTracking!
+// -- custom url (DTSteroidUrl) could actively push setValue
+// -- change of title should be listened to
+	public function beforeSave( $isUpdate, array &$savePaths = NULL ) {
 		$recordLiveFieldName = $this->record->getDataTypeFieldName( 'DTSteroidLive' );
 		$recordIsLive = $recordLiveFieldName && ( $recordLiveStatus = $this->record->getFieldValue($recordLiveFieldName) );
 
@@ -109,7 +112,7 @@ class DTUrlForeignReference extends BaseDTForeignReference {
 			$currentUrls = $this->record->getFieldValue($this->fieldName);
 		}
 
-		if(!$isUpdate && count($currentUrls)){
+		if(!$isUpdate && isset($currentUrls) && count($currentUrls)){
 			return;
 		}
 
@@ -210,6 +213,11 @@ class DTUrlForeignReference extends BaseDTForeignReference {
 
 		// FIXME: using setValue in beforeSave is dangerous, as record might be marked as not dirty and become dirty from this!
 		$this->setValue( $generatedUrls, false );
+
+
+		if ($this->isDirty && $savePaths !== NULL) {
+			$savePaths['url'] = array( true );
+		}
 	}
 
 	// TODO: function does something different from its naming

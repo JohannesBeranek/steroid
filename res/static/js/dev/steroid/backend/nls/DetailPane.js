@@ -4,6 +4,7 @@ define({ root: ({
 	BTClose: 'Close',
 	BTReset: 'Reset/Undo',
 	BTsaveRecord: 'Save',
+	BTduplicateRecord: 'Duplicate',
 	BTpublishRecord: 'Save and publish',
 	BTpublishOnly: 'Publish',
 	BTdeleteRecord: 'Delete',
