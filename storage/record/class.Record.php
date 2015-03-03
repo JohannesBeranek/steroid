@@ -2283,7 +2283,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			}
 
 			$this->deleteUnreferencedOnSaveFinish = false;
-			unset( $this->deleteBasket );
+			$this->deleteBasket = NULL;
 		}
 
 		if (!$this->isDeleted()) {

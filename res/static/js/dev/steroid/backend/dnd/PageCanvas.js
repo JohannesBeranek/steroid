@@ -89,6 +89,7 @@ define([
 							if (template.widths) {
 								me.setBaseWidths(template.widths);
 							} // FIXME: handle cases where template.widths is not set - should this even happen?
+							// no thanks
 
 							if (me.templateHasBeenSet && me.currentTemplatePrimary !== template.primary) {
 								me.setNewAreas(template['template:RCTemplateArea']);
@@ -102,6 +103,7 @@ define([
 					me.hideStandBy();
 				});
 			} // FIXME: handle cases where primary is not set, comment!
+			// no thanks
 		},
 		setNewAreas: function (areas) {
 			var me = this;
@@ -120,15 +122,13 @@ define([
 							widgets[item.record.key] = [];
 						}
 
-						for (var j = 0; j < item.inlineRecord.ownFields[item.inlineRecord.containerFieldName]._dt.items.length; j++) {
+						var jlen = item.inlineRecord.ownFields[item.inlineRecord.containerFieldName]._dt.items.length;
+
+						for (var j = 0; j < jlen; j++) {
 							widgets[item.record.key].push(item.inlineRecord.ownFields[item.inlineRecord.containerFieldName]._dt.items[j]);
 						}
 					}
 				}
-			}
-
-			for (var i = 0; i < oldItems.length; i++) {
-				oldItems[i].remove();
 			}
 
 			for (var i in areas) {
@@ -147,7 +147,7 @@ define([
 						if (j == me.items[i].record.key) {
 							me.items[i].inlineRecord.ownFields[me.items[i].inlineRecord.containerFieldName]._dt.incomingValueCount = widgets[j];
 
-							for (var k = 0; k < widgets[j].length; k++) {
+							for (var k = widgets[j].length-1; k >= 0 ; k--) {
 								if (!widgets[j][k]._beingDestroyed) {
 									me.items[i].inlineRecord.ownFields[me.items[i].inlineRecord.containerFieldName]._dt.addItem(widgets[j][k], parseInt(widgets[j][k].record.sorting, 10));
 								}
@@ -158,6 +158,26 @@ define([
 						}
 					}
 				}
+			}
+
+			var i = 0;
+
+			if(widgets && me.items && me.items.length){ //no corresponding new area, so just stuff everything into the first one
+				for (var j in widgets) {
+					me.items[i].inlineRecord.ownFields[me.items[i].inlineRecord.containerFieldName]._dt.incomingValueCount = widgets[j];
+
+					for (var k = widgets[j].length - 1; k >= 0; k--) {
+						if (!widgets[j][k]._beingDestroyed) {
+							me.items[i].inlineRecord.ownFields[me.items[i].inlineRecord.containerFieldName]._dt.addItem(widgets[j][k], parseInt(widgets[j][k].record.sorting, 10));
+						}
+					}
+
+					delete widgets[j];
+				}
+			}
+
+			for (var i = 0; i < oldItems.length; i++) {
+				oldItems[i].remove();
 			}
 		},
 		reset: function () {
