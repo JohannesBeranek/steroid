@@ -242,7 +242,6 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	protected $copiedRecord;
 
 	protected $deleteUnreferencedOnSaveFinish;
-	protected $deleteBasket;
 
 	public $skipDelete;
 	public $skipSave;
@@ -2282,11 +2281,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	public function notifySaveComplete() {
 		if ( $this->deleteUnreferencedOnSaveFinish ) {
 			if ( !$this->satisfyRequireReferences() ) {
-				$this->delete( $this->deleteBasket );
+				$this->delete();
 			}
 
 			$this->deleteUnreferencedOnSaveFinish = false;
-			$this->deleteBasket = NULL;
 		}
 
 		if (!$this->isDeleted()) {
@@ -2574,13 +2572,14 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			// initial delete call should get here
 			$isInitialWithBasket = true;
 			
-			self::$basket =& $basket;
+			// do not set self::$basket to reference passed basket, as it's not possible to unset static member variable
+			self::$basket = array();
 			self::$basketRollbackSet = array();
 		}
 		
 		if ( self::$basket !== NULL ) {
 			self::$basket[ ] = $this;
-		}
+		} 
 
 		$this->isDeleting = true;
 
@@ -2593,7 +2592,11 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		$this->afterDelete();
 
 		if (isset($isInitialWithBasket)) {
+			// workaround needed because it's not possible to unset static member variable
+			$tempBasket = self::$basket;			
 			self::$basket = NULL;
+			
+			$basket = $tempBasket;
 			
 			// do rollback operations in reverse order, otherwise we might run into problems
 			while ( $rollbackOperation = array_pop( self::$basketRollbackSet ) ) {
@@ -2917,9 +2920,9 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $returnBool ? false : $referenceCount;
 	}
 
-	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction, array &$basket = NULL ) {
+	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction ) {
 		if ( $reflectingFieldName && isset( $this->fields[ $reflectingFieldName ] ) ) { // filter for dynamic references
-			$this->fields[ $reflectingFieldName ]->notifyReferenceRemoved( $originRecord, $triggeringFunction, $basket );
+			$this->fields[ $reflectingFieldName ]->notifyReferenceRemoved( $originRecord, $triggeringFunction );
 		}
 
 		// BaseDTRecordReference notifies from doNotifications and beforeDelete
@@ -2931,10 +2934,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 					$this->deleteUnreferencedOnSaveFinish = true;
 
-					//
-					$this->deleteBasket =& $basket; // need to keep reference to basket for later deletion
 				} else if ( !$this->satisfyRequireReferences() ) { // purely triggered by deletion, so delete right away
-					$this->delete( $basket );
+					$this->delete();
 				}
 			} else if ($triggeringFunction === 'doNotifications') {
 				$this->deleteUnreferencedOnSaveFinish = true;
@@ -2983,24 +2984,24 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	/**
 	 * called before the record is deleted, calls beforeDelete() on each of its fields
 	 */
-	protected function beforeDelete( array &$basket = NULL ) {
+	protected function beforeDelete() {
 		$currentClass = get_called_class();
 
 		// @Hook: before delete
 		foreach ( self::$hookBeforeDelete as $hook ) {
-			$hook->recordHookBeforeDelete( $this->storage, $this, $basket );
+			$hook->recordHookBeforeDelete( $this->storage, $this, Record::$basket );
 		}
 
 		if ( !empty( self::$hookBeforeDeleteByRecordClass[ $currentClass ] ) ) {
 			foreach ( self::$hookBeforeDeleteByRecordClass[ $currentClass ] as $hook ) {
-				$hook->recordHookBeforeDelete( $this->storage, $this, $basket );
+				$hook->recordHookBeforeDelete( $this->storage, $this, Record::$basket );
 			}
 		}
 
 		$beforeDeleteFields = $this->getBeforeDeleteFields();
 
 		foreach ( $beforeDeleteFields as $fieldName ) {
-			$this->fields[ $fieldName ]->beforeDelete( $basket );
+			$this->fields[ $fieldName ]->beforeDelete();
 		}
 	}
 

@@ -332,6 +332,8 @@ abstract class BaseDTForeignReference extends DataType {
 		$this->addNestedRecords( $records );
 
 		if ( $loaded && $this->changeStack !== NULL ) {
+			$basketChanges = NULL;
+			
 			foreach ( $this->changeStack as $todo ) {
 				switch ( $todo[ 0 ] ) {
 					case self::CHANGE_ADD:
@@ -341,15 +343,42 @@ abstract class BaseDTForeignReference extends DataType {
 						break;
 					case self::CHANGE_REMOVE:
 						if ( ( $key = array_search( $todo[ 1 ], $records, true ) ) !== false ) {
-							unset( $records[ $key ] );
+							if ( isset($todo[2]) && $todo[2] ) {
+								// this change came inside basket call, so we need to keep record around for creating rollback
+								
+								$basketChanges[] = $todo;
+								
+							} else {
+								unset( $records[ $key ] );
+							}
+							
+							
 						}
 						break;
 				}
 			}
+			
+			if ($basketChanges !== NULL) {
+				Record::$basketRollbackSet[] = array( 'record' => $this->record, 'fieldName' => $this->fieldName, 'value' => $records );
+				
+				// additional loop to work through changes which came during basket call
+				foreach ( $basketChanges as $todo ) {
+					switch ( $todo[ 0 ] ) {
+			
+						case self::CHANGE_REMOVE:
+							if ( ( $key = array_search( $todo[ 1 ], $records, true ) ) !== false ) {
+								unset( $records[ $key ] );
+						
+							}
+							break;
+					}
+				}
+			}
 
-		} else {
-			$this->changeStack = NULL;
-		}
+		} 
+		
+		$this->changeStack = NULL;
+		
 
 		$this->value = $records;
 
@@ -603,13 +632,17 @@ abstract class BaseDTForeignReference extends DataType {
 		if ( $this->hasBeenSet() ) {
 			$val = $this->record->getFieldValue( $this->fieldName ); // would lead to huge recursion in case of lazy loading (which is why we do lazy stuff separate)
 
-			if ( Record::$basket === NULL && ( $key = array_search( $originRecord, $val, true ) ) !== false ) {
+			if ( ( $key = array_search( $originRecord, $val, true ) ) !== false ) {
+				if ( Record::$basket !== NULL ) {
+					Record::$basketRollbackSet[] = array( 'record' => $this->record, 'fieldName' => $this->fieldName, 'value' => $val );
+				}
+				
 				unset( $val[ $key ] );
 // FIXME: allow for dirty tracking
 				$this->_setValue( $val, false );
 			}
-		} else if ( Record::$basket === NULL && $this->record->exists() ) { // this is needed so we don't dirty records because of notify as well as preventing recursion through hundreds of records
-			$this->changeStack[ ] = array( self::CHANGE_REMOVE, $originRecord );
+		} else if ( $this->record->exists() ) { // this is needed so we don't dirty records because of notify as well as preventing recursion through hundreds of records
+			$this->changeStack[ ] = array( self::CHANGE_REMOVE, $originRecord, Record::$basket !== NULL );
 		}
 	}
 
