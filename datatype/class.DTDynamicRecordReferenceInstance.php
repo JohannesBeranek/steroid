@@ -109,10 +109,10 @@ class DTDynamicRecordReferenceInstance extends BaseDTRecordReference {
 		parent::beforeSave( $isUpdate, $savePaths );
 	}
 	
-	public function beforeDelete( array &$basket = NULL ) {
+	public function beforeDelete() {
 		$this->tryUpdateValue();
 		
-		parent::beforeDelete( $basket );
+		parent::beforeDelete();
 	}
 	
 	public function hasBeenSet() {

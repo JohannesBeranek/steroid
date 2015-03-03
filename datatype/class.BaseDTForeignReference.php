@@ -375,12 +375,11 @@ abstract class BaseDTForeignReference extends DataType {
 		if (!$loaded && $this->oldValue !== NULL) {
 			// notify
 			$foreignFieldName = $this->getForeignFieldName();
-			$basket = NULL;
 
 			// don't use array_diff here, as it does string comparison
 			foreach ( $this->oldValue as $oldRec ) {
 				if ( !in_array( $oldRec, $this->value, true ) ) {
-					$oldRec->notifyReferenceRemoved( $this->record, $foreignFieldName, __FUNCTION__, $basket );
+					$oldRec->notifyReferenceRemoved( $this->record, $foreignFieldName, __FUNCTION__ );
 				}
 			}
 
@@ -529,28 +528,29 @@ abstract class BaseDTForeignReference extends DataType {
 	 *
 	 * if datatype has been configured with requireSelf = true, it will delete all records of the configured recordClass which reference the datatype's record
 	 */
-	public function beforeDelete( array &$basket = NULL ) {
-// FIXME: this seems not correct - should use current set records maybe?
-		$foreignRecords = $this->getForeignRecords();
+	public function beforeDelete( ) {
+		$foreignRecords = $this->hasBeenSet() ? $this->value : $this->getForeignRecords();
 		
-
 		if ( isset( $this->config[ 'requireSelf' ] ) && $this->config[ 'requireSelf' ] ) {
-			while( $foreignRecord = array_pop($foreignRecords)) {
-				if ( $basket !== NULL || !$foreignRecord->isDeleted() ) {
-					$foreignRecord->delete( $basket );
+			while ( $foreignRecord = array_pop( $foreignRecords ) ) {
+				if ( !$foreignRecord->isDeleted() ) {
+					// only call delete on not already deleted records
+					$foreignRecord->delete();
 				}
 			}
 		} else { // [JB 11.02.2013] even if foreign ref is not required we need to make sure that referencing record has it's value set to NULL
 		
-// FIXME: basket might be wrong as records requiring reference fields won't be put into basket
-			if ($basket === NULL) {
-				$foreignFieldName = $this->getForeignFieldName();
-	
-				while ( $foreignRecord = array_pop( $foreignRecords ) ) {
-					if ( $foreignRecord->{$foreignFieldName} !== NULL ) {
-						$foreignRecord->{$foreignFieldName} = NULL;
-						$foreignRecord->save();
+			$foreignFieldName = $this->getForeignFieldName();
+
+			while ( $foreignRecord = array_pop( $foreignRecords ) ) {
+				if ( $foreignRecord->{$foreignFieldName} !== NULL ) {
+					// save in basket rollbak set
+					if (Record::$basket !== NULL) {
+						Record::$basketRollbackSet[] = array( 'record' => $foreignRecord, 'fieldName' => $foreignFieldName, 'value' => $foreignRecord->{$foreignFieldName} );
 					}
+					
+					$foreignRecord->{$foreignFieldName} = NULL;
+					$foreignRecord->save();
 				}
 			}
 		}
@@ -599,16 +599,16 @@ abstract class BaseDTForeignReference extends DataType {
 		$values[ $this->fieldName ] = $newVals;
 	}
 
-	public function notifyReferenceRemoved( IRecord $originRecord, $triggeringFunction, array &$basket = NULL ) {
+	public function notifyReferenceRemoved( IRecord $originRecord, $triggeringFunction ) {
 		if ( $this->hasBeenSet() ) {
 			$val = $this->record->getFieldValue( $this->fieldName ); // would lead to huge recursion in case of lazy loading (which is why we do lazy stuff separate)
 
-			if ( $basket === NULL && ( $key = array_search( $originRecord, $val, true ) ) !== false ) {
+			if ( Record::$basket === NULL && ( $key = array_search( $originRecord, $val, true ) ) !== false ) {
 				unset( $val[ $key ] );
 // FIXME: allow for dirty tracking
 				$this->_setValue( $val, false );
 			}
-		} else if ( $basket === NULL && $this->record->exists() ) { // this is needed so we don't dirty records because of notify as well as preventing recursion through hundreds of records
+		} else if ( Record::$basket === NULL && $this->record->exists() ) { // this is needed so we don't dirty records because of notify as well as preventing recursion through hundreds of records
 			$this->changeStack[ ] = array( self::CHANGE_REMOVE, $originRecord );
 		}
 	}
@@ -621,8 +621,7 @@ abstract class BaseDTForeignReference extends DataType {
 				// if other record/value comes from db and we got a manually set value,
 				// tell other record that it's been removed
 				if ($loaded && $this->isDirty && !$this->lastValueSetInternally) {
-					$basket = NULL;
-					$originRecord->notifyReferenceRemoved($this->record, $this->getForeignFieldName(), __FUNCTION__, $basket);
+					$originRecord->notifyReferenceRemoved($this->record, $this->getForeignFieldName(), __FUNCTION__ );
 				} else {
 					$val[ ] = $originRecord;
 

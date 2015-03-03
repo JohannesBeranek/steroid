@@ -75,14 +75,14 @@ interface IDataType {
 	 *
 	 * called before the record is deleted from storage
 	 */
-	public function beforeDelete( array &$basket = NULL );
+	public function beforeDelete();
 
 	/**
 	 * After delete
 	 *
 	 * called after the record has been deleted from storage
 	 */
-	public function afterDelete(array &$basket = NULL );
+	public function afterDelete();
 	
 	/**
 	 * Has the value of the dataType ever been set?
