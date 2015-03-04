@@ -188,7 +188,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	 * gc_collect_cycles should be called
 	 * after a record has been deleted
 	 * 
-	 * TODO: private static, so inheriting classes don't get this
+	 * 
 	 */
 	public static $runGCCollectCyclesAfterRecordsDeletedNum = 100;
 	
@@ -242,19 +242,21 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	protected $copiedRecord;
 
 	protected $deleteUnreferencedOnSaveFinish;
-	protected $deleteBasket;
 
 	public $skipDelete;
 	public $skipSave;
 	public $readOnly;
 
 	// Helper for performance optimizations
-	// TODO: subclasses of Record don't need these static fields, but with only static qualifier they all have their own instance
 	public static $trackedFields;
 	public static $currentPath;
 	public static $currentSavePath;
 
 	public $path;
+	
+	// delete basket
+	public static $basket;
+	public static $basketRollbackSet;
 
 	/**
 	 * cleans up to prepare for garbage collection
@@ -2279,11 +2281,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	public function notifySaveComplete() {
 		if ( $this->deleteUnreferencedOnSaveFinish ) {
 			if ( !$this->satisfyRequireReferences() ) {
-				$this->delete( $this->deleteBasket );
+				$this->delete();
 			}
 
 			$this->deleteUnreferencedOnSaveFinish = false;
-			$this->deleteBasket = NULL;
 		}
 
 		if (!$this->isDeleted()) {
@@ -2566,20 +2567,45 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			throw new Exception( 'Trying to delete already deleted record of type ' . get_called_class() . ' with values ' . Debug::getStringRepresentation( $this->values ) );
 		}
 
-		if ( $basket !== NULL ) {
-			$basket[ ] = $this;
+
+		if ( $basket !== NULL && self::$basket === NULL) {
+			// initial delete call should get here
+			$isInitialWithBasket = true;
+			
+			// do not set self::$basket to reference passed basket, as it's not possible to unset static member variable
+			self::$basket = array();
+			self::$basketRollbackSet = array();
 		}
+		
+		if ( self::$basket !== NULL ) {
+			self::$basket[ ] = $this;
+		} 
 
 		$this->isDeleting = true;
 
-		$this->beforeDelete( $basket );
+		$this->beforeDelete( );
 
-		if ( $basket === NULL ) {
+		if ( self::$basket === NULL ) {
 			$this->_delete();
 		}
 
-		$this->afterDelete( $basket );
+		$this->afterDelete();
 
+		if (isset($isInitialWithBasket)) {
+			// workaround needed because it's not possible to unset static member variable
+			$tempBasket = self::$basket;			
+			self::$basket = NULL;
+			
+			$basket = $tempBasket;
+			
+			// do rollback operations in reverse order, otherwise we might run into problems
+			while ( $rollbackOperation = array_pop( self::$basketRollbackSet ) ) {
+				$rollbackOperation['record']->{$rollbackOperation['fieldName']} = $rollbackOperation['value'];
+			}
+			
+			self::$basketRollbackSet = NULL;
+		}
+		
 		$this->isDeleting = false;
 	}
 
@@ -2894,9 +2920,9 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $returnBool ? false : $referenceCount;
 	}
 
-	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction, array &$basket = NULL ) {
+	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction ) {
 		if ( $reflectingFieldName && isset( $this->fields[ $reflectingFieldName ] ) ) { // filter for dynamic references
-			$this->fields[ $reflectingFieldName ]->notifyReferenceRemoved( $originRecord, $triggeringFunction, $basket );
+			$this->fields[ $reflectingFieldName ]->notifyReferenceRemoved( $originRecord, $triggeringFunction );
 		}
 
 		// BaseDTRecordReference notifies from doNotifications and beforeDelete
@@ -2908,10 +2934,8 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 					$this->deleteUnreferencedOnSaveFinish = true;
 
-					//
-					$this->deleteBasket =& $basket; // need to keep reference to basket for later deletion
 				} else if ( !$this->satisfyRequireReferences() ) { // purely triggered by deletion, so delete right away
-					$this->delete( $basket );
+					$this->delete();
 				}
 			} else if ($triggeringFunction === 'doNotifications') {
 				$this->deleteUnreferencedOnSaveFinish = true;
@@ -2960,24 +2984,24 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	/**
 	 * called before the record is deleted, calls beforeDelete() on each of its fields
 	 */
-	protected function beforeDelete( array &$basket = NULL ) {
+	protected function beforeDelete() {
 		$currentClass = get_called_class();
 
 		// @Hook: before delete
 		foreach ( self::$hookBeforeDelete as $hook ) {
-			$hook->recordHookBeforeDelete( $this->storage, $this, $basket );
+			$hook->recordHookBeforeDelete( $this->storage, $this, Record::$basket );
 		}
 
 		if ( !empty( self::$hookBeforeDeleteByRecordClass[ $currentClass ] ) ) {
 			foreach ( self::$hookBeforeDeleteByRecordClass[ $currentClass ] as $hook ) {
-				$hook->recordHookBeforeDelete( $this->storage, $this, $basket );
+				$hook->recordHookBeforeDelete( $this->storage, $this, Record::$basket );
 			}
 		}
 
 		$beforeDeleteFields = $this->getBeforeDeleteFields();
 
 		foreach ( $beforeDeleteFields as $fieldName ) {
-			$this->fields[ $fieldName ]->beforeDelete( $basket );
+			$this->fields[ $fieldName ]->beforeDelete();
 		}
 	}
 
@@ -2990,9 +3014,9 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	/**
 	 * called after the record has been deleted, calls afterDelete() on each of its fields
 	 */
-	protected function afterDelete( array &$basket = NULL ) {
+	protected function afterDelete() {
 		foreach ( $this->fields as $field ) {
-			$field->afterDelete( $basket );
+			$field->afterDelete();
 		}
 
 
@@ -3002,19 +3026,19 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 
 		// @Hook: after delete
 		foreach ( self::$hookAfterDelete as $hook ) {
-			$hook->recordHookAfterDelete( $this->storage, $this, $basket );
+			$hook->recordHookAfterDelete( $this->storage, $this, self::$basket );
 		}
 
 		$currentClass = get_called_class();
 
 		if ( !empty( self::$hookAfterDeleteByRecordClass[ $currentClass ] ) ) {
 			foreach ( self::$hookAfterDeleteByRecordClass[ $currentClass ] as $hook ) {
-				$hook->recordHookAfterDelete( $this->storage, $this, $basket );
+				$hook->recordHookAfterDelete( $this->storage, $this, self::$basket );
 			}
 		}
 		
-		
-		if ( $basket === NULL ) {
+		// mem freeing
+		if ( self::$basket === NULL ) {
 			$this->cleanup();
 		
 			// free mem every so often
@@ -3110,35 +3134,12 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	public function copy( array $changes, array &$missingReferences, array &$originRecords = NULL, array &$copiedRecords = NULL, array $skipFields = NULL, array &$originValues = NULL, $originFieldName = NULL ) {
 		$isEntryPoint = !$this->isCopying;
 
-//		if ( $isEntryPoint && self::$copyOriginRecord === NULL ) {
-//			self::$copyOriginRecord = $this;
-//			$recordsToBeCopied = array( $this );
-//
-//			$this->getFormRecords( $recordsToBeCopied, array_keys( $this->getFormFields( $this->storage ) ) );
-//
-//			foreach ( $recordsToBeCopied as $record ) {
-//				$record->setMeta( 'doCopy', true );
-//				$record->readOnly = true;
-//			}
-//		}
-//
-//		if ( self::$copyOriginRecord !== $this && !$this->getMeta( 'doCopy' ) ) {
-//			$copiedRecord = $this->getFamilyMember( $changes );
-//
-//			if ( $copiedRecord->exists() ) {
-//				$this->copiedRecord = $copiedRecord;
-//				return $this->copiedRecord;
-//			}
-//		}
-
 		if ( !$this->isCopying ) {
 			$this->copiedIdentityValues = array();
 			$this->copiedValues = array();
 			$this->copiedForeignValues = array();
 
 			// make sure primary key fields are the first ones
-//			$this->copyIdentityFields = static::getPrimaryKeyFields();
-//			$this->copyIdentityFields = static::getUniqueKeyFields();
 			$this->copyIdentityFields = array_unique( array_merge( static::getPrimaryKeyFields(), static::getUniqueKeyFields() ) );
 
 			$this->copyIdentityFieldsBackup = $this->copyIdentityFields;

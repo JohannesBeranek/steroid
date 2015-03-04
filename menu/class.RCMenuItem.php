@@ -155,12 +155,12 @@ class RCMenuItem extends BaseMenuItem {
 		return $title === NULL ? '' : $title;
 	}
 
-	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction, array &$basket = NULL ) {
+	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction ) {
 		if ( get_class( $originRecord ) == 'RCPage' && $reflectingFieldName == 'page' && $triggeringFunction == 'setValue' ) { // menuItem is being removed from within page editor, so delete it
-			$this->delete( $basket );
+			$this->delete();
 			return;
 		}
 
-		parent::notifyReferenceRemoved( $originRecord, $reflectingFieldName, $triggeringFunction, $basket );
+		parent::notifyReferenceRemoved( $originRecord, $reflectingFieldName, $triggeringFunction );
 	}
 }

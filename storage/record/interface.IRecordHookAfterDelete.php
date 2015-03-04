@@ -13,4 +13,3 @@ interface IRecordHookAfterDelete {
 	public function recordHookAfterDelete( IRBStorage $storage, IRecord $record, array &$basket = NULL );
 }
 
-?>

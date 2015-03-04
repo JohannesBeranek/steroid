@@ -176,11 +176,11 @@ abstract class DataType implements IDataType {
 		// stub
 	}
 
-	public function beforeDelete( array &$basket = NULL ) {
+	public function beforeDelete() {
 		// stub
 	}
 
-	public function afterDelete( array &$basket = NULL ) {
+	public function afterDelete() {
 		// stub
 	}
 

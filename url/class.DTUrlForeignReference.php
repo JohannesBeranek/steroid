@@ -297,14 +297,14 @@ class DTUrlForeignReference extends BaseDTForeignReference {
 		return $parentUrls;
 	}
 
-	public function beforeDelete( array &$basket = NULL ) {
+	public function beforeDelete() {
 		$foreignRecords = $this->getForeignRecords();
 
 		foreach ( $foreignRecords as $record ) {
-			$record->url->delete( $basket );
+			$record->url->delete();
 		}
 
-		parent::beforeDelete( $basket );
+		parent::beforeDelete();
 	}
 
 	protected static function getRequiredPermissions( $fieldDef, $fieldName, $currentForeignPerms, $permissions, $owningRecordClass ) {
