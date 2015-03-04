@@ -23,6 +23,15 @@ define([
 
 			me.initComplete();
 		},
+		_setValueAttr: function(value){
+			var me = this;
+			
+			if(value === null){
+				value = '';
+			}
+
+			me.inherited(arguments, [value]);
+		},
 		setOptions: function (values) {
 			var me = this;
 
