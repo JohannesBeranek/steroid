@@ -105,7 +105,7 @@ interface IRecord {
 	/**
 	 * Called by referencing field
 	 */
-	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction, array &$basket = NULL );
+	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction );
 
 	/**
 	 * Called by referencing field

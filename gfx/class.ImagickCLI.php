@@ -382,6 +382,11 @@ class ImagickCLI {
 		$cmd = escapeshellcmd( self::$convertCommand );
 
 		foreach ($options as $option) {
+			// fix for locales using ',' as float separator
+			if (is_float($option)) {
+				$option = rtrim(rtrim(sprintf('%.20F', $option), '0'), '.');
+			}
+			
 			$cmd .= ' ' . escapeshellarg( $option );
 		}
 

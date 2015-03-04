@@ -47,6 +47,7 @@ class Storage extends DB implements IStorage {
 	const FILE_OPERATION_UNLINK = 'Unlink'; // reverse: -      ; rm
 	const FILE_OPERATION_DOWNLOAD = 'Download'; // reverse: unlink ; copy
 	const FILE_OPERATION_CREATE = 'Create';
+	const FILE_OPERATION_HARDLINK = 'Hardlink'; // hard link
 
 	const MOVE_OPERATION_UPLOAD = 'upload';
 	const MOVE_OPERATION_MOVE = 'move';
@@ -138,11 +139,15 @@ class Storage extends DB implements IStorage {
 			}
 
 			try {
-				// From the official documentation of open(2):
-				// If O_CREAT and O_EXCL are set, open() shall fail if the file exists. The check for the existence of the 
-				// file and the creation of the file if it does not exist shall be atomic with respect to other threads executing
-				// open() naming the same filename in the same directory with O_EXCL and O_CREAT set. 
-				$fdest = fopen( $dstFileName, "x" ); // "LOCK"
+				if($type === self::FILE_OPERATION_HARDLINK){
+					$fdest = link($from, $dstFileName);
+				} else {
+					// From the official documentation of open(2):
+					// If O_CREAT and O_EXCL are set, open() shall fail if the file exists. The check for the existence of the
+					// file and the creation of the file if it does not exist shall be atomic with respect to other threads executing
+					// open() naming the same filename in the same directory with O_EXCL and O_CREAT set.
+					$fdest = fopen( $dstFileName, "x" ); // "LOCK"
+				}
 			} catch ( Exception $e ) {
 				if ( !is_writable( $targetDirectory ) ) {
 					throw new Exception( 'Target directory not writable: ' . $targetDirectory );
@@ -150,6 +155,10 @@ class Storage extends DB implements IStorage {
 			}
 		} while ( empty( $fdest ) );
 		// Fin filename end
+
+		if($type === self::FILE_OPERATION_HARDLINK){
+			return $dstBaseName;
+		}
 
 		$opException = NULL;
 
@@ -496,6 +505,39 @@ class Storage extends DB implements IStorage {
 		$this->scheduleFileOperation( $fileRecord, self::FILE_OPERATION_UPLOAD );
 	}
 
+	//hardlink
+
+	protected function preExecuteHardLinkFile( IFileInfo $fileRecord ) {
+		$filenum = time(); // TODO: replace with requestInfo servertime
+
+		$subDir = $this->ensureDirectoryForFile( $filenum );
+		$dir    = $this->directory . '/' . $subDir;
+
+		$uploadedFilename = $fileRecord->getUploadedFilename();
+
+		if ( $uploadedFilename === null ) { // autogenerate filename
+			$uploadedFilename = '0' . Filename::extensionFromMime( $fileRecord->getMimeType(), true );
+		}
+
+		$uploadedFilename = StringFilter::filterFilename( $uploadedFilename );
+
+		$dstBaseName = $this->realMoveFile( $fileRecord->getFullFilename(), $dir, $uploadedFilename, self::FILE_OPERATION_HARDLINK );
+
+		$fileRecord->setStoredFilename( $subDir . '/' . $dstBaseName );
+	}
+
+	protected function executeHardLinkFile( IFileInfo $fileRecord ) {
+
+	}
+
+	public function hardLinkFile( IFileInfo $fileRecord ) {
+		$this->scheduleFileOperation( $fileRecord, self::FILE_OPERATION_HARDLINK );
+	}
+
+	protected function undoHardLinkFile( IFileInfo $fileRecord ) {
+		$this->_unlinkFile( $fileRecord );
+	}
+
 // Create
 	protected function preExecuteCreateFile( IFileInfo $fileRecord ) {
 		$filenum = time(); // TODO: replace with requestInfo servertime
@@ -650,6 +692,9 @@ class Storage extends DB implements IStorage {
 			case self::FILE_OPERATION_CREATE:
 				$this->preExecuteCreateFile( $fileRecord );
 				break;
+			case self::FILE_OPERATION_HARDLINK:
+				$this->preExecuteHardLinkFile( $fileRecord );
+				break;
 		}
 	}
 
@@ -722,6 +767,9 @@ class Storage extends DB implements IStorage {
 				break;
 			case self::FILE_OPERATION_DOWNLOAD:
 				$this->undoDownloadFile( $fileRecord );
+				break;
+			case self::FILE_OPERATION_HARDLINK:
+				$this->undoHardLinkFile( $fileRecord );
 				break;
 		}
 	}
