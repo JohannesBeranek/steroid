@@ -106,7 +106,7 @@ define([
 					me.detailActionSuccess(action);
 
 					if (action !== 'previewRecord') {
-						if (action === 'deleteRecord') {
+						if (action === 'deleteRecord' || action === 'duplicateRecord') {
 							me.detailPane.close(true);
 						} else {
 							me.detailPane.suspendDirtyCheck = true;
