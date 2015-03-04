@@ -2341,6 +2341,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			if ( isset( self::$trackedFields ) ) {
 				self::$currentSavePath = array();
 			}
+
+			if(($mtimeFieldName = $this->getDataTypeFieldName('DTMTime')) && !$this->fields[$mtimeFieldName]->dirty){
+				$this->{$mtimeFieldName} = $_SERVER[ 'REQUEST_TIME' ];
+			}
 		}
 
 

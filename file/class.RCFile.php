@@ -473,17 +473,23 @@ class RCFile extends Record implements IFileInfo {
 					throw new RecordDoesNotExistException();
 				}
 
-				$data = $fileRec->getData();
-				$fileName = $fileRec->getStoredFileName();
+				$vFile = new VirtualFile(NULL, NULL, $fileRec->getStoredFileName());
 
-				$newRec = self::create($storage, $data, $fileName, NULL, NULL, User::getCurrent()->record);
+				$vFile->setFullFilename( $fileRec->getFullFileName());
 
-				$newRec->domainGroup = $fileRec->domainGroup;
+				$storage->hardLinkFile( $vFile );
+
+				$dstBaseName = $vFile->getStoredFilename();
+
+				$newRec = RCFile::get($storage, array(
+					'domainGroup' => User::getCurrent()->getSelectedDomainGroup(),
+					'filename' => $dstBaseName
+				), false);
 
 				$fieldsToCopy = self::getEditableFormFields();
 
 				foreach($fieldsToCopy as $fieldName){
-					if($fieldName == 'filename' || $fieldName == 'renderConfig'){
+					if(in_array($fieldName, array('filename', 'renderConfig'), true)){
 						continue;
 					}
 

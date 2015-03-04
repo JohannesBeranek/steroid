@@ -34,7 +34,7 @@ class DTSteroidPage extends BaseDTRecordReference {
 
 		array_splice( $fields, array_search( 'title', $fields ), 1 );
 		array_splice( $fields, array_search( 'parent', $fields ), 1 );
-		array_splice( $fields, array_search( 'robots', $fields ), 1 );
+//		array_splice( $fields, array_search( 'robots', $fields ), 1 );
 		array_splice( $fields, array_search( 'excludeFromSearch', $fields ), 1 );
 		array_splice( $fields, array_search( 'image', $fields ), 1 );
 

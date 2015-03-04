@@ -712,7 +712,7 @@ define([
 			return me.afterActionSuccess(response, action);
 		},
 		afterActionSuccess: function (response, action) {
-			return action == 'previewRecord' || action == 'deleteRecord' ? action : response.data;
+			return action == 'previewRecord' || action == 'deleteRecord' || action == 'duplicateRecord' ? action : response.data;
 		},
 		handleError: function (response, action) {
 			var me = this;
