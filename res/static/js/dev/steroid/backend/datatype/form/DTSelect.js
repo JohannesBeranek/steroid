@@ -25,7 +25,7 @@ define([
 		},
 		_setValueAttr: function(value){
 			var me = this;
-			
+
 			if(value === null){
 				value = '';
 			}
