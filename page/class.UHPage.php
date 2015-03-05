@@ -34,8 +34,6 @@ class UHPage implements IURLHandler {
 		self::$classRequestHandler[ $command ] = $handler; // TODO: should this override existing commands?
 	}
 
-//	const CLASSREQUEST_TYPE_LOCAL_EXT = 'lx';
-
 	public function handleURL( IRequestInfo $requestInfo, RCUrl $url, IRBStorage $storage ) {
 		/*
 		$this->currentPage = $storage->selectFirstRecord( 'RCPage', array( 
@@ -96,36 +94,6 @@ class UHPage implements IURLHandler {
 			/* @var IClassRequestHandler $handler */
 			return $handler->handleClassRequest( $storage, $this->currentPage, $classRequest, $requestInfo );
 		}
-
-		/*
-				if ($classRequest = $requestInfo->getQueryParam('classRequest')) {
-					$classRequestParts = explode(':', $classRequest, 2);
-
-					if (count($classRequestParts) === 2 && strlen($classRequestParts[0]) === 2) { // class request type has to always have strlen of 2
-						switch ($classRequestParts[0]) {
-							case self::CLASSREQUEST_TYPE_LOCAL_EXT: // lx:elasticsearch/class.ElasticSearch.php
-								if (substr($classRequestParts[1], -4) !== '.php') {
-									throw new SecurityException('Invalid class request (does not end on .php), might be security related.');
-								}
-
-								$path = Filename::resolvePath($classRequestParts[1]); // also does security related filtering
-
-								$fullPath = STLOCAL . '/' . ltrim($path, '/');
-
-								if (is_readable($fullPath) && is_file($fullPath)) { // TODO: support symlinks in a secure fashion
-									// TODO
-								} else {
-									throw new SecurityException('Invalid class request (resolved path invalid), might be security related.');
-								}
-							break;
-							default:
-								throw new SecurityException('Invalid class request (unknown class request type), might be security related.');
-						}
-					} else {
-						throw new SecurityException('Invalid class request (wrong format), might be security related.');
-					}
-				}
-		*/
 
 
 		$templateRecord = $this->currentPage->template;
