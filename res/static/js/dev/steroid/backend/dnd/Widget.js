@@ -166,7 +166,7 @@ define([
             var me = this;
             
             if (typeof me.record.element !== 'undefined') {
-	            if (typeof me.record.element.pubStart !== 'undefined' && me.record.element.pubStart !== null) {
+	            if (typeof me.record.element.pubStart !== 'undefined' && me.record.element.pubStart !== null && me.record.element.pubStart !== '') {
 	                
 	                var pubStart = dojo.date.locale.format(new Date(me.record.element.pubStart));
 	 
@@ -174,7 +174,7 @@ define([
 					me.titleBarNode.appendChild(me.pubstartNode);
 	            }
 	            
-	            if (typeof me.record.element.pubEnd !== 'undefined' && me.record.element.pubEnd !== null) {
+	            if (typeof me.record.element.pubEnd !== 'undefined' && me.record.element.pubEnd !== null && me.record.element.pubEnd !== '') {
 	                
 	                var pubEnd = dojo.date.locale.format(new Date(me.record.element.pubEnd));
 	                
@@ -190,7 +190,7 @@ define([
 				return;
 			}
 
-			if (me.inlineClassConfig.className !== 'RCArea' && !me.isFixed && me.inlineRecord.record.primary) {
+			if (!me.isFixed && me.inlineRecord.record.primary) {
 				me.copyNode = domConstruct.create('div', { class: 'copyNode STWidgetIcon_copy', title: i18nRC.widgets.copy });
 				me.titleBarNode.appendChild(me.copyNode);
 
