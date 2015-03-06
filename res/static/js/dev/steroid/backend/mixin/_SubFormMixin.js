@@ -687,6 +687,10 @@ define([
 				}
 			}
 
+			if(title == '' && origin.record && origin.record._title !== ''){
+				title = origin.record._title;
+			}
+
 			return title;
 		},
 		destroy: function () {
