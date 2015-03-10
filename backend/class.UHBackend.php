@@ -142,12 +142,14 @@ class UHBackend implements IURLHandler {
 		if ( $this->isAjaxRequest ) {
 			try {
 				// FIXME: don't use getGPParam - it should be well defined if it's a get or post param (and if it may be both, comment on it!)
+				// leave me alone!
 				$requestType = $this->requestInfo->getGPParam( self::PARAM_REQUEST_TYPE );
 
 				if ( $requestType === self::REQUEST_TYPE_LOGOUT ) {
 					$this->logoutUser();
 				} else if ( $requestType === self::REQUEST_TYPE_LOGIN_EXTENSION ) {
 					 // TODO: no tx needed here
+					// OMG!!
 					$this->loginExtensionRequest( $this->requestInfo->getGPParam( self::PARAM_EXTENSION_CLASS ), $this->requestInfo->getGPParam( self::PARAM_EXTENSION_METHOD ) );
 				} else if ( $this->isBackendUser ) { 
 					switch ( $requestType ) {
@@ -221,6 +223,7 @@ class UHBackend implements IURLHandler {
 							break;
 						case self::REQUEST_TYPE_SYNC_RECORD:
 							// FIXME: move to SyncRecord
+							// WONTFIX: syncRecord is core, so no
 							$this->recordSyncRequest( $this->requestInfo->getGPParam( self::PARAM_RECORDCLASS ), $this->requestInfo->getGPParam( self::PARAM_RECORD_ID ) );
 							break;
 						case self::REQUEST_TYPE_DELETE_RECORD:
@@ -234,11 +237,13 @@ class UHBackend implements IURLHandler {
 							break;
 						case self::REQUEST_TYPE_LOG: 
 							// TODO: no tx needed here
+							// TODO: no annoying comments needed here
 							Log::write( "Log Request:", json_decode( $this->requestInfo->getGPParam(  self::PARAM_MESSAGE ), true ) );
 							$this->ajaxSuccess();
 							break;
 						case self::REQUEST_TYPE_DOWNLOAD: 
 							// TODO: no tx needed here
+							// TODO: even less annoying comments needed here
 							$this->handleDownload( $this->requestInfo->getQueryParam( self::PARAM_FILEPRIMARY ) );
 							break;
 						case self::REQUEST_TYPE_GETPUBDATE:
@@ -250,7 +255,9 @@ class UHBackend implements IURLHandler {
 								// dynamically require RC in case it's not loaded yet
 								if ( ClassFinder::find( array( $recordClass ), true ) ) {
 									// TODO: check if RC implements interface for handleBackendAction
+										// there is no interface for that, but I can make one interYOURface!
 									// TODO: provide recordClass with a way to interact with backend functions
+										// what backend functions?
 									//TODO: remove duplicate code from recordSaveRequest
 									// try to forward request
 									$originalRecord = $recordClass::handleBackendAction( $this->storage, $requestType, $this->requestInfo );
@@ -283,6 +290,7 @@ class UHBackend implements IURLHandler {
 						}
 
 						throw new LoginFailException( 'Login failed' ); // FIXME: log + lock user after x retries
+						// TODO: fix it
 					} else { // unknown request by not backend-logged in user
 						throw new UnknownRequestException();
 					}
@@ -883,7 +891,7 @@ class UHBackend implements IURLHandler {
 				'text' => $text,
 				'creator' => $entry->creator->getTitle(),
 				'alert' => $entry->alert,
-				'user' => $entry->user ? $entry->user->primary : NULL // TODO: Record::FIELDNAME_PRIMARY
+				'user' => $entry->user ? $entry->user->{Record::FIELDNAME_PRIMARY} : NULL
 			);
 		}
 
