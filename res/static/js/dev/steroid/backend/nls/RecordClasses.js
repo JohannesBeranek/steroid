@@ -191,7 +191,7 @@ define({ root: ({
 	},
 	RCUser: {
 		_title: 'Name',
-		username: 'CRM ID',
+		username: 'Username or CRM ID',
 		gender_values: {
 			m: 'Male',
 			f: 'Female'

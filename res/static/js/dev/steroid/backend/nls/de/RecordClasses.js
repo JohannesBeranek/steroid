@@ -182,7 +182,7 @@ define({
 	},
 	RCUser: {
 		_title: 'Name',
-		username: 'CRM ID',
+		username: 'Username (frei wählbar, unique) oder CRM ID',
 		gender_values: {
 			m: 'Männlich',
 			f: 'Weiblich'

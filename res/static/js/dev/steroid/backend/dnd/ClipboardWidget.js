@@ -27,7 +27,7 @@ define([
 
 			if (me.valueToBeSet) {
 				var elementTitle = me.getElementTitle(me.valueToBeSet, me.widgetConf.titleFields);
-				var className = me.widgetConf.i18nExt[me.widgetConf.className + '_name'];
+				var className = me.widgetConf.i18nExt ? me.widgetConf.i18nExt[me.widgetConf.className + '_name'] : i18nRC[me.widgetConf.className + '_name'];
 
 				me.set('title', className + ' - ' + elementTitle); //TODO put title collection into own class and mix it in
 			}
@@ -87,6 +87,22 @@ define([
 
 			return def;
 		},
+		recursiveCopyWidgets: function(area){
+			var me = this;
+
+			if(area.length){
+				for(var i = 0, ilen = area.length; i < ilen; i++){
+					area[i].primary = null;
+
+					area[i].element.id = null;
+					area[i].element.primary = null;
+
+					if(area[i].element['area:RCElementInArea']){
+						me.recursiveCopyWidgets(area[i].element['area:RCElementInArea']);
+					}
+				}
+			}
+		},
 		getUserAction: function (widget, def, exists, container) {
 			var me = this;
 
@@ -103,6 +119,10 @@ define([
 
 					value.primary = null;
 					value.id = null;
+
+					if(value['area:RCElementInArea']){
+						me.recursiveCopyWidgets(value['area:RCElementInArea']);
+					}
 
 					// widget.addInitListener(function () {
 					// drop leads to request to RCElementInArea which sets "element" field which leads to getRecord request with id = new for element which in turn returns empy values for a new widget 

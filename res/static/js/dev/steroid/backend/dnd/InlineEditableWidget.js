@@ -145,7 +145,7 @@ define([
 
 			var fields = me.inherited(arguments);
 
-			if (me.mainClassConfig.className != 'RCTemplate' && me.owningRecordClass != 'RCElementInArea' && me.ownClassConfig.className == 'RCArea') {
+			if (me.ownClassConfig.className == 'RCArea' && me.parentWidget && me.parentWidget.ownClassConfig.className == 'RCPageArea') {
 				fields.push('title');
 			}
 

@@ -219,6 +219,8 @@ define([
 				me.valueWatches = [];
 			}
 
+			delete me.STValue;
+
 			me.inherited(arguments);
 		},
 		destroy: function () {
