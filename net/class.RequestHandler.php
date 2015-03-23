@@ -113,33 +113,23 @@ class RequestHandler {
 		}
 		
 		
-		// code from hhvm docs
-		/*
 		$active = null;
-		// execute the handles
 		
 		do {
-			$mrc = curl_multi_exec($curlMultiHandle, $active);
-		} while ($mrc == CURLM_CALL_MULTI_PERFORM);
+			while (($mrc = curl_multi_exec($curlMultiHandle, $active)) === CURLM_CALL_MULTI_PERFORM);
+			if ($mrc !== CURLM_OK) break;  // Shouldn't normally ever happen; look at the list of CURLM_ errors to see when it might.
+			
+    		// wait for next CURL operation to complete, or sleep a short time if CURL is busy but unable to "block" using curl_multi_select
+    		if ($active && (curl_multi_select($curlMultiHandle) === -1)) usleep(1);
 		
-		while ($active && $mrc == CURLM_OK) {
-			if (curl_multi_select($curlMultiHandle) != -1) {
-				do {
-					$mrc = curl_multi_exec($curlMultiHandle, $active);
-				} while ($mrc == CURLM_CALL_MULTI_PERFORM);
-			}
-		}
-		 */
+		} while ($active);
 
-		$infos = array();
-		 
-		do {
-			$status = curl_multi_exec($curlMultiHandle, $active);
-		} while ($status === CURLM_CALL_MULTI_PERFORM || $active);
-		 
-		 
+
 		// cycle handles to close them and get contents
 		foreach ($curlHandles as $i => $curlHandle) {
+			// TODO: use curl_multi_info_read or curl_info_read to check for errors and log them using Log::write
+			
+			
 			$ret[] = curl_multi_getcontent($curlHandle);
 		
 			curl_multi_remove_handle($curlMultiHandle, $curlHandle);
