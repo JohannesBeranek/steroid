@@ -135,22 +135,15 @@ class RequestHandler {
 		 
 		do {
 			$status = curl_multi_exec($curlMultiHandle, $active);
-
-			if (($info = curl_multi_info_read($curlMultiHandle)) !== false) {
-				$infos[$info['handle']] = $info;
-			}
 		} while ($status === CURLM_CALL_MULTI_PERFORM || $active);
 		 
 		 
 		// cycle handles to close them and get contents
 		foreach ($curlHandles as $i => $curlHandle) {
-			if ($infos[$i]['result'] === 0) {
-				$ret[] = curl_multi_getcontent($curlHandle);
-			} else {
-				$ret[] = NULL;
-			}
-			
+			$ret[] = curl_multi_getcontent($curlHandle);
+		
 			curl_multi_remove_handle($curlMultiHandle, $curlHandle);
+			curl_close($curlHandle);
 		}
 		
 		
