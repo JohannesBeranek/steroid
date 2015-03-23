@@ -2899,7 +2899,13 @@ class UHBackend implements IURLHandler {
 	protected function displayBackend() {
 		$this->setLocalBEConf();
 		// TODO: gzip support!
-		require STROOT . '/res/pagetemplates/backend.php';
+		
+		// transitional webix flag
+		if (isset($_GET['webix'])) {
+			require STROOT . '/res/pagetemplates/backend_webix.php';
+		} else {
+			require STROOT . '/res/pagetemplates/backend.php';
+		}	
 	}
 
 	protected function ajaxSuccess( $data = NULL, $jsonForceObject = false ) {
