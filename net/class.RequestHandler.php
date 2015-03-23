@@ -114,6 +114,7 @@ class RequestHandler {
 		
 		
 		// code from hhvm docs
+		/*
 		$active = null;
 		// execute the handles
 		
@@ -128,13 +129,25 @@ class RequestHandler {
 				} while ($mrc == CURLM_CALL_MULTI_PERFORM);
 			}
 		}
+		 */
 
+		$infos = array();
+		 
+		do {
+			$status = curl_multi_exec($curlMultiHandle, $active);
+
+			if (($info = curl_multi_info_read($curlMultiHandle)) !== false) {
+				$infos[$info['handle']] = $info;
+			}
+		} while ($status === CURLM_CALL_MULTI_PERFORM || $active);
+		 
+		 
 		// cycle handles to close them and get contents
-		foreach ($curlHandles as $curlHandle) {
-			if (curl_errno($curlHandle)) {
-				$ret[] = NULL;
-			} else {
+		foreach ($curlHandles as $i => $curlHandle) {
+			if ($infos[$i]['result'] === 0) {
 				$ret[] = curl_multi_getcontent($curlHandle);
+			} else {
+				$ret[] = NULL;
 			}
 			
 			curl_multi_remove_handle($curlMultiHandle, $curlHandle);
