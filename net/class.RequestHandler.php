@@ -74,9 +74,86 @@ class RequestHandler {
 			return array();			
 		}
 		
+		static $useCurl;
+		
+		if ($useCurl === NULL) {
+			$useCurl = function_exists('curl_init') && function_exists('curl_setopt') && function_exists('curl_multi_init') 
+			&& function_exists('curl_multi_add_handle') && function_exists('curl_multi_exec') && function_exists('curl_multi_remove_handle')
+			&& function_exists('curl_multi_close');
+		}
+		
+	
+		return $useCurl ? $this->multiRequest_curl( $requests ) : $this->multiRequest_streams( $requests );
+
+	}
+	
+	
+	final public function multiRequest_curl( array $requests ) {
+		$curlHandles = array();
+		$ret = array();
+		$curlMultiHandle = curl_multi_init();
+		
+		foreach ($requests as $request) {
+			$curlHandle = curl_init();
+			
+			$url = is_array($request) ? $request['url'] : $request;
+			
+			curl_setopt($curlHandle, CURLOPT_URL, $url);
+			curl_setopt($curlHandle, CURLOPT_AUTOREFERER, true);
+			curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
+			curl_setopt($curlHandle, CURLOPT_HEADER, false);
+			curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, $this->socketConnectTimeout);
+			curl_setopt($curlHandle, CURLOPT_MAXREDIRS, 5);
+			
+			
+			curl_multi_add_handle( $curlMultiHandle, $curlHandle );
+			
+			$curlHandles[] = $curlHandle;	
+		}
+		
+		
+		// code from hhvm docs
+		$active = null;
+		// execute the handles
+		
+		do {
+			$mrc = curl_multi_exec($curlMultiHandle, $active);
+		} while ($mrc == CURLM_CALL_MULTI_PERFORM);
+		
+		while ($active && $mrc == CURLM_OK) {
+			if (curl_multi_select($curlMultiHandle) != -1) {
+				do {
+					$mrc = curl_multi_exec($curlMultiHandle, $active);
+				} while ($mrc == CURLM_CALL_MULTI_PERFORM);
+			}
+		}
+
+		// cycle handles to close them and get contents
+		foreach ($curlHandles as $curlHandle) {
+			if (curl_errno($curlHandle)) {
+				$ret[] = NULL;
+			} else {
+				$ret[] = curl_multi_getcontent($curlHandle);
+			}
+			
+			curl_multi_remove_handle($curlMultiHandle, $curlHandle);
+		}
+		
+		
+		curl_multi_close($curlMultiHandle);
+		
+		return $ret;
+	}
+	
+	final public function multiRequest_streams( array $requests ) {
 		foreach ($requests as &$request) {
 			if (!is_array($request)) {
 				$request = array( 'url' => $request );
+			}
+			
+			if (!isset($request['urlParts'])) {								 				
+				$request['urlParts'] = parse_url($url);
 			}
 		}
 		
@@ -96,11 +173,6 @@ class RequestHandler {
 				$request =& $requests[$nextQuery];
 
 				$url = $request['url'];
-				
-				if (!isset($request['urlParts'])) {								 				
-					$request['urlParts'] = parse_url($url);
-				}
-				
 				$urlParts = $request['urlParts'];
 				
 				// needed to support https
@@ -126,8 +198,8 @@ class RequestHandler {
 				$contextOptions = array();
 				
 				if ($scheme === 'https') {
-					// $host = $urlParts['host'];
-					$host = 'www.yahoo.com'; // DEBUG ONLY
+					$host = $urlParts['host'];
+					// $host = 'www.yahoo.com'; // DEBUG ONLY
 					
 					$contextOptions['ssl'] = array( 
 						'verify_peer' => false, // should be true for security, but php implementation of ssl is so buggy ...
@@ -328,8 +400,7 @@ class RequestHandler {
 				
 			}
 		}
-
+		
 		return $ret;
 	}
 }
-?>
