@@ -311,6 +311,9 @@ class Template {
 							// catch exceptions and display message to authenticated users with enough permissions
 							try {
 								$handleAreaReturn = $outputPart[ 'element' ]->handleArea( $data, $this );
+
+								// save element class for debug
+								$element = get_class($outputPart['element']);
 							} catch (Exception $e) {
 								if ($e instanceof RequireHTTPSException) {
 									throw $e;
@@ -389,7 +392,12 @@ class Template {
 
 //
 					if (isset($partTime) && $this->outputWidgetTimes) {
-						$output[] = "Time: " . ($partTime * 1000) . "ms";
+						$debugStr = "Time";
+						if (isset($element)) {
+							$debugStr .= '(' . $element . ')'; 
+						}
+						$debugStr .= sprintf(":%.2fms", ($partTime * 1000));
+						$output[] = $debugStr;
 						$currentOutputMeta[] = array( 'type' => 'debug' );
 					}
 					
