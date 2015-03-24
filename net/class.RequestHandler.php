@@ -74,9 +74,82 @@ class RequestHandler {
 			return array();			
 		}
 		
+		static $useCurl;
+		
+		if ($useCurl === NULL) {
+			$useCurl = function_exists('curl_init') && function_exists('curl_setopt') && function_exists('curl_multi_init') 
+			&& function_exists('curl_multi_add_handle') && function_exists('curl_multi_exec') && function_exists('curl_multi_remove_handle')
+			&& function_exists('curl_multi_close');
+		}
+		
+	
+		return $useCurl ? $this->multiRequest_curl( $requests ) : $this->multiRequest_streams( $requests );
+
+	}
+	
+	
+	final public function multiRequest_curl( array $requests ) {
+		$curlHandles = array();
+		$ret = array();
+		$curlMultiHandle = curl_multi_init();
+		
+		foreach ($requests as $request) {
+			$curlHandle = curl_init();
+			
+			$url = is_array($request) ? $request['url'] : $request;
+			
+			curl_setopt($curlHandle, CURLOPT_URL, $url);
+			curl_setopt($curlHandle, CURLOPT_AUTOREFERER, true);
+			curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
+			curl_setopt($curlHandle, CURLOPT_HEADER, false);
+			curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, $this->socketConnectTimeout);
+			curl_setopt($curlHandle, CURLOPT_MAXREDIRS, 5);
+			
+			
+			curl_multi_add_handle( $curlMultiHandle, $curlHandle );
+			
+			$curlHandles[] = $curlHandle;	
+		}
+		
+		
+		$active = null;
+		
+		do {
+			while (($mrc = curl_multi_exec($curlMultiHandle, $active)) === CURLM_CALL_MULTI_PERFORM);
+			if ($mrc !== CURLM_OK) break;  // Shouldn't normally ever happen; look at the list of CURLM_ errors to see when it might.
+			
+    		// wait for next CURL operation to complete, or sleep a short time if CURL is busy but unable to "block" using curl_multi_select
+    		if ($active && (curl_multi_select($curlMultiHandle) === -1)) usleep(1);
+		
+		} while ($active);
+
+
+		// cycle handles to close them and get contents
+		foreach ($curlHandles as $i => $curlHandle) {
+			// TODO: use curl_multi_info_read or curl_info_read to check for errors and log them using Log::write
+			
+			
+			$ret[] = curl_multi_getcontent($curlHandle);
+		
+			curl_multi_remove_handle($curlMultiHandle, $curlHandle);
+			curl_close($curlHandle);
+		}
+		
+		
+		curl_multi_close($curlMultiHandle);
+		
+		return $ret;
+	}
+	
+	final public function multiRequest_streams( array $requests ) {
 		foreach ($requests as &$request) {
 			if (!is_array($request)) {
 				$request = array( 'url' => $request );
+			}
+			
+			if (!isset($request['urlParts'])) {								 				
+				$request['urlParts'] = parse_url($url);
 			}
 		}
 		
@@ -96,11 +169,6 @@ class RequestHandler {
 				$request =& $requests[$nextQuery];
 
 				$url = $request['url'];
-				
-				if (!isset($request['urlParts'])) {								 				
-					$request['urlParts'] = parse_url($url);
-				}
-				
 				$urlParts = $request['urlParts'];
 				
 				// needed to support https
@@ -126,8 +194,8 @@ class RequestHandler {
 				$contextOptions = array();
 				
 				if ($scheme === 'https') {
-					// $host = $urlParts['host'];
-					$host = 'www.yahoo.com'; // DEBUG ONLY
+					$host = $urlParts['host'];
+					// $host = 'www.yahoo.com'; // DEBUG ONLY
 					
 					$contextOptions['ssl'] = array( 
 						'verify_peer' => false, // should be true for security, but php implementation of ssl is so buggy ...
@@ -328,8 +396,7 @@ class RequestHandler {
 				
 			}
 		}
-
+		
 		return $ret;
 	}
 }
-?>

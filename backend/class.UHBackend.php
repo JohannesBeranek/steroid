@@ -2966,7 +2966,13 @@ class UHBackend implements IURLHandler {
 
 // TODO: this might fail to work in case user got multiple permissions
 			if ( $permissions = $this->user->record->{'user:RCDomainGroupLanguagePermissionUser'} ) {
-				$this->userConfig[ 'config' ][ 'permission' ] = $permissions[ 0 ]->permission->title;
+				$highestPermIndex = $this->user->getHighestPermissionIndexByDomainGroupLanguage($this->user->getSelectedDomainGroup(), $this->user->getSelectedLanguage());
+
+				if($highestPermIndex > -1){
+					$this->userConfig[ 'config' ][ 'permission' ] = User::$permissionPriority[ $highestPermIndex ];
+				} else {
+					$this->userConfig[ 'config' ][ 'permission' ] = $permissions[0]->permission->title;
+				}
 			}
 
 			$values = $this->getRecordValuesAsJson( 'RCUser', array( $this->user->record->primary ) );
