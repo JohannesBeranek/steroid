@@ -49,7 +49,7 @@ var profile = (function(){
 			"dojo-amd-factory-scan": 0,
 			"dojo-combo-api": 0,
 			"dojo-config-api": 1,
-			"dojo-config-require": 0,
+			"dojo-config-require": 1,
 			"dojo-debug-messages": 0,
 			"dojo-dom-ready-api": 1,
 			"dojo-firebug": 0,
