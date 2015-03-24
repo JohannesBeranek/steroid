@@ -12,7 +12,7 @@ define([
 
 	return declare([_Widget, _DTFormFieldMixin, _DTEnum], {
 		options: null,
-		class: 'STRadioGroup',
+		"class": 'STRadioGroup',
 		current: '',
 		lastOptionValue: null,
 		disabled: false,
@@ -60,7 +60,7 @@ define([
 
 				me.options[values[i]] = option;
 
-				var container = domConstruct.create('div', { class: 'STRadio' });
+				var container = domConstruct.create('div', { "class": 'STRadio' });
 				var label = domConstruct.create('label', { 'for': option.id, innerHTML: label });
 
 				container.appendChild(label);

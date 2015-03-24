@@ -102,7 +102,7 @@ define([
 
 			me.ownFields = lang.clone(me.ownClassConfig.formFields);
 
-			me.class += ' ' + me.ownClassConfig.className;
+			me["class"] += ' ' + me.ownClassConfig.className;
 
 			me.inherited(arguments);
 
@@ -269,7 +269,7 @@ define([
 
 //			me.doStandBy();
 
-			me.ownFieldContainerNode = domConstruct.create('div', { class: 'STFieldContainer' });
+			me.ownFieldContainerNode = domConstruct.create('div', { "class": 'STFieldContainer' });
 
 			var fieldCount = langFunc.keys(me.ownFields).length;
 
@@ -419,7 +419,7 @@ define([
 						: i18nRC.generic[fieldSetName];
 			}
 
-			var fieldSet = domConstruct.create('fieldset', { class: 'STFieldSet ' + me.ownClassConfig.className + '_' + fieldSetName + (collapsed ? ' collapsed' : '') });
+			var fieldSet = domConstruct.create('fieldset', { "class": 'STFieldSet ' + me.ownClassConfig.className + '_' + fieldSetName + (collapsed ? ' collapsed' : '') });
 			var legend = domConstruct.create('legend', { innerHTML: label });
 			fieldSet.appendChild(legend);
 			me.ownFieldContainerNode.appendChild(fieldSet);

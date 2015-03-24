@@ -12,7 +12,7 @@ define([
 			me.BTTime = new MenuBarItem({
 				label: DateLocale.format(new Date(), { formatLength: 'medium' }),
 				style: 'float:right;',
-				class: 'STForceIcon STMenuTime',
+				"class": 'STForceIcon STMenuTime',
 				disabled: true
 			});
 

@@ -9,7 +9,6 @@ define([
 	"dijit/layout/ContentPane",
 	"dojo/Deferred",
 	"dojo/DeferredList",
-	"dijit/layout/ContentPane",
 	"dojo/dom-construct",
 	"dojo/dom-class",
 	"dijit/form/Button",
@@ -18,7 +17,7 @@ define([
 	"dojo/_base/array",
 	"steroid/backend/dnd/PermissionEntityRecord",
 	"dijit/layout/TabContainer"
-], function (declare, _DTForeignReference, _DTFormFieldMixin, lang, langFunc, i18nRC, i18nPerm, ContentPane, Deferred, DeferredList, ContentPane, domConstruct, domClass, Button, event, domStyle, array, PermissionEntityRecord, TabContainer) {
+], function (declare, _DTForeignReference, _DTFormFieldMixin, lang, langFunc, i18nRC, i18nPerm, ContentPane, Deferred, DeferredList, domConstruct, domClass, Button, event, domStyle, array, PermissionEntityRecord, TabContainer) {
 
 	return declare([ContentPane, _DTForeignReference, _DTFormFieldMixin], {
 		isSortable: false,
@@ -28,7 +27,7 @@ define([
 		editableRecordConfig: null,
 		recordGroupContainers: null,
 		recordGroupMap: null,
-		class: 'STStaticInlineEdit',
+		"class": 'STStaticInlineEdit',
 		formWatchHandles: null,
 		dirtyFields: null,
 		subFormFields: null,
@@ -113,7 +112,7 @@ define([
 
 			if (!me.tabContainer) {
 				me.tabContainer = new TabContainer({
-					class: 'STPermissionTabContainer',
+					"class": 'STPermissionTabContainer',
 					doLayout: false
 				});
 
@@ -178,7 +177,7 @@ define([
 					title: groups[i].title,
 					recordGroup: groups[i].name,
 					fieldContainers: {},
-					class: 'STPermissionGroup',
+					"class": 'STPermissionGroup',
 					disabled: !groups[i].hasEditable
 				});
 
@@ -353,6 +352,6 @@ define([
 			delete me.isStatic;
 
 			me.inherited(arguments);
-		},
+		}
 	});
 });

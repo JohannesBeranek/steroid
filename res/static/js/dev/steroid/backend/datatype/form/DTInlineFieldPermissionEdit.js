@@ -4,7 +4,7 @@ define([
 	"dojo/i18n!steroid/backend/nls/RecordClasses"
 ], function (declare, DTInlineEditableRecord, i18nRC) {
 	return declare([DTInlineEditableRecord], {
-		class: 'STInlineFieldPermissionEditor',
+		"class": 'STInlineFieldPermissionEditor',
 
 		getLabel: function(){
 			var me = this;

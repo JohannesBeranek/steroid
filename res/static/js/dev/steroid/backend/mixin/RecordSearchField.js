@@ -66,7 +66,7 @@ define([
 
 			me.listButton = new Button({
 				label: i18n.listButtonTitle,
-				class: 'browseButton',
+				"class": 'browseButton',
 				disabled: me.readOnly,
 				onClick: function () {
 					me.openList();

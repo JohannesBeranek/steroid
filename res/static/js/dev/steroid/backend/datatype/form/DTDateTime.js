@@ -13,7 +13,7 @@ define([
 
 		datePicker: null,
 		timePicker: null,
-		class: 'STDateTimePicker',
+		"class": 'STDateTimePicker',
 		dateWatch: null,
 		timeWatch: null,
 

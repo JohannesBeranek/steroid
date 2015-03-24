@@ -16,3 +16,6 @@
 [submodule "res/static/js/dev/dojox"]
 	path = res/static/js/dev/dojox
 	url = https://github.com/dojo/dojox.git
+[submodule "res/static/js/dev/util"]
+	path = res/static/js/dev/util
+	url = https://github.com/dojo/util.git

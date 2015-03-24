@@ -70,7 +70,7 @@ define({ root: ({
 		chart_liveStatus: {
 			0: 'Hidden',
 			1: 'Published',
-			2: 'Modified',
+			2: 'Modified'
 		},
 		widget_description: 'A widget',
 		fs_main: 'General',
@@ -89,7 +89,7 @@ define({ root: ({
 		apiKey: 'API key',
 		sorting: 'Sorting',
 		key: 'Key',
-		class: 'Class',
+		"class": 'Class',
 		customUrl: 'Custom URL',
 		text: 'Text',
 		link: 'Link',

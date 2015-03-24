@@ -10,7 +10,7 @@ define([
 
 	return declare([DropContainer, TitlePane], {
 
-		class: 'STMenuItemContainer',
+		"class": 'STMenuItemContainer',
 		accept: null,
 		parentItem: null,
 

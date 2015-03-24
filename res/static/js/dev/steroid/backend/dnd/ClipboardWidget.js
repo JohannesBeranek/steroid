@@ -17,7 +17,7 @@ define([
 		closeHandle: null,
 		closeNode: null,
 		clipboard: null,
-		class: 'STWidget STClipboardWidget',
+		"class": 'STWidget STClipboardWidget',
 		dialog: null,
 
 		postCreate: function () {
@@ -210,7 +210,7 @@ define([
 		setupCloseButton: function () {
 			var me = this;
 
-			me.closeNode = domConstruct.create('div', { class: 'closeNode STWidgetIcon_close', title: i18nRC.widgets.close });
+			me.closeNode = domConstruct.create('div', { "class": 'closeNode STWidgetIcon_close', title: i18nRC.widgets.close });
 			me.titleBarNode.appendChild(me.closeNode);
 
 			me.closeHandle = on(me.closeNode, 'click', function (e) {

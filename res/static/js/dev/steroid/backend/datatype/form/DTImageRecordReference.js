@@ -62,9 +62,9 @@ define([
 
 				if (value[0].filename.cached) {
 					if (!me.displayNode) {
-						me.displayNode = domConstruct.create('img', { class:'STFileName', src:'' });
+						me.displayNode = domConstruct.create('img', { "class":'STFileName', src:'' });
 
-						me.displayNodeWrap = domConstruct.create('div', { class:'STFileNameWrap' });
+						me.displayNodeWrap = domConstruct.create('div', { "class":'STFileNameWrap' });
 						me.displayNodeWrap.appendChild(me.displayNode);
 						
 						domConstruct.place(me.displayNodeWrap, me.domNode, 'after');

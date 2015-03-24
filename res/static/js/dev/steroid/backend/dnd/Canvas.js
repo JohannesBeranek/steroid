@@ -12,7 +12,7 @@ define([
 		resizeHandleVisible: false,
 		containerPadding: 10,
 		pixelBased: false,
-		class: 'STWidgetContainer STCanvas STResizeable',
+		"class": 'STWidgetContainer STCanvas STResizeable',
 
 		constructor: function () {
 			this.parentWidget = this;

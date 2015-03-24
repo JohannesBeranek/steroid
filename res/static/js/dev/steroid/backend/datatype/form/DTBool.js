@@ -13,7 +13,7 @@ define([
 
 	return declare([_Widget, _DTFormFieldMixin, _DTSet], {
 		checkBox: null,
-		class: 'STCheckBoxGroup',
+		"class": 'STCheckBoxGroup',
 		watchHandles: null,
 		disabled: false,
 
@@ -59,7 +59,7 @@ define([
 		createLabel: function () {
 			var me = this;
 
-			me.labelNode = domConstruct.create('label', {'for': me.checkBox.id, innerHTML: me.getLabel(), class: 'STLabel_' + me.fieldName.replace(':', '-')});
+			me.labelNode = domConstruct.create('label', {'for': me.checkBox.id, innerHTML: me.getLabel(), "class": 'STLabel_' + me.fieldName.replace(':', '-')});
 			domConstruct.place(me.labelNode, me.domNode);
 		},
 		startup: function () {
@@ -81,7 +81,7 @@ define([
 				}
 			}));
 
-			me.container = domConstruct.create('div', { class: 'STCheckBox' });
+			me.container = domConstruct.create('div', { "class": 'STCheckBox' });
 
 			me.container.appendChild(me.checkBox.domNode);
 

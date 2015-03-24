@@ -20,7 +20,7 @@ define([
 		onClose: null,
 		lastAction: null,
 		domainGroupContainers: null,
-		class: 'STReferenceDialog',
+		"class": 'STReferenceDialog',
 		messagesForOtherDomainGroups: null,
 		checkboxes: null,
 		labels: null,
@@ -164,7 +164,7 @@ define([
 
 			me.recordsDisplayed.push(recordClass + '_' + record.primary);
 
-			var label = domConstruct.create('label', { for: recordClass + '_' + record.primary, innerHTML: title, id: 'label_' + recordClass + '_' + record.primary });
+			var label = domConstruct.create('label', { "for": recordClass + '_' + record.primary, innerHTML: title, id: 'label_' + recordClass + '_' + record.primary });
 
 			me.labels.push(label);
 
@@ -180,7 +180,7 @@ define([
 				data: {
 					requestType: 'getPublishableReferences',
 					recordClass: rc,
-					recordID: primary,
+					recordID: primary
 				},
 				success: function (response) {
 					me.backend.hideStandBy();
@@ -189,12 +189,12 @@ define([
 						me.addReferences(response.data.items, cb);
 					} else {
 						me.backend.hideStandBy();
-						me.backend.showError(response)
+						me.backend.showError(response);
 					}
 				},
 				error: function (response) {
 					me.backend.hideStandBy();
-					me.backend.showError(response)
+					me.backend.showError(response);
 				}
 			};
 
@@ -418,7 +418,7 @@ define([
 		postCreate: function () {
 			var me = this;
 
-			me.contentArea = domConstruct.create('div', { class: 'dijitDialogPaneContentArea' }, me.containerNode);
+			me.contentArea = domConstruct.create('div', { "class": 'dijitDialogPaneContentArea' }, me.containerNode);
 
 			me.errorType = me.response.error;
 
@@ -431,7 +431,7 @@ define([
 
 			me.message = domConstruct.create('div', { innerHTML: i18nErr.affected[me.lastAction] || '', style: 'margin-bottom: 10px;' }, me.contentArea);
 
-			me.actionBar = domConstruct.create('div', { class: 'dijitDialogPaneActionBar' }, me.containerNode);
+			me.actionBar = domConstruct.create('div', { "class": 'dijitDialogPaneActionBar' }, me.containerNode);
 
 			me.BtnYes = new Button({
 				label: me.errorType == 'MissingReferencesException' ? i18nErr.BtnPublish : i18nErr.BtnYes,

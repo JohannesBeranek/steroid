@@ -38,7 +38,7 @@
 				"stlocal": "../../../../../../stlocal"
 			},
 			parseOnLoad: false,
-			cacheBust: new Date(), <? // TODO: more intelligent mechanism which allows total and partial caching without the need to manually clear cache ?>
+			cacheBust: true, 
 			waitSeconds: 30,
 			locale: "<?= $this->config[ 'interface' ][ 'languages' ][ 'current' ]; ?>"
 		};

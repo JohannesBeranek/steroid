@@ -14,7 +14,7 @@ define([
 		owningRecordClass: null,
 		changeWatch: 1,
 		parentWidget: null,
-		class: 'STWidgetContainer',
+		"class": 'STWidgetContainer',
 		waitForWidgetValueSet: null,
 
 		drop: function (item) {
@@ -53,10 +53,10 @@ define([
 			return 'element';
 		},
 		getWidgetType: function (value) {
-			return value.class === 'RCArea' ? 'area' : 'widget';
+			return value["class"] === 'RCArea' ? 'area' : 'widget';
 		},
 		getInlineRecordClassName: function (value) {
-			return value.class;
+			return value["class"];
 		},
 		dropValid: function (widget) {
 			var me = this;

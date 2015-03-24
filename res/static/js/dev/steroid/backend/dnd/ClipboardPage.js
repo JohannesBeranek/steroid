@@ -25,7 +25,7 @@ define([
 		insertHandle: null,
 		insertNode: null,
 		backend: null,
-		class: 'STStaticRecord',
+		"class": 'STStaticRecord',
 		moduleContainer: null,
 		ownClassConfig: null,
 		moduleCloseAspect: null,
@@ -36,7 +36,7 @@ define([
 			var me = this;
 
 			//FIXME: dup from clipboardWidget
-			me.closeNode = domConstruct.create('div', { class: 'closeNode STWidgetIcon_close', title: i18nRC.widgets.close });
+			me.closeNode = domConstruct.create('div', { "class": 'closeNode STWidgetIcon_close', title: i18nRC.widgets.close });
 			me.titleBarNode.appendChild(me.closeNode);
 
 			me.closeHandle = on(me.closeNode, 'click', function (e) {
@@ -47,7 +47,7 @@ define([
 				return false;
 			});
 
-			me.insertNode = domConstruct.create('div', { class: 'insertNode STWidgetIcon_insert', title: i18nRC.widgets.insert });
+			me.insertNode = domConstruct.create('div', { "class": 'insertNode STWidgetIcon_insert', title: i18nRC.widgets.insert });
 			me.titleBarNode.appendChild(me.insertNode);
 
 			me.insertHandle = on(me.insertNode, 'click', function (e) {

@@ -79,8 +79,8 @@ define([
 				message = me.response.message;
 			}
 
-			me.contentArea = domConstruct.create('div', { class: 'dijitDialogPaneContentArea', innerHTML: message }, me.containerNode);
-			me.actionBar = domConstruct.create('div', { class: 'dijitDialogPaneActionBar' }, me.containerNode);
+			me.contentArea = domConstruct.create('div', { "class": 'dijitDialogPaneContentArea', innerHTML: message }, me.containerNode);
+			me.actionBar = domConstruct.create('div', { "class": 'dijitDialogPaneActionBar' }, me.containerNode);
 
 			me.BtnOK = new Button({
 				label: i18nErr.BtnOK,

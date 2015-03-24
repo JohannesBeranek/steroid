@@ -35,7 +35,7 @@ define([
 		hideWatch: null,
 		hideHandle: null,
 		containerPadding: 10,
-		class: 'STWidget',
+		"class": 'STWidget',
 		i18nExt: null,
 		copyButton: null,
 		copyHandle: null,
@@ -170,7 +170,7 @@ define([
 	                
 	                var pubStart = dojo.date.locale.format(new Date(me.record.element.pubStart));
 	 
-	                me.pubstartNode = domConstruct.create('div', { class: 'pubstartNode STWidgetIcon_pubStart', title: 'Publish: ' + pubStart });
+	                me.pubstartNode = domConstruct.create('div', { "class": 'pubstartNode STWidgetIcon_pubStart', title: 'Publish: ' + pubStart });
 					me.titleBarNode.appendChild(me.pubstartNode);
 	            }
 	            
@@ -178,7 +178,7 @@ define([
 	                
 	                var pubEnd = dojo.date.locale.format(new Date(me.record.element.pubEnd));
 	                
-	                me.pubendNode = domConstruct.create('div', { class: 'pubendNode STWidgetIcon_pubEnd', title: 'Unpublish: ' + pubEnd });
+	                me.pubendNode = domConstruct.create('div', { "class": 'pubendNode STWidgetIcon_pubEnd', title: 'Unpublish: ' + pubEnd });
 					me.titleBarNode.appendChild(me.pubendNode);
 	            }
 			}
@@ -191,7 +191,7 @@ define([
 			}
 
 			if (!me.isFixed && me.inlineRecord.record.primary) {
-				me.copyNode = domConstruct.create('div', { class: 'copyNode STWidgetIcon_copy', title: i18nRC.widgets.copy });
+				me.copyNode = domConstruct.create('div', { "class": 'copyNode STWidgetIcon_copy', title: i18nRC.widgets.copy });
 				me.titleBarNode.appendChild(me.copyNode);
 
 				me.copyHandle = on(me.copyNode, 'click', function (e) {
@@ -213,7 +213,7 @@ define([
 			var hiddenField = me.getFieldByFieldName(me.getDataTypeFieldName('DTSteroidHidden'));
 
 			if (hiddenField) {
-				me.hideButton = domConstruct.create('div', { class: 'hideNode STWidgetIcon_hide', title: i18nRC.widgets.hide });
+				me.hideButton = domConstruct.create('div', { "class": 'hideNode STWidgetIcon_hide', title: i18nRC.widgets.hide });
 				me.titleBarNode.appendChild(me.hideButton);
 
 				me.hideHandle = on(me.hideButton, 'click', function (e) {

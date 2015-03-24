@@ -22,7 +22,7 @@ define([
 ], function (declare, DropDownMenu, PopupMenuBarItem, AccordionContainer, TitlePane, ContentPane, DropContainer, i18nRC, i18nClipboard, Widget, DndManager, ClipboardWidget, ClipboardRecord, ClipboardPage, InlineRecord, domClass, baseFx, domGeom, domConstruct, domStyle) {
 
 	return declare([PopupMenuBarItem], {
-		class: 'STClipboard',
+		"class": 'STClipboard',
 		label: i18nClipboard.clipboard_name,
 		style: 'float: right;',
 		accordion: null,
@@ -59,7 +59,7 @@ define([
 			var classPane = new ContentPane({
 				title: classConf.i18nExt ? classConf.i18nExt[classConf.className + '_name'] : i18nRC[classConf.className + '_name'],
 				content: '',
-				class: 'STClipboardItemContainer',
+				"class": 'STClipboardItemContainer',
 				recordClass: classConf.className
 			});
 
@@ -110,7 +110,7 @@ define([
 				title: i18nClipboard.widgetContainer_name,
 				accept: [],
 				content: '',
-				class: 'STClipboardItemContainer',
+				"class": 'STClipboardItemContainer',
 				parentWidget: me,
 				getFieldByFieldName: function () {
 					//stub
@@ -121,7 +121,7 @@ define([
 //				title: i18nClipboard.orphanContainer_name,
 //				accept: [],
 //				content: '',
-//				class: 'STClipboardItemContainer',
+//				"class": 'STClipboardItemContainer',
 //				parentWidget: me,
 //				getFieldByFieldName: function () {
 //					//stub

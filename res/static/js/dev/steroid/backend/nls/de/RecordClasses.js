@@ -65,7 +65,7 @@ define({
 		chart_liveStatus: {
 			0: 'Unveröffentlicht',
 			1: 'Veröffentlicht',
-			2: 'Modifiziert',
+			2: 'Modifiziert'
 		},
 		widget_description: 'Ein Widget',
 		fs_main: 'Allgemein',
@@ -83,7 +83,7 @@ define({
 		area: 'Bereich',
 		sorting: 'Sortierung',
 		key: 'Schlüssel',
-		class: 'Klasse',
+		"class": 'Klasse',
 		customUrl: 'Benutzerdefinierte URL',
 		text: 'Text',
 		link: 'Link',

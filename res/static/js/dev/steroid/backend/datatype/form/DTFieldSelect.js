@@ -58,7 +58,7 @@ define([
 			var me = this;
 
 			me.checkBoxContainer = new TitlePane({
-				class: 'STFieldSelector',
+				"class": 'STFieldSelector',
 				open: false
 			});
 

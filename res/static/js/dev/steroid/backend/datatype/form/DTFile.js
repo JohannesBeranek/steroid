@@ -26,7 +26,7 @@ define([
 
 			me.inherited(arguments);
 
-			me.containerNode = domConstruct.create('div', { class: 'STFileFieldContainer' });
+			me.containerNode = domConstruct.create('div', { "class": 'STFileFieldContainer' });
 
 			domConstruct.place(me.containerNode, me.domNode, 'after');
 
@@ -120,7 +120,7 @@ define([
 			var me = this;
 
 			if (value && lang.isObject(value)) {
-				var downloadUrl = me.backend.config.interface.basePath + '?' + query.objectToQuery(dojo.mixin({ requestType: 'download', file: value.primary }, me.backend.config.interface.ajaxQuery));
+				var downloadUrl = me.backend.config["interface"].basePath + '?' + query.objectToQuery(dojo.mixin({ requestType: 'download', file: value.primary }, me.backend.config["interface"].ajaxQuery));
 
 				me._ensureDownloadNode();
 

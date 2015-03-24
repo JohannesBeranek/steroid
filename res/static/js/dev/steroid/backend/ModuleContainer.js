@@ -72,7 +72,7 @@ define([
 			me.detailPane = new pane({
 				style: 'border: 0;overflow:hidden;padding:0;',
 				region: 'center',
-				class: 'STDetailPane',
+				"class": 'STDetailPane',
 				splitter: false,
 				gutters: false,
 				moduleContainer: me,
@@ -309,6 +309,6 @@ define([
 			delete me.backend;
 
 			me.inherited(arguments);
-		},
+		}
 	});
 });

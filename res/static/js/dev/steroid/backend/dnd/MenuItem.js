@@ -16,7 +16,7 @@ define([
 // FIXME: sometimes first items gets negative sorting, which might be a problem with db
 	return declare([TitlePane, _SubFormMixin], {
 
-		class: 'STMenuItem',
+		"class": 'STMenuItem',
 		type: '', // will be set by DTMenuItemForeignReference to include the widget's ID
 		generated: false,
 		userChange: false,
@@ -76,7 +76,7 @@ define([
 			var me = this;
 
 			if (!(me.readOnly || me.closeNode || (me.generated && !me.userChange))) {
-				me.closeNode = domConstruct.create('div', { class: 'closeNode', innerHTML: '&nbsp;', style: 'display: ' + (me.generated ? 'none' : 'block' ) });
+				me.closeNode = domConstruct.create('div', { "class": 'closeNode', innerHTML: '&nbsp;', style: 'display: ' + (me.generated ? 'none' : 'block' ) });
 				me.titleBarNode.appendChild(me.closeNode);
 
 				me.closeHandle = on(me.closeNode, 'click', function () {
@@ -85,7 +85,7 @@ define([
 			}
 
 			if (!me.visibleNode) {
-				me.visibleNode = domConstruct.create('div', { class: 'visibleNode', innerHTML: '&nbsp;' });
+				me.visibleNode = domConstruct.create('div', { "class": 'visibleNode', innerHTML: '&nbsp;' });
 				me.titleBarNode.appendChild(me.visibleNode);
 
 				me.publishHandle = on(me.visibleNode, 'click', function(e){
