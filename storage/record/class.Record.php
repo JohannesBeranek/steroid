@@ -919,6 +919,14 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$fields[ ] = $liveFieldName;
 		}
 
+		if ( $creatorFieldName = static::getDataTypeFieldName( 'DTSteroidCreator' ) ) {
+			$fields[ ] = $creatorFieldName;
+		}
+
+		if ( $ctimeFieldName = static::getDataTypeFieldName( 'DTCTime' ) ) {
+			$fields[ ] = $ctimeFieldName;
+		}
+
 		$listFieldDefinitions = array();
 
 		foreach ( $fields as $path ) {
