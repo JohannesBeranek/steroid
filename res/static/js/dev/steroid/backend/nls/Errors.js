@@ -1,7 +1,7 @@
 define({ root: ({
 	generic: {
 		title: 'Error',
-		message: 'I cannot do that, Dave'
+		message: 'An error has occured, please try again or contact your system administrator'
 	},
 	confirm: {
 		title: 'Please confirm',
@@ -9,7 +9,7 @@ define({ root: ({
 	},
 	unexpected_token: {
 		title: 'Unexpected token',
-		message: 'I did not expect such a token to be taken'
+		message: 'An error has occured, please try again or contact your system administrator'
 	},
 	UnknownRequestException: {
 		title: 'You have been logged out',
@@ -31,8 +31,8 @@ define({ root: ({
 		message: "I'm sorry, but I can't let you go"
 	},
 	Exception: {
-		title: 'Exceptional error',
-		message: 'Whoopsie, you managed to blow up the internets. Good job'
+		title: 'Exception',
+		message: 'An error has occured, please try again or contact your system administrator'
 	},
 	CannotCopyRecordException: {
 		title: 'Reference not published',

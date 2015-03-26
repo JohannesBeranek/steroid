@@ -1,7 +1,7 @@
 define({
 	generic: {
 		title: 'Fehler',
-		message: 'Das kann ich nicht tun, Dave'
+		message: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut, oder kontaktieren Sie Ihren Systemadministrator'
 	},
 	confirm: {
 		title: 'Bitte bestätigen',
@@ -9,7 +9,7 @@ define({
 	},
 	unexpected_token: {
 		title: 'Unbekanntes Zeichen',
-		message: 'Ups, da ist was schief gegangen'
+		message: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut, oder kontaktieren Sie Ihren Systemadministrator'
 	},
 	UnknownRequestException: {
 		title: 'Sie wurden ausgeloggt',
@@ -32,7 +32,7 @@ define({
 	},
 	Exception: {
 		title: 'Ausnahmefehler',
-		message: 'Ausnahmsweise ist eine Ausnahme aufgetreten'
+		message: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut, oder kontaktieren Sie Ihren Systemadministrator'
 	},
 	CannotCopyRecordException: {
 		title: 'Referenz nicht veröffentlicht',
@@ -40,7 +40,7 @@ define({
 	},
 	NoChangeException: {
 		title: 'Nichts passiert',
-		message: "Sie wollten etwas tun das nicht passiert ist. Und jetzt?"
+		message: "Sie wollten etwas tun, aber es ist nicht passiert"
 	},
 	MissingReferencesException: {
 		title: 'Andere Einträge die ebenfalls veröffentlich werden müssen (ausgegraut), bzw können (auswählbar)'
