@@ -407,6 +407,8 @@ define([
 					label = foreignClassConfig.i18nExt[me.ownClassConfig.className][fieldSetName];
 				} else if (foreignClassConfig && foreignClassConfig.i18nExt && foreignClassConfig.i18nExt[addedBy] && foreignClassConfig.i18nExt[addedBy][fieldSetName]) {
 					label = foreignClassConfig.i18nExt[addedBy][fieldSetName];
+				} else {
+					label = foreignClassConfig.i18nExt[addedBy + '_name'];
 				}
 			}
 
