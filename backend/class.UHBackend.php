@@ -2053,14 +2053,14 @@ class UHBackend implements IURLHandler {
 
 		// filter
 		if ( $requestingRecordClass ) {
-			$requestingRecordClass::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass );
+			$requestingRecordClass::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass, $isSearchField );
 		}
 
 		if ( $mainRecordClass ) {
-			$mainRecordClass::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass );
+			$mainRecordClass::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass, $isSearchField );
 		}
 
-		$recordClassName::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass );
+		$recordClassName::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass, $isSearchField );
 
 		// cleanup old content edit entries
 		$this->deleteOldContentEditRecords();
