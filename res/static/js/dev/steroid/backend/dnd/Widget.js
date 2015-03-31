@@ -39,8 +39,12 @@ define([
 		i18nExt: null,
 		copyButton: null,
 		copyHandle: null,
+		containingPages: null,
 		previewStartHandle: null,
 		previewEndHandle: null,
+		containingPagesIcon: null,
+		containingPagesShowHandle: null,
+		containingPagesHideHandle: null,
 
 		constructor: function () {
 			this.itemsAlreadyExist = [];
@@ -135,6 +139,70 @@ define([
 				me.previewEndHandle = on(me.titleBarNode, 'mouseleave', function(e){
 					me.removePreview();
 				});
+			}
+		},
+		_setValueAttr: function (value) {
+			var me = this;
+
+			me.inherited(arguments);
+
+			if(value && typeof value[me.inlineSubstitutionFieldName] !== 'undefined'){
+				me.containingPages = value[me.inlineSubstitutionFieldName]['_containingPages'];
+
+				me.setupContainingPages(me.containingPages);
+			} else {
+				me.removeContainingPagesIcon();
+				me.containingPages = null;
+			}
+		},
+		setupContainingPages: function(pages){
+			var me = this;
+
+			if(typeof pages == 'undefined'){
+				me.removeContainingPagesIcon();
+
+				return;
+			}
+
+			if(me.containingPagesIcon == null){
+				me.containingPagesIcon = domConstruct.create('div', {'class': 'containingPagesIcon' });
+				domConstruct.place(me.containingPagesIcon, me.titleBarNode);
+
+				me.containingPagesShowHandle = on(me.containingPagesIcon, 'mouseenter', function (e) {
+					me.showContainingPages();
+				});
+
+				me.containingPagesHideHandle = on(me.containingPagesIcon, 'mouseleave', function (e) {
+					me.hideContainingPages();
+				});
+			}
+		},
+		showContainingPages: function(){
+			var me = this;
+
+			var text = i18nRC.widget_reference_warning + '<br/><br/>';
+
+			for(var i in me.containingPages){
+				text += me.containingPages[i] + '<br/>';
+			}
+
+			Tooltip.show(text, me.domNode);
+		},
+		hideContainingPages: function(){
+			var me = this;
+		},
+		removeContainingPagesIcon: function(){
+			var me = this;
+
+			if (me.containingPagesIcon) {
+				me.containingPagesShowHandle.remove();
+				delete me.containingPagesShowHandle;
+
+				me.containingPagesHideHandle.remove();
+				delete me.containingPagesHideHandle;
+
+				domConstruct.destroy(me.containingPagesIcon);
+				delete me.containingPagesIcon;
 			}
 		},
 		doPreview: function(){
@@ -569,6 +637,7 @@ define([
 			var me = this;
 
 			me.removePreview();
+			me.removeContainingPagesIcon();
 
 			if(me.previewStartHandle){
 				me.previewStartHandle.remove();

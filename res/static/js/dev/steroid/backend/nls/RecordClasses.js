@@ -13,6 +13,7 @@ define({ root: ({
 	type_widget: 'Widget',
 	type_util: 'Utility',
 	type_wizard: 'Wizard',
+	widget_reference_warning: 'Widget is referenced in:',
 	RCFile_name: 'File',
 	RCChangeLog_name: 'Changelog',
 	RCDomainGroup_name: 'Subweb',

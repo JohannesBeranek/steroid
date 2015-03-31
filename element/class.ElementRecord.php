@@ -60,6 +60,22 @@ abstract class ElementRecord extends Record implements IHandleArea {
 		return array();
 	}
 
+	public function getFormValues( array $fields ) {
+		$ret = parent::getFormValues($fields);
+
+		$containingPages = $this->getContainingPages();
+
+		if(count($containingPages) > 1){
+			$ret[ '_containingPages' ] = array();
+
+			foreach ( $containingPages as $page ) {
+				$ret[ '_containingPages' ][ ] = '(' . $page->domainGroup->getTitle() . ') ' . $page->getTitle();
+			}
+		}
+
+		return $ret;
+	}
+
 	protected static function addGeneratedKeys( array &$keys ) {
 		$keys[ 'primary' ] = DTKey::getFieldDefinition( array( 'id', 'live' ) );
 	}

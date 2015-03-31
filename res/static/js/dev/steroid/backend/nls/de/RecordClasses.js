@@ -12,6 +12,7 @@ define({
 	type_ext_content: 'Externe Inhalte',
 	type_util: 'Werkzeuge',
 	type_wizard: 'Assistenten',
+	widget_reference_warning: 'Widget wird referenziert in:',
 	RCFile_name: 'Datei',
 	RCChangeLog_name: 'Changelog',
 	RCDomainGroup_name: 'Subweb',
