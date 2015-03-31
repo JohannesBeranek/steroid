@@ -78,7 +78,7 @@ define([
 			if (me.hasDroppable() && i == me.containerFieldName) {
 				fieldConf = {
 					style: 'width: 100% !important;min-height: 40px;',
-					class: 'STInlineEditableWidget',
+					"class": 'STInlineEditableWidget',
 					accept: ['widget', 'area'],
 					dndManager: me.dndManager,
 					backend: me.backend,

@@ -21,7 +21,7 @@ abstract class Wizard implements IBackendModule {
 		return array();
 	}
 
-	public static function modifySelect( array &$queryStruct, IRBStorage $storage, array &$userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass ) {
+	public static function modifySelect( array &$queryStruct, IRBStorage $storage, array &$userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass, $isSearchField = false ) {
 
 	}
 

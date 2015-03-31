@@ -1281,3 +1281,12 @@ body.STDialogOpen #uiContainer {
 body .redactor_box_fullscreen {
 	z-index: 100 !important;
 }
+
+.containingPagesIcon {
+	width: 20px;
+	height: 20px;
+	background: transparent url(/steroid/res/static/img/icons/claro/warning.png) no-repeat 0 0;
+	float: left;
+	display: table-cell;
+	margin: 0 !important;
+}

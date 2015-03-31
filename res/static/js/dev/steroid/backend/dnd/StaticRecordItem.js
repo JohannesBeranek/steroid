@@ -12,7 +12,7 @@ define([
 		toggleable: false,
 		valueSetListener: null,
 		closeNode: null,
-		class: 'STStaticRecord',
+		"class": 'STStaticRecord',
 		ownIndexInParent: 0,
 		readOnly: false,
 
@@ -70,7 +70,7 @@ define([
 				return;
 			}
 
-			me.closeNode = domConstruct.create('div', { class: 'closeNode STWidgetIcon_close' });
+			me.closeNode = domConstruct.create('div', { "class": 'closeNode STWidgetIcon_close' });
 			me.titleBarNode.appendChild(me.closeNode);
 
 			me.closeHandle = on(me.closeNode, 'click', function () {

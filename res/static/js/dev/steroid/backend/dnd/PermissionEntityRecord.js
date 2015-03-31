@@ -25,7 +25,7 @@ define([
 		postMixInProperties: function () {
 			var me = this;
 
-			me.class = me.ownClassConfig.className;
+			me["class"] = me.ownClassConfig.className;
 
 			me.inherited(arguments);
 
@@ -139,7 +139,7 @@ define([
 		doSetup: function () {
 			var me = this;
 
-			me.dependencyLabel = domConstruct.create('div', { innerHTML: i18nPerm.dependencyLabel, class: 'STDependencyLabel' });
+			me.dependencyLabel = domConstruct.create('div', { innerHTML: i18nPerm.dependencyLabel, "class": 'STDependencyLabel' });
 
 			domConstruct.place(me.dependencyLabel, me.ownFieldContainerNode, 'last');
 		},

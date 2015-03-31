@@ -13,7 +13,7 @@ define([
 		submitName: null,
 		owningRecordClass: null,
 		parentContainer: null,
-		class: 'STMenuItemPanel',
+		"class": 'STMenuItemPanel',
 
 		constructor: function () {
 			this.parentContainer = null;

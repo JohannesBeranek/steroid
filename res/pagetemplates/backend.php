@@ -1,4 +1,14 @@
-<!DOCTYPE HTML>
+<?php
+
+$useBuilt = false;
+
+if ($useBuilt) {
+	$basePath = '/steroid/res/static/js/build/steroid';
+} else {
+	$basePath = '/steroid/res/static/js/dev';
+}
+
+?><!DOCTYPE HTML>
 <html lang="en-US">
 <head>
 	<meta charset="UTF-8">
@@ -7,23 +17,25 @@
 
 	<title>CMS gruene.at 2013</title>
 	<? // TODO: remove css files we don't need anymore! ?>
-	<link rel="stylesheet" href="/steroid/res/static/js/dev/dojo/resources/dojo.css"><?
+	<link rel="stylesheet" href="<?= $basePath ?>/dojo/resources/dojo.css"><?
 	$theme = $this->config[ 'interface' ][ 'themes' ][ 'current' ];
 	?>
 	<link id="stylesheet-theme" rel="stylesheet" href="<?= htmlspecialchars( $theme[ 'stylesheet' ], ENT_COMPAT, "UTF-8" ) ?>" title="<?= htmlspecialchars( $theme[ 'label' ], ENT_COMPAT, 'UTF-8' ) ?>">
-	<link rel="stylesheet" href="/steroid/res/static/js/dev/dojox/form/resources/ListInput.css">
-	<link rel="stylesheet" href="/steroid/res/static/js/dev/dojox/layout/resources/ResizeHandle.css">
-	<link rel="stylesheet" href="/steroid/res/static/js/dev/dojox/form/resources/CheckedMultiSelect.css">
+	<link rel="stylesheet" href="<?= $basePath ?>/dojox/form/resources/ListInput.css">
+	<link rel="stylesheet" href="<?= $basePath ?>/dojox/layout/resources/ResizeHandle.css">
+	<link rel="stylesheet" href="<?= $basePath ?>/dojox/form/resources/CheckedMultiSelect.css">
 
-	<link rel="stylesheet" href="/steroid/res/static/js/dev/dojox/widget/Toaster/Toaster.css">
-	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,800italic,400,700,800' rel='stylesheet' type='text/css'><? // TODO: project specific! ?>
+	<link rel="stylesheet" href="<?= $basePath ?>/dojox/widget/Toaster/Toaster.css">
+	<? // TODO: project specific! ?>
+	<link href="//fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,800italic,400,700,800" rel="stylesheet" type="text/css">
 
 	<link rel="stylesheet" href="/steroid/res/static/css/backend.css" media="screen">
 	<?
 	if ( isset( $theme[ 'stylesheet-override' ] ) ): ?>
 		<link id="stylesheet-override" rel="stylesheet" href="<?= htmlspecialchars( $theme[ 'stylesheet-override' ], ENT_COMPAT, "UTF-8" ) ?>" media="screen">
 	<? endif; ?>
-	<link id="stylesheet-override-post" rel="stylesheet" href="/res?file=/stlocal/res/css/headings.css" media="screen"><? // TODO: project specific! ?>
+	<? // TODO: project specific! ?>
+	<link id="stylesheet-override-post" rel="stylesheet" href="/res?file=/stlocal/res/css/headings.css" media="screen">
 
 	<? if ( isset( $this->config[ 'customCSSPaths' ] ) ):
 		foreach ( $this->config[ 'customCSSPaths' ] as $path ): ?>
@@ -33,18 +45,20 @@
 
 	<script type="text/javascript">
 		dojoConfig = {
+			async: true,
+			isDebug: false,
 			modulePaths: {
 				"steroid": "../steroid",
 				"stlocal": "../../../../../../stlocal"
 			},
 			parseOnLoad: false,
-			cacheBust: new Date(), <? // TODO: more intelligent mechanism which allows total and partial caching without the need to manually clear cache ?>
+			cacheBust: true, 
 			waitSeconds: 30,
 			locale: "<?= $this->config[ 'interface' ][ 'languages' ][ 'current' ]; ?>"
 		};
 	</script>
 
-	<script type="text/javascript" src="/steroid/res/static/js/dev/dojo/dojo.js" data-dojo-config="async: true, isDebug: false"></script><?
+	<script type="text/javascript" src="<?= $basePath ?>/dojo/dojo.js"></script><?
 
 	if ( !$this->isBackendUser && isset( $this->config[ 'loginext' ] ) ) {
 		foreach ( $this->config[ 'loginext' ] as $loginExt ) {
@@ -59,19 +73,33 @@
 	}
 
 	?>
-	<script type="text/javascript">
-		//		require(['steroid/base'], function() {
-		//			require(['steroid/shared'], function() {
+	<script type="text/javascript"><?php
+	
+	if ($useBuilt) {
+		if ($this->isBackendUser) {
+		
+		?>require(["steroid/steroid"], function() {<?php
+		} else {
+		?>require(["steroid/login"], function() {<?php
+			
+		}
+	}
+		
+?>
 		require(['dojo/_base/kernel', "dojo/_base/loader"], function () {
 			<?php
 
 		if ($this->isBackendUser) {
+		
 						?>
 			require(["dojo/dom", "dojo/domReady!", "steroid/backend/Backend"], function (dom, domReady, Backend) {
 				window.Backend = new Backend({ config: <?= json_encode( $this->config ); ?> });
 			});
 			<?php
+			
+
 		} else {
+			
 			?>
 			require(["dojo/dom", "dojo/domReady!", "steroid/backend/Login"], function (dom, domReady, Login) {
 				window.Login = new Login({ config: <?= json_encode( $this->config ); ?> });
@@ -102,13 +130,14 @@
 			});
 			<?
 
-
-					}
+		}
 			?>
 		});
-		//			});
-		//		});
-
+<?php
+		if ($useBuilt) {
+			?>});<?php
+		}
+?>
 	</script>
 </head>
 <body id="steroid" class="<?= htmlspecialchars( $this->config[ 'interface' ][ 'themes' ][ 'current' ][ 'name' ], ENT_COMPAT, 'UTF-8' ) ?>">

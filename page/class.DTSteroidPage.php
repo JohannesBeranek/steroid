@@ -122,6 +122,10 @@ class DTSteroidPage extends BaseDTRecordReference {
 		$parentPage = NULL;
 
 		foreach ( $values as $page ) {
+			if($page === NULL){
+				continue;
+			}
+
 			if ( $page->live == $record->live && $page->language === $record->language && $page->domainGroup === $record->domainGroup ) {
 				$parentPage = $page;
 				break;

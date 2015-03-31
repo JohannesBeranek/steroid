@@ -18,7 +18,7 @@ define([
 		owningRecordClass: null,
 		parentWidget: null, //widgetPanel's parentWidget is the canvas
 		classPanes: null,
-		class: 'STWidgetPanel',
+		"class": 'STWidgetPanel',
 		scrollHandle: null,
 
 		constructor: function () {
@@ -38,7 +38,7 @@ define([
 				var exists = false;
 
 				for (var j = 0, existing; existing = widgetClassTitles[j]; j++) {
-					if (existing.class === me.widgetConf[i].widgetType) {
+					if (existing["class"] === me.widgetConf[i].widgetType) {
 						exists = true;
 						break;
 					}
@@ -49,7 +49,7 @@ define([
 				}
 
 				widgetClassTitles.push({
-					class: me.widgetConf[i].widgetType,
+					"class": me.widgetConf[i].widgetType,
 					title: i18nRC.widgets['type_' + me.widgetConf[i].widgetType + '_name']
 				});
 			}
@@ -60,7 +60,7 @@ define([
 
 			for (var i = 0, itemClass; itemClass = widgetClassTitles[i]; i++) { // create panes for all classes
 				for (var j = 0, item; item = me.widgetConf[j]; j++) {
-					if (item.widgetType === itemClass.class) {
+					if (item.widgetType === itemClass["class"]) {
 						me.createClassPane(item);
 						break;
 					}
@@ -77,7 +77,7 @@ define([
 				var exists = false;
 
 				for (var j = 0, existing; existing = widgetTitles[j]; j++) {
-					if (existing.class === me.widgetConf[i].className) {
+					if (existing["class"] === me.widgetConf[i].className) {
 						exists = true;
 						break;
 					}
@@ -90,7 +90,7 @@ define([
 				var i18n = me.widgetConf[i].i18nExt || i18nRC;
 
 				widgetTitles.push({
-					class: me.widgetConf[i].className,
+					"class": me.widgetConf[i].className,
 					title: i18n[me.widgetConf[i].className + '_name']
 				});
 			}
@@ -101,7 +101,7 @@ define([
 
 			for (var i = 0, widgetClass; widgetClass = widgetTitles[i]; i++) {
 				for (var j = 0, item; item = me.widgetConf[j]; j++) {
-					if (item.className === widgetClass.class) {
+					if (item.className === widgetClass["class"]) {
 						me.addWidget(item);
 						break;
 					}

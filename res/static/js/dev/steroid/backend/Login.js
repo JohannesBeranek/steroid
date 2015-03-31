@@ -159,7 +159,7 @@ define([
 						}
 
 						data.requestType = 'login';
-						data.login = me.config.login.class;
+						data.login = me.config.login["class"];
 
 						var conf = {
 							data: data,
@@ -184,7 +184,7 @@ define([
 
 			me.submitting = false;
 
-			if (response.data.interface.languages.current == kernel.locale) {
+			if (response.data["interface"].languages.current == kernel.locale) {
 				require(["steroid/backend/Backend"], function (Backend) {
 					window.Backend = new Backend({ config: response.data });
 				});

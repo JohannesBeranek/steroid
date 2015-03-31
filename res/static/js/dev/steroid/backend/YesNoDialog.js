@@ -22,8 +22,8 @@ define([
 		postCreate: function(){
 			var me = this;
 
-			me.contentArea = domConstruct.create('div', { class: 'dijitDialogPaneContentArea', innerHTML: me.message }, me.containerNode);
-			me.actionBar = domConstruct.create('div', { class: 'dijitDialogPaneActionBar' }, me.containerNode);
+			me.contentArea = domConstruct.create('div', { "class": 'dijitDialogPaneContentArea', innerHTML: me.message }, me.containerNode);
+			me.actionBar = domConstruct.create('div', { "class": 'dijitDialogPaneActionBar' }, me.containerNode);
 
 			me.BtnYes = new Button({
 				label: i18nErr.BtnYes,

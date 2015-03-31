@@ -2053,14 +2053,14 @@ class UHBackend implements IURLHandler {
 
 		// filter
 		if ( $requestingRecordClass ) {
-			$requestingRecordClass::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass );
+			$requestingRecordClass::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass, $isSearchField );
 		}
 
 		if ( $mainRecordClass ) {
-			$mainRecordClass::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass );
+			$mainRecordClass::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass, $isSearchField );
 		}
 
-		$recordClassName::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass );
+		$recordClassName::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass, $isSearchField );
 
 		// cleanup old content edit entries
 		$this->deleteOldContentEditRecords();
@@ -2789,7 +2789,7 @@ class UHBackend implements IURLHandler {
 
 
 		foreach ( $languages as $language ) {
-			if ( $language->iso639 == $this->config[ 'interface' ][ 'languages' ][ 'current' ] ) {
+			if (isset( $this->config[ 'interface' ]) && isset( $this->config[ 'interface' ]['languages']) && isset( $this->config[ 'interface' ][ 'languages' ][ 'current' ]) && $language->iso639 == $this->config[ 'interface' ][ 'languages' ][ 'current' ] ) {
 				$defaultLanguage = $language;
 			}
 		}
@@ -2966,7 +2966,27 @@ class UHBackend implements IURLHandler {
 
 // TODO: this might fail to work in case user got multiple permissions
 			if ( $permissions = $this->user->record->{'user:RCDomainGroupLanguagePermissionUser'} ) {
-				$highestPermIndex = $this->user->getHighestPermissionIndexByDomainGroupLanguage($this->user->getSelectedDomainGroup(), $this->user->getSelectedLanguage());
+				if(!($selectedDomainGroup = $this->user->getSelectedDomainGroup())){
+					$perm = $this->storage->selectFirstRecord( 'RCDomainGroupLanguagePermissionUser', array(
+						'where' => array(
+							'user',
+							'=',
+							array( $this->user->record )
+						)
+					) );
+
+					$selectedDomainGroup = $perm->domainGroup;
+
+					$this->user->setSelectedDomainGroup($selectedDomainGroup);
+				}
+
+				if(!($defaultLang = $this->user->getSelectedLanguage())){
+					$defaultLang = $this->getDefaultLanguage(); // might throw exception if user doesn't have any permissions!
+
+					$this->user->setSelectedLanguage( $defaultLang );
+				}
+
+				$highestPermIndex = $this->user->getHighestPermissionIndexByDomainGroupLanguage($selectedDomainGroup, $defaultLang);
 
 				if($highestPermIndex > -1){
 					$this->userConfig[ 'config' ][ 'permission' ] = User::$permissionPriority[ $highestPermIndex ];

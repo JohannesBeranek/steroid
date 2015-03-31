@@ -14,7 +14,7 @@ define([
 		toggleable: false,
 		inlineRecord: null,
 		backend: null,
-		class: 'STStaticRecord',
+		"class": 'STStaticRecord',
 		inlineClassConfig: null,
 		inlineSubstitutionFieldName: null,
 		inlineRecordPath: "steroid/backend/dnd/InlineRecord",
@@ -115,7 +115,7 @@ define([
 				return;
 			}
 
-			me.closeNode = domConstruct.create('div', { class: 'closeNode STWidgetIcon_close', title: i18nRC.widgets.close });
+			me.closeNode = domConstruct.create('div', { "class": 'closeNode STWidgetIcon_close', title: i18nRC.widgets.close });
 			domConstruct.place(me.closeNode, me.focusNode, 'after');
 
 			me.closeHandle = on(me.closeNode, 'click', function () {

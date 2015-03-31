@@ -13,6 +13,7 @@ define({ root: ({
 	type_widget: 'Widget',
 	type_util: 'Utility',
 	type_wizard: 'Wizard',
+	widget_reference_warning: 'Widget is referenced in:',
 	RCFile_name: 'File',
 	RCChangeLog_name: 'Changelog',
 	RCDomainGroup_name: 'Subweb',
@@ -70,7 +71,7 @@ define({ root: ({
 		chart_liveStatus: {
 			0: 'Hidden',
 			1: 'Published',
-			2: 'Modified',
+			2: 'Modified'
 		},
 		widget_description: 'A widget',
 		fs_main: 'General',
@@ -89,7 +90,7 @@ define({ root: ({
 		apiKey: 'API key',
 		sorting: 'Sorting',
 		key: 'Key',
-		class: 'Class',
+		"class": 'Class',
 		customUrl: 'Custom URL',
 		text: 'Text',
 		link: 'Link',

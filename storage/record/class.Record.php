@@ -919,6 +919,14 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$fields[ ] = $liveFieldName;
 		}
 
+		if ( $creatorFieldName = static::getDataTypeFieldName( 'DTSteroidCreator' ) ) {
+			$fields[ ] = $creatorFieldName;
+		}
+
+		if ( $ctimeFieldName = static::getDataTypeFieldName( 'DTCTime' ) ) {
+			$fields[ ] = $ctimeFieldName;
+		}
+
 		$listFieldDefinitions = array();
 
 		foreach ( $fields as $path ) {
@@ -3489,7 +3497,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $vals;
 	}
 
-	public static function modifySelect( array &$queryStruct, IRBStorage $storage, array &$userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass ) {
+	public static function modifySelect( array &$queryStruct, IRBStorage $storage, array &$userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass, $isSearchField = false ) {
 		foreach ( $userFilters as $idx => $filterConf ) {
 			if ( count( $filterConf[ 'filterFields' ] ) > 1 ) { // quicksearch + combined record title consisting of multiple fields (e.g. person)
 				if ( !isset( $queryStruct[ 'where' ] ) ) {

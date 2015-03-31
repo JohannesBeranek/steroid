@@ -12,6 +12,7 @@ define({
 	type_ext_content: 'Externe Inhalte',
 	type_util: 'Werkzeuge',
 	type_wizard: 'Assistenten',
+	widget_reference_warning: 'Widget wird referenziert in:',
 	RCFile_name: 'Datei',
 	RCChangeLog_name: 'Changelog',
 	RCDomainGroup_name: 'Subweb',
@@ -65,7 +66,7 @@ define({
 		chart_liveStatus: {
 			0: 'Unveröffentlicht',
 			1: 'Veröffentlicht',
-			2: 'Modifiziert',
+			2: 'Modifiziert'
 		},
 		widget_description: 'Ein Widget',
 		fs_main: 'Allgemein',
@@ -83,7 +84,7 @@ define({
 		area: 'Bereich',
 		sorting: 'Sortierung',
 		key: 'Schlüssel',
-		class: 'Klasse',
+		"class": 'Klasse',
 		customUrl: 'Benutzerdefinierte URL',
 		text: 'Text',
 		link: 'Link',
