@@ -490,6 +490,12 @@ class User {
 		
 		return $this->authenticator->maySwitchUser();
 	}
+	
+	final public function isSwitchedUser() {
+		$sessionData = $this->getSessionData( 'data' );
+
+		return !empty($sessionData['previous']);		
+	}
 
 
 // Session functions from here on - can be "overriden" in subclasses (e.g. for unittesting, different session storage, ...)
