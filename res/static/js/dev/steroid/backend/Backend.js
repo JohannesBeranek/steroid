@@ -703,6 +703,9 @@ define([
 
 			me.STServerComm.sendAjax(conf);
 		},
+		userSwitched: function(){
+			window.location.reload();
+		},
 		languageSwitched: function (response) {
 			var me = this;
 

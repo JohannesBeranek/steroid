@@ -2473,7 +2473,8 @@ class UHBackend implements IURLHandler {
 			'hideRecord',
 			'previewRecord',
 			'copyRecord',
-			'syncRecord'
+			'syncRecord',
+			'switchUser'
 		);
 
 		$actions = $this->getRecordActionsForDomainGroup( $recordClassName, $item );
@@ -2669,7 +2670,7 @@ class UHBackend implements IURLHandler {
 			$count++;
 		}
 
-		if ( $recordClass == 'RCPage' ) { //copy
+		if ( $recordClass == 'RCPage' || $recordClass == 'RCUser') { //copy
 			$count++;
 		}
 
@@ -2708,7 +2709,7 @@ class UHBackend implements IURLHandler {
 			throw new InvalidArgumentException( '$recordClass must be set' );
 		}
 
-		return $recordClass === 'RCPage' || (bool)$recordClass::getDataTypeFieldName( 'DTSteroidPage' ) || (bool)$recordClass::getDataTypeFieldName( 'DTSteroidLive' ) || is_subclass_of( $recordClass, 'SyncRecord' );
+		return $recordClass === 'RCPage' || $recordClass === 'RCUser' || (bool)$recordClass::getDataTypeFieldName( 'DTSteroidPage' ) || (bool)$recordClass::getDataTypeFieldName( 'DTSteroidLive' ) || is_subclass_of( $recordClass, 'SyncRecord' );
 	}
 
 	protected function cleanUpFilterFields( array $filterFields ) { // removes domainGroup and language filters if there's only 1 of them

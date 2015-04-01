@@ -342,6 +342,11 @@ define([
 		actionSuccess : function(action, response) {
 			var me = this;
 
+			if(action == 'switchUser'){
+				me.backend.userSwitched();
+				return;
+			}
+
 			me.backend.hideStandBy();
 
 			me.backend.showToaster(action);

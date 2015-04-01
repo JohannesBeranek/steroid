@@ -224,6 +224,10 @@
 	background: transparent url('/steroid/res/static/img/icons/claro/hide.png') no-repeat center left !important;
 }
 
+.claro .STWidgetIcon_switchUser, .claro .STIcon_switchUser, .visibleNode {
+	background: transparent url('/steroid/res/static/img/icons/claro/switchUser.png') no-repeat center left !important;
+}
+
 .claro  .STWidgetIcon_publish, .claro .STIcon_publishRecord, .visibleNode.visible {
 	background: transparent url('/steroid/res/static/img/icons/claro/publish.png') no-repeat center left !important;
 }

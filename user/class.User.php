@@ -445,10 +445,10 @@ class User {
 		}
 	}
 
-	final public function switchUser( $userID ) {
+	final public function switchUser( RCUser $user ) {
 		$this->requireAuthenticatorForSwitchUser();
 		
-		$authReturn = $this->authenticator->switchUser( $userID );
+		$authReturn = $this->authenticator->switchUser( $user );
 		
 		// move up old session data
 		$currentData = $this->getSessionData( 'data' );
