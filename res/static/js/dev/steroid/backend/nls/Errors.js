@@ -18,6 +18,10 @@ define({ root: ({
 	LoginFailException: {
 		title: 'Login incorrect'
 	},
+	DuplicateEntryException: {
+		title: 'Duplicate entry',
+		message: 'This entry already exists'
+	},
 	WarningException: {
 		title: 'Warning',
 		message: "This action is not allowed"

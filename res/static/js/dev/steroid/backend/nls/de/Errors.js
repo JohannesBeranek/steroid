@@ -18,6 +18,10 @@ define({
 	LoginFailException: {
 		title: 'Login falsch'
 	},
+	DuplicateEntryException: {
+		title: 'Doppelter Eintrag',
+		message: 'Dieser Eintrag existiert bereits'
+	},
 	MissingTemplateException: {
 		title: 'Template fehlt',
 		message: "Speichern fehlgeschlagen, weil für $rc kein Template gefunden werden konnte"

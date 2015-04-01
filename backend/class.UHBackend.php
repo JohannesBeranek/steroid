@@ -1342,7 +1342,15 @@ class UHBackend implements IURLHandler {
 		if ( is_subclass_of( $recordClass, 'IRecord' ) ) {
 			$postData = $this->requestInfo->getPost();
 
-			$record = $this->saveRecord( $recordClass, $postData );
+			try{
+				$record = $this->saveRecord( $recordClass, $postData );
+			} catch(Exception $e){
+				if(strpos( $e->getMessage(), 'Duplicate entry') !== false){
+					throw new DuplicateEntryException();
+				} else {
+					throw $e;
+				}
+			}
 
 			$this->updateContentEdit( $recordClass, $record );
 
@@ -3066,5 +3074,9 @@ class RecordLimitedToDomainGroupException extends SteroidException {
 }
 
 class InvalidPubDateException extends SteroidException {
+
+}
+
+class DuplicateEntryException extends SteroidException {
 
 }
