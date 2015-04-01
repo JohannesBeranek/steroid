@@ -358,9 +358,10 @@ class User {
 		try {
 			$authReturn = $authenticator->auth( $requestInfo );
 
-			$this->authenticateWithData( $authReturn );
+			$ret = $this->authenticateWithData( $authReturn );
+			$this->authenticator = $authenticator;
 
-			return true;
+			return $ret;
 		} catch ( Exception $e ) {
 			$this->authException = $e;
 		}
@@ -377,7 +378,6 @@ class User {
 			$this->record = $authReturn[ 'record' ];
 
 			$this->authenticated = true;
-			$this->authenticator = $authenticator;
 
 			$this->new = !empty( $authReturn[ 'new' ] );
 
