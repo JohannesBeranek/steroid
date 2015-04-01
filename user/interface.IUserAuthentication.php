@@ -32,5 +32,3 @@ interface IUserAuthentication {
 
 class UserAuthException extends Exception{}
 class UserRegisterTakenException extends Exception{}
-
-?>
