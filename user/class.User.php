@@ -456,9 +456,13 @@ class User {
 		$authReturn['data']['previous'] = $currentData;
 		
 		$this->authenticateWithData( $authReturn );
+
+		static::setSessionData('user_primary', $this->record->primary);
+		static::unsetSessionData(self::SELECTED_DOMAIN_GROUP);
+		static::unsetSessionData( self::SELECTED_LANGUAGE );
 		
 		// empty cache after switching user
-		$this->cache = array();
+		self::$cache = array();
 	
 	}
 	
@@ -478,9 +482,13 @@ class User {
 		}
 		
 		$ret = $this->authenticateWithData($currentAuthData);
+
+		static::setSessionData( 'user_primary', $this->record->primary );
+		static::unsetSessionData( self::SELECTED_DOMAIN_GROUP );
+		static::unsetSessionData( self::SELECTED_LANGUAGE );
 		
 		// empty cache after unswitching user
-		$this->cache = array();
+		self::$cache = array();
 		
 		return $ret;
 	}

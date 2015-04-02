@@ -10,6 +10,10 @@
 	padding-left: 19px !important;
 }
 
+.claro .STForceIcon.STIconUser.isSwitched {
+	background-color: #E0BEBE;
+}
+
 .claro .STForceIcon.STIconLogout span {
 	background: transparent url('/steroid/res/static/img/icons/claro/logout.png') no-repeat center left !important;
 	padding-left: 19px !important;
