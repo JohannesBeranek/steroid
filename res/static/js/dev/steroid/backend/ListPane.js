@@ -290,7 +290,7 @@ define([
 								var originalRenderCell = structure[0].renderCell || Grid.defaultRenderCell;
 
 								structure[0] = dGridTree(structure[0]);
-								structure[0].enableTransitions = false;
+
 								structure[0].renderCell = me._getRenderTreeCellFunc(structure[0], originalRenderCell);
 								// overwrite renderCell function, because we want the data when rendering the expando
 								structure[0].shouldExpand = function(row, level, previouslyExpanded) {
@@ -480,6 +480,22 @@ define([
 				query : me.query || {},
 				keepSelection : true
 			});
+			
+			// FIX FF TRANSITIONEND NOT HAPPENING
+			(function() {
+				var grid = me.view.columns[0].grid;
+				
+				var origExpand = grid.expand;
+				grid.expand = function(target, expand, noTransition) {
+					var ret = origExpand.call(grid, target, expand, noTransition);
+					var row = target.element ? target : grid.row(target);
+
+					var container = row.element.connected;
+					var x = container.clientHeight;
+					
+					return ret;
+				};
+			})();
 
 			me.contentPane = new ContentPane({
 				region : 'center',
