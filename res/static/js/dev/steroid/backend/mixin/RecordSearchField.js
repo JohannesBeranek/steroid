@@ -166,7 +166,7 @@ define([
 
 			if (me.recordSelector && me.hasMultiple) {
 				exclude = me.recordSelector.get('STValue');
-			} else if (me.item && me.item.primary) {
+			} else if (me.item && me.item.primary && !me.fieldClassConfig.isHierarchic) {
 				exclude = [ me.item.primary ];
 			} else {
 				exclude = null;

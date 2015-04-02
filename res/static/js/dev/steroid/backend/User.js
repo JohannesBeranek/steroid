@@ -24,7 +24,7 @@ define([
 
 			me.BTUser = new PopupMenuBarItem({
 				label: userName,
-				"class": 'STForceIcon STIconUser',
+				"class": 'STForceIcon STIconUser' + (me.backend.config.User.isSwitched ? ' isSwitched' : ''),
 				style: 'float:right;',
 				popup: me.userMenu
 			});
@@ -123,6 +123,16 @@ define([
 					me.loadProfileEdit();
 				}
 			}));
+
+			if(me.backend.config.User.isSwitched){
+				me.userMenu.addChild(new MenuBarItem({
+					label: i18n.unSwitchUser,
+					"class": 'STUserMenu_unSwitch',
+					onClick: function () {
+						me.unSwitchUser();
+					}
+				}));
+			}
 		},
 		setTheme: function (theme) {
 			var linkElement = document.getElementById('stylesheet-theme');
@@ -156,6 +166,23 @@ define([
 					linkElementOverridePost.parentNode.insertBefore(linkElementOverride, linkElementOverridePost);
 				}
 			}
+		},
+		unSwitchUser: function () {
+			var me = this;
+
+			var conf = {
+				data: {
+					requestType: 'unSwitchUser'
+				},
+				success: function (response) {
+					window.location.reload();
+				},
+				error: function (response) {
+					me.backend.showError(response);
+				}
+			};
+
+			me.backend.STServerComm.sendAjax(conf);
 		},
 		loadProfileEdit: function () {
 			var me = this;

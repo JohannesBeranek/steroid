@@ -2,6 +2,8 @@
 
 require_once STROOT . '/request/interface.IRequestInfo.php';
 require_once __DIR__ . '/interface.IUserAuthentication.php';
+require_once __DIR__ . '/interface.ISwitchUser.php';
+
 require_once STROOT . '/util/class.StringFilter.php';
 require_once STROOT . '/util/class.Config.php';
 require_once STROOT . '/user/class.RCUser.php';
@@ -356,9 +358,10 @@ class User {
 		try {
 			$authReturn = $authenticator->auth( $requestInfo );
 
-			$this->authenticateWithData( $authReturn );
+			$ret = $this->authenticateWithData( $authReturn );
+			$this->authenticator = $authenticator;
 
-			return true;
+			return $ret;
 		} catch ( Exception $e ) {
 			$this->authException = $e;
 		}
@@ -368,7 +371,7 @@ class User {
 
 	public function authenticateWithData( $authReturn ) {
 		try {
-			if(isset($authReturn['data'])){
+			if (isset($authReturn['data'])) {
 				static::setSessionData( 'data', $authReturn[ 'data' ] );
 			}
 
@@ -429,6 +432,79 @@ class User {
 			throw new SecurityException( 'CSRF token mismatch, possible CSRF attack attempt' );
 		}
 	}
+
+
+// switch user
+	private function requireAuthenticatorForSwitchUser() {
+		if ($this->authenticator === NULL) {
+			throw new NoAuthenticatorException();
+		} 
+		
+		if (!( $this->authenticator instanceof ISwitchUser)) {
+			throw new AuthenticatorDoesNotSupportSwitchingException();
+		}
+	}
+
+	final public function switchUser( RCUser $user ) {
+		$this->requireAuthenticatorForSwitchUser();
+		
+		$authReturn = $this->authenticator->switchUser( $user );
+		
+		// move up old session data
+		$currentData = $this->getSessionData( 'data' );
+		
+		$authReturn['data']['previous'] = $currentData;
+		
+		$this->authenticateWithData( $authReturn );
+
+		static::setSessionData('user_primary', $this->record->primary);
+		static::unsetSessionData(self::SELECTED_DOMAIN_GROUP);
+		static::unsetSessionData( self::SELECTED_LANGUAGE );
+		
+		// empty cache after switching user
+		self::$cache = array();
+	
+	}
+	
+	final public function unswitchUser() {
+		$currentData = $this->getSessionData( 'data' );
+		
+		if (!isset($currentData['previous'])) {
+			throw new NoPreviousUserException();
+		}
+		
+		$currentData = $currentData['previous'];
+		$currentAuthData = $this->authenticator->unswitchUser( $currentData );
+		
+		// keep chain intact, in case user switched multiple times
+		if (isset($currentData['previous'])) {
+			$currentAuthData['previous'] = $currentData['previous'];
+		}
+		
+		$ret = $this->authenticateWithData($currentAuthData);
+
+		static::setSessionData( 'user_primary', $this->record->primary );
+		static::unsetSessionData( self::SELECTED_DOMAIN_GROUP );
+		static::unsetSessionData( self::SELECTED_LANGUAGE );
+		
+		// empty cache after unswitching user
+		self::$cache = array();
+		
+		return $ret;
+	}
+	
+	final public function maySwitchUser() {
+		$this->requireAuthenticatorForSwitchUser();
+		
+		return $this->authenticator->maySwitchUser();
+	}
+	
+	final public function isSwitchedUser() {
+		$sessionData = $this->getSessionData( 'data' );
+
+		return !empty($sessionData['previous']);		
+	}
+
 
 // Session functions from here on - can be "overriden" in subclasses (e.g. for unittesting, different session storage, ...)
 	protected static function createNewSession() {
@@ -839,4 +915,15 @@ class RecordActionDeniedException extends ActionDeniedException {
 
 }
 
-?>
+// switch user exceptions
+class NoAuthenticatorException extends SteroidException {
+	
+}
+
+class AuthenticatorDoesNotSupportSwitchingException extends SteroidException {
+	
+}
+
+class NoPreviousUserException extends SteroidException {
+	
+}

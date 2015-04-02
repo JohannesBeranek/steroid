@@ -659,6 +659,7 @@ define([
 
 			me.moduleContainerCloseAspect = aspect.after(me.moduleContainer, 'hasClosed', function () {
 				me.STViewPort.removeChild(me.moduleContainer);
+				domStyle.set(me.STViewPort.domNode, 'height', '50px');
 			});
 
 			domStyle.set(me.STViewPort.domNode, 'height', '100%');
@@ -702,6 +703,9 @@ define([
 			};
 
 			me.STServerComm.sendAjax(conf);
+		},
+		userSwitched: function(){
+			window.location.reload();
 		},
 		languageSwitched: function (response) {
 			var me = this;

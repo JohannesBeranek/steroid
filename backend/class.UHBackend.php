@@ -111,6 +111,7 @@ class UHBackend implements IURLHandler {
 	const REQUEST_TYPE_GETPUBDATE = 'getPubDate';
 	const REQUEST_TYPE_GET_PROFILE_PAGE = 'getProfilePage';
 	const REQUEST_TYPE_GET_PUBLISHABLE_REFERENCES = 'getPublishableReferences';
+	const REQUEST_TYPE_UNSWITCH_USER = 'unSwitchUser';
 
 	const REQUEST_TYPE_LOGOUT = 'logout';
 	const REQUEST_TYPE_LOGIN = 'login';
@@ -234,6 +235,9 @@ class UHBackend implements IURLHandler {
 							break;
 						case self::REQUEST_TYPE_MESSAGES:
 							$this->getMessages( $this->requestInfo->getGPParam( self::PARAM_REQUEST_TIME ), $this->requestInfo->getGPParam( self::PARAM_CURRENTLY_EDITING ), $this->requestInfo->getGPParam( self::PARAM_CURRENTLY_EDITING_CLASS ), $this->requestInfo->getGPParam( self::PARAM_CURRENTLY_EDITING_PARENT ) );
+							break;
+						case self::REQUEST_TYPE_UNSWITCH_USER:
+							$this->unSwitchUser();
 							break;
 						case self::REQUEST_TYPE_LOG: 
 							// TODO: no tx needed here
@@ -2473,7 +2477,8 @@ class UHBackend implements IURLHandler {
 			'hideRecord',
 			'previewRecord',
 			'copyRecord',
-			'syncRecord'
+			'syncRecord',
+			'switchUser'
 		);
 
 		$actions = $this->getRecordActionsForDomainGroup( $recordClassName, $item );
@@ -2669,7 +2674,7 @@ class UHBackend implements IURLHandler {
 			$count++;
 		}
 
-		if ( $recordClass == 'RCPage' ) { //copy
+		if ( $recordClass == 'RCPage' || $recordClass == 'RCUser') { //copy
 			$count++;
 		}
 
@@ -2708,7 +2713,7 @@ class UHBackend implements IURLHandler {
 			throw new InvalidArgumentException( '$recordClass must be set' );
 		}
 
-		return $recordClass === 'RCPage' || (bool)$recordClass::getDataTypeFieldName( 'DTSteroidPage' ) || (bool)$recordClass::getDataTypeFieldName( 'DTSteroidLive' ) || is_subclass_of( $recordClass, 'SyncRecord' );
+		return $recordClass === 'RCPage' || $recordClass === 'RCUser' || (bool)$recordClass::getDataTypeFieldName( 'DTSteroidPage' ) || (bool)$recordClass::getDataTypeFieldName( 'DTSteroidLive' ) || is_subclass_of( $recordClass, 'SyncRecord' );
 	}
 
 	protected function cleanUpFilterFields( array $filterFields ) { // removes domainGroup and language filters if there's only 1 of them
@@ -3006,6 +3011,7 @@ class UHBackend implements IURLHandler {
 			$values = $this->getRecordValuesAsJson( 'RCUser', array( $this->user->record->primary ) );
 
 			$this->userConfig[ 'values' ] = array_shift( $values );
+			$this->userConfig['isSwitched'] = $this->user->isSwitchedUser();
 
 			$this->config[ 'User' ] = $this->userConfig;
 		}
@@ -3042,6 +3048,12 @@ class UHBackend implements IURLHandler {
 		$this->ajaxSuccess( array(
 			'url' => $page->getUrlForPage( $page, false )
 		) );
+	}
+
+	protected function unSwitchUser(){
+		$this->user->unswitchUser();
+
+		$this->ajaxSuccess();
 	}
 }
 

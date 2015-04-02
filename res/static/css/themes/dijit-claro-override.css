@@ -10,6 +10,10 @@
 	padding-left: 19px !important;
 }
 
+.claro .STForceIcon.STIconUser.isSwitched {
+	color: #CF5959;
+}
+
 .claro .STForceIcon.STIconLogout span {
 	background: transparent url('/steroid/res/static/img/icons/claro/logout.png') no-repeat center left !important;
 	padding-left: 19px !important;
@@ -222,6 +226,10 @@
 
 .claro .STWidgetIcon_hide, .claro  .STIcon_hideRecord, .visibleNode {
 	background: transparent url('/steroid/res/static/img/icons/claro/hide.png') no-repeat center left !important;
+}
+
+.claro .STWidgetIcon_switchUser, .claro .STIcon_switchUser, .visibleNode {
+	background: transparent url('/steroid/res/static/img/icons/claro/switchUser.png') no-repeat center left !important;
 }
 
 .claro  .STWidgetIcon_publish, .claro .STIcon_publishRecord, .visibleNode.visible {
