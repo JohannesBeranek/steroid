@@ -290,6 +290,7 @@ define([
 								var originalRenderCell = structure[0].renderCell || Grid.defaultRenderCell;
 
 								structure[0] = dGridTree(structure[0]);
+								structure[0].enableTransitions = false;
 								structure[0].renderCell = me._getRenderTreeCellFunc(structure[0], originalRenderCell);
 								// overwrite renderCell function, because we want the data when rendering the expando
 								structure[0].shouldExpand = function(row, level, previouslyExpanded) {
