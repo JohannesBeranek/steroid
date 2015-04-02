@@ -616,11 +616,11 @@ fieldset.STHidden {
 	display: none;
 }
 
-.STUserMenu_language, .STUserMenu_fullscreen, .STUserMenu_editProfile {
+.STUserMenu_language, .STUserMenu_fullscreen, .STUserMenu_editProfile, .STUserMenu_unSwitch {
 	display: block;
 }
 
-.STUserMenu_language span, .STUserMenu_fullscreen span, .STUserMenu_editProfile span, .STUserMenu_theme span {
+.STUserMenu_language span, .STUserMenu_fullscreen span, .STUserMenu_editProfile span, .STUserMenu_theme span, .STUserMenu_unSwitch span {
 	line-height: 24px;
 	padding: 5px;
 }

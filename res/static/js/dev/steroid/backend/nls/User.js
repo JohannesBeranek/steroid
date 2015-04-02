@@ -1,7 +1,8 @@
 define({ root:
 	({
 		editProfile: 'Edit profile',
-		theme: 'Theme'
+		theme: 'Theme',
+		unSwitchUser: 'Unswitch'
 	}),
 	'de':true
 });

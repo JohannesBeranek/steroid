@@ -1,4 +1,5 @@
 define({
 	editProfile: 'Profil bearbeiten',
-	theme: 'Theme'
+	theme: 'Theme',
+	unSwitchUser: 'Zurückswitchen'
 });
