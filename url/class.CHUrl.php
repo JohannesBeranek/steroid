@@ -7,7 +7,9 @@
 require_once STROOT . '/clihandler/class.CLIHandler.php';
 require_once STROOT . '/util/class.ClassFinder.php';
 
+require_once STROOT . '/page/class.RCPage.php';
 require_once STROOT . '/datatype/class.DTSteroidLive.php';
+require_once STROOT . '/datatype/class.DTSteroidReturnCode.php';
 require_once __DIR__ . '/class.RCUrlRewrite.php';
 
 // polyfill for php < 5.5
@@ -32,6 +34,9 @@ class CHUrl extends CLIHandler {
 			case 'fixrewrite':
 				$this->commandFixRewrite();
 			break;
+			case 'fixprimary':
+				$this->commandFixPrimary();
+				break;
 			default:
 				$this->notifyError( $this->getUsageText( $called, $command, $params ) );
 				return EXIT_FAILURE;
@@ -39,6 +44,46 @@ class CHUrl extends CLIHandler {
 
 	
 		return EXIT_SUCCESS;
+	}
+
+	final private function commandFixPrimary(){
+		$this->storage->init();
+
+		printf("-- Fix page primary urls\n");
+
+		$pages = $this->storage->fetchAll('select `primary`, title, domainGroup_primary from rc_page where `primary` not in (select page_primary from rc_page_url where url_primary in (select `primary`from rc_url where returnCode = "200"))');
+
+		printf("Number of page primary urls to fix: %d\n", count($pages));
+
+		foreach($pages as $page){
+			$rcpage = RCPage::get($this->storage, array(Record::FIELDNAME_PRIMARY => $page['primary']), Record::TRY_TO_LOAD);
+
+			if(!$rcpage->exists()){
+				printf("Page already deleted: %d\n", $page['primary']);
+				continue;
+			}
+
+			$urls = $rcpage->collect('page:RCPageUrl.url');
+
+			$tx = $this->storage->startTransaction();
+
+			if(empty($urls)){
+				printf("Page has no urls: %d, re-saving page\n", $page['primary']);
+				$rcpage->save();
+				$tx->commit();
+				continue;
+			}
+
+			$firstUrl = $urls[0];
+
+			$firstUrl->returnCode = DTSteroidReturnCode::RETURN_CODE_PRIMARY;
+
+			printf("Making first url primary: %s\n", $firstUrl->url);
+
+			$firstUrl->save();
+
+			$tx->commit();
+		}
 	}
 	
 	final private function commandFixRewrite() {
