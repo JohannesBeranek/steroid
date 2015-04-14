@@ -185,7 +185,7 @@ class RCPage extends Record {
 	 * $page->getUrlForPage( RCPage::ABSOLUTE_HTTPS ) // absolute link to current page starting with 'https' (possible values: RCPage::ABSOLUTE_*)
 	 *
 	 * @param null|string|array|RCPage    $page null or params array to use current page, string for external linking, RCPage record to link to given page
-	 * @param null|array                  $params key-value pairs to set GET params on generated url ; will keep current params for current page ; params may be unset by passing NULL as value for param key
+	 * @param null|array|true             $params key-value pairs to set GET params on generated url ; "true" will keep current params for current page ; params may be unset by passing NULL as value for param key
 	 * @param null|boolean|string|integer $forceAbsolute NULL or one of RCPage::ABSOLUTE_*
 	 * @param null|boolean                $cancelParams remove already existing url query parameters ( can be useful in combination with set $params for current page )
 	 *
