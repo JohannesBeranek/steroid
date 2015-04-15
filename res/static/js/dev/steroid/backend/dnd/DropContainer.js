@@ -258,7 +258,7 @@ define([
 			var me = this;
 
 			if (append) {
-				return 0;
+				return me.incomingValueCount === 0 ? 0 : me.itemContainerNode.childNodes.length;
 			}
 
 			if (!me.placeHolder && item.currentContainer == me) {
