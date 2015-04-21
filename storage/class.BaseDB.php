@@ -179,6 +179,11 @@ class BaseDB implements ITransactionBased {
 		} else {
 			if ( $keepNull && $values === NULL ) return "NULL";
 
+			if ( is_float( $values ) ) {
+				$localeInfo = localeconv();
+				$values     = str_replace( $localeInfo[ 'decimal_point' ], '.', $values );
+			}
+
 			$escapedValues = $this->conn->real_escape_string( $values );
 
 			if ( $addQuotes ) {
