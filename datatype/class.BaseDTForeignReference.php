@@ -83,6 +83,10 @@ abstract class BaseDTForeignReference extends DataType {
 	public function getForeignFieldName() {
 		return strstr( $this->fieldName, ':', true );
 	}
+	
+	final public static function getForeignFieldNameStatically( $fieldName ) {
+		return strstr( $fieldName, ':', true );
+	}
 
 	public function getRecordClass() {
 		return $this->getRecordClassForFieldName( $this->fieldName );

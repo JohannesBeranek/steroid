@@ -162,7 +162,6 @@ abstract class ElementRecord extends Record implements IHandleArea {
 
 	public function getContainingPages() {
 		// FIXME: using queries should be better for performance
-		// FIXME: this does not check for RCRTEArea or the like
 
 		$areas = array();
 		$elementInAreas = $this->storage->selectRecords('RCElementInArea', array('fields' => array('area.*'), 'where' => array('element', '=', array($this->{Record::FIELDNAME_PRIMARY}), 'AND', 'class', '=', array(get_called_class()))));

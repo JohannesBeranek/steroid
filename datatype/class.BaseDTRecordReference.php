@@ -338,6 +338,10 @@ abstract class BaseDTRecordReference extends DataType {
 	protected function getForeignFieldName() {
 		return $this->fieldName . ':' . get_class( $this->record );
 	}
+	
+	final public static function getForeignFieldNameStatically( $fieldName, $recordClass ) {
+		return $fieldName . ':' . $recordClass;
+	}
 
 	/**
 	 * Before delete
