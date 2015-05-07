@@ -15,15 +15,15 @@ require_once STROOT . '/user/class.User.php';
  */
 class DTSteroidPage extends BaseDTRecordReference {
 
-	public static function getFieldDefinition( $parentFromField = NULL ) {
+	public static function getFieldDefinition( $parentFromField = null ) {
 		return array(
-			'dataType' => get_called_class(),
-			'recordClass' => 'RCPage',
-			'nullable' => false,
+			'dataType'        => get_called_class(),
+			'recordClass'     => 'RCPage',
+			'nullable'        => false,
 			'parentFromField' => $parentFromField,
-			'requireForeign' => true, // when page is deleted, this record is deleted as well
-			'requireSelf' => true, // when this record is deleted, page is deleted as well
-			'constraints' => array( 'min' => 1, 'max' => 1 )
+			'requireForeign'  => true, // when page is deleted, this record is deleted as well
+			'requireSelf'     => true, // when this record is deleted, page is deleted as well
+			'constraints'     => array( 'min' => 1, 'max' => 1 )
 		);
 	}
 
@@ -43,7 +43,7 @@ class DTSteroidPage extends BaseDTRecordReference {
 		return $fieldDef;
 	}
 
-	public static function getDefaultValue( IStorage $storage, $fieldName = NULL, array $fieldConf = NULL, array $extraParams = NULL ) {
+	public static function getDefaultValue( IStorage $storage, $fieldName = null, array $fieldConf = null, array $extraParams = null ) {
 		if ( empty( $fieldConf ) ) {
 			throw new InvalidArgumentException( '$fieldConf must be set' );
 		}
@@ -75,14 +75,14 @@ class DTSteroidPage extends BaseDTRecordReference {
 	}
 
 	protected function getNeededPageValues() {
-		$pageLiveField = RCPage::getDataTypeFieldName( 'DTSteroidLive' );
-		$pageLanguageField = RCPage::getDataTypeFieldName( 'DTSteroidLanguage' );
-		$pageCreatorField = RCPage::getDataTypeFieldName( 'DTSteroidCreator' );
+		$pageLiveField        = RCPage::getDataTypeFieldName( 'DTSteroidLive' );
+		$pageLanguageField    = RCPage::getDataTypeFieldName( 'DTSteroidLanguage' );
+		$pageCreatorField     = RCPage::getDataTypeFieldName( 'DTSteroidCreator' );
 		$pageDomainGroupField = RCPage::getDataTypeFieldName( 'DTSteroidDomainGroup' );
 
-		$mainRecordLiveField = $this->record->getDataTypeFieldName( 'DTSteroidLive' );
-		$mainRecordLanguageField = $this->record->getDataTypeFieldName( 'DTSteroidLanguage' );
-		$mainRecordCreatorField = $this->record->getDataTypeFieldName( 'DTSteroidCreator' );
+		$mainRecordLiveField        = $this->record->getDataTypeFieldName( 'DTSteroidLive' );
+		$mainRecordLanguageField    = $this->record->getDataTypeFieldName( 'DTSteroidLanguage' );
+		$mainRecordCreatorField     = $this->record->getDataTypeFieldName( 'DTSteroidCreator' );
 		$mainRecordDomainGroupField = $this->record->getDataTypeFieldName( 'DTSteroidDomainGroup' );
 
 		if ( $mainRecordDomainGroupField ) {
@@ -96,13 +96,19 @@ class DTSteroidPage extends BaseDTRecordReference {
 		if ( $mainRecordLanguageField ) {
 			$this->value->{$pageLanguageField} = $this->record->{$mainRecordLanguageField};
 		} else {
-			$this->value->{$pageLanguageField} = $this->storage->selectFirstRecord( 'RCLanguage', array( 'where' => array( 'live', '=', array( $this->record->{$mainRecordLiveField} ) ) ) );
+			$this->value->{$pageLanguageField} = $this->storage->selectFirstRecord( 'RCLanguage', array(
+				'where' => array(
+					'live',
+					'=',
+					array( $this->record->{$mainRecordLiveField} )
+				)
+			) );
 		}
 
 		$this->value->{$pageLiveField} = $this->record->{$mainRecordLiveField};
 
 		$this->value->pageType = get_class( $this->record );
-		$this->value->title = $this->record->getTitle();
+		$this->value->title    = $this->record->getTitle();
 	}
 
 	protected function mayCopyReferenced() {
@@ -113,16 +119,16 @@ class DTSteroidPage extends BaseDTRecordReference {
 		//FIXME: $record might be a totally different kind of record that's incompatible with this record's config
 		$values = $record->collect( $this->config[ 'parentFromField' ] );
 
-		if ( !$values ) {
+		if ( ! $values ) {
 			throw new NoParentPageException( 'Could not collect page from path set in "parentFromField" for record "' . $record->getTitle() . '"', array(
 				'record' => $record->getTitle()
 			) );
 		}
 
-		$parentPage = NULL;
+		$parentPage = null;
 
 		foreach ( $values as $page ) {
-			if($page === NULL){
+			if ( $page === null ) {
 				continue;
 			}
 
@@ -132,7 +138,7 @@ class DTSteroidPage extends BaseDTRecordReference {
 			}
 		}
 
-		if ( !$parentPage ) {
+		if ( ! $parentPage ) {
 			throw new NoParentPageException( 'Could not find a parent page for record "' . $record->getTitle() . '"', array(
 				'record' => $record->getTitle()
 			) );
@@ -142,9 +148,9 @@ class DTSteroidPage extends BaseDTRecordReference {
 	}
 
 	protected function setParentPage() {
-		$parentPage = NULL;
+		$parentPage = null;
 
-		if ( $this->config[ 'parentFromField' ] !== NULL ) {
+		if ( $this->config[ 'parentFromField' ] !== null ) {
 			$parentPage = $this->collectFromParentFromField( $this->record ); // may throw
 		} else {
 			$valueLiveField = $this->value->getDataTypeFieldName( 'DTSteroidLive' );
@@ -161,44 +167,87 @@ class DTSteroidPage extends BaseDTRecordReference {
 
 			$mainRecordLanguageField = $this->record->getDataTypeFieldName( 'DTSteroidLanguage' );
 
-			$language = NULL;
+			$language = null;
 
 			if ( $mainRecordLanguageField ) {
 				$language = $this->record->{$mainRecordLanguageField};
 			}
 
-			if ( !$language ) {
-				$currentUser = User::getCurrent();
+			if ( ! $language ) {
+				$language = $this->storage->selectFirstRecord( 'RCLanguage', array(
+					'where' => array(
+						'live',
+						'=',
+						array( $live )
+					)
+				) );
+				//$currentUser = User::getCurrent();
 
-				if ( $currentUser ) {
-					$language = $currentUser->getSelectedLanguage();
-				} else {
-					throw new Exception( "Unable to determine language as no current user is set" );
-				}
+				//if ( $currentUser ) {
+				//$language = $currentUser->getSelectedLanguage();
+				//} else {
+				//	throw new Exception( "Unable to determine language as no current user is set" );
+				//}
 			}
 
-			if ( !$language ) {
+			if ( ! $language ) {
 				$valueLanguageField = $this->value->getDataTypeFieldName( 'DTSteroidLanguage' );
 
-				if ( !$valueLanguageField || !( $language = $this->value->{$valueLanguageField} ) ) {
+				if ( ! $valueLanguageField || ! ( $language = $this->value->{$valueLanguageField} ) ) {
 					throw new LogicException( 'Cannot deduce a language for parent page' );
 				}
 			}
 
 			// need to select language via id, as RCDefaultParentPage has no live, and thus only a record connected to language in preview state exists
-			$where = array( 'recordClass', '=', array( get_class( $this->record ) ), 'AND', 'domainGroup', '=', array( $domainGroup ), 'AND', 'language.id', '=', array( $language->id ) );
+			$where = array(
+				'recordClass',
+				'=',
+				array( get_class( $this->record ) ),
+				'AND',
+				'domainGroup',
+				'=',
+				array( $domainGroup ),
+				'AND',
+				'language.id',
+				'=',
+				array( $language->id )
+			);
 
-			$defaultRecord = $this->storage->selectFirstRecord( 'RCDefaultParentPage', array( 'fields' => array( '*', 'language' => array( 'fields' => '*' ) ), 'where' => $where ) );
+			$defaultRecord = $this->storage->selectFirstRecord( 'RCDefaultParentPage', array(
+				'fields' => array(
+					'*',
+					'language' => array( 'fields' => '*' )
+				),
+				'where'  => $where
+			) );
 
-			if ( !$defaultRecord || ( $parentPage = $defaultRecord->page ) === NULL || !( $parentPage = $parentPage->getFamilyMember( array( 'live' => $live ) ) ) ) {
-				$parentPage = $this->storage->selectFirstRecord( 'RCPage', array( 'where' => array( 'parent', '=', NULL, 'AND', 'domainGroup', '=', array( $domainGroup ), 'AND', 'live', '=', array( $live ), 'AND', 'language.id', '=', array( $language->id ) ) ) );
+			if ( ! $defaultRecord || ( $parentPage = $defaultRecord->page ) === null || ! ( $parentPage = $parentPage->getFamilyMember( array( 'live' => $live ) ) ) ) {
+				$parentPage = $this->storage->selectFirstRecord( 'RCPage', array(
+					'where' => array(
+						'parent',
+						'=',
+						null,
+						'AND',
+						'domainGroup',
+						'=',
+						array( $domainGroup ),
+						'AND',
+						'live',
+						'=',
+						array( $live ),
+						'AND',
+						'language.id',
+						'=',
+						array( $language->id )
+					)
+				) );
 			}
 		}
 
 		// TODO: what if parent page does not exist? (e.g. in case getFamilyMember returns new record)
-		if ( !$parentPage ) {
+		if ( ! $parentPage ) {
 			throw new NoRootPageException( 'Cannot create page because there is no parent. Did you create a root page?', array(
-				'record' => $this->value->getTitle(),
+				'record'       => $this->value->getTitle(),
 				'targetRecord' => $domainGroup ? $domainGroup->getTitle() : $this->record->domainGroup->getTitle()
 			) );
 		}
@@ -211,7 +260,7 @@ class DTSteroidPage extends BaseDTRecordReference {
 	}
 
 	// FIXME: move logic to setValue listener
-	public function beforeSave( $isUpdate, array &$savePaths = NULL ) {
+	public function beforeSave( $isUpdate, array &$savePaths = null ) {
 		$this->value = $this->record->{$this->fieldName};
 
 		if ( $isUpdate ) {
@@ -232,7 +281,7 @@ class DTSteroidPage extends BaseDTRecordReference {
 	protected static function getRequiredPermissions( $fieldDef, $fieldName, $currentForeignPerms, $permissions, $owningRecordClass ) {
 		$owningRecordPerms = $permissions[ $owningRecordClass ];
 
-		return !$owningRecordPerms[ 'mayWrite' ] ? NULL : array(
+		return ! $owningRecordPerms[ 'mayWrite' ] ? null : array(
 			'mayWrite' => 1
 		);
 	}
@@ -247,7 +296,7 @@ class DTSteroidPage extends BaseDTRecordReference {
 		parent::copy( $values, $changes, $missingReferences, $originRecords, $copiedOriginRecords );
 
 		// if parentFromField is set to path, we need to make sure at least one chain on this path gets copied as well
-		if ( $this->config[ 'parentFromField' ] !== NULL ) {
+		if ( $this->config[ 'parentFromField' ] !== null ) {
 			$copiedRec = $values[ $this->fieldName ];
 
 			// first check, if there isn't already a copied chain on this path
@@ -262,7 +311,7 @@ class DTSteroidPage extends BaseDTRecordReference {
 				// get chain from original record
 				$chain = $this->record->getChainByPath( $path );
 
-				if ( !$chain ) {
+				if ( ! $chain ) {
 					throw new Exception( "Unable to find page for original record" );
 				}
 

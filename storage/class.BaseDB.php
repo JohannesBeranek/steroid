@@ -276,7 +276,7 @@ class BaseDB implements ITransactionBased {
 
 		$items = array();
 
-		while ( $row = $res->fetch_assoc() ) {
+		while ( $row = $res->fetch_row() ) {
 			$items[ ] = reset( $row );
 		}
 

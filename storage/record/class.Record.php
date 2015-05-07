@@ -589,7 +589,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 	}
 
 
-	protected static function getFieldDefinitionsForField( $fieldName ) {
+	final protected static function getFieldDefinitionsForField( $fieldName ) {
 		if ( strpos( $fieldName, ':' ) === false ) {
 			$fieldDefs = static::getOwnFieldDefinitions();
 		} else {
@@ -599,14 +599,14 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $fieldDefs;
 	}
 
-	public static function fieldDefinitionExists( $fieldName ) {
+	final public static function fieldDefinitionExists( $fieldName ) {
 		$fieldDefs = static::getFieldDefinitionsForField( $fieldName );
 
 		return isset( $fieldDefs[ $fieldName ] );
 	}
 
 
-	public static function getFieldDefinition( $fieldName, $failGracefully = false ) {
+	final public static function getFieldDefinition( $fieldName, $failGracefully = false ) {
 		$fieldDefs = static::getFieldDefinitionsForField( $fieldName );
 
 		if ( !array_key_exists( $fieldName, $fieldDefs ) ) {
@@ -620,7 +620,7 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		return $fieldDefs[ $fieldName ];
 	}
 
-	public static function getFieldDefinitionByPath( $path, $failGracefully = false ) {
+	final public static function getFieldDefinitionByPath( $path, $failGracefully = false ) {
 		$pathParts = explode( '.', $path );
 
 		$currentRecordClass = get_called_class();
@@ -713,6 +713,24 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		}
 
 		return $fieldNames[ $dataType ] === false ? NULL : $fieldNames[ $dataType ];
+	}
+	
+	public static function getDataTypeIsAFieldNames( $dataType ) {
+		static $fieldNames = array();
+
+		if ( !isset( $fieldNames[ $dataType ] ) ) {
+			$fieldNames[ $dataType ] = array();
+
+			$fieldDefs = static::getAllFieldDefinitions();
+
+			foreach ( $fieldDefs as $fieldName => $fieldDef ) {
+				if ( is_a($fieldDef[ 'dataType' ], $dataType, true) ) {
+					$fieldNames[ $dataType ][] = $fieldName;
+				}
+			}
+		}
+
+		return $fieldNames[ $dataType ];
 	}
 
 
@@ -3871,6 +3889,32 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 		
 
 		return $set;
+	}
+	
+	final public static function reversePath( $path, $fromRecordClass ) {
+		// split path
+		$pathParts = explode('.', $path);
+		$pathPartsRecordClasses = array( $fromRecordClass );
+		$pathPartsNew = array();
+		
+		// build up line of recordClasses and get reverse field for each path component
+		// getForeignFieldName for BaseDTRecordReference has 2 args, for BaseDTForeignReference has 1 arg
+		foreach ($pathParts as $k => $pathPart) {
+			$currentRecordClass = $pathPartsRecordClasses[$k];
+			
+			if (strpos($pathPart, ':') !== false) {
+				// foreign ref
+				$pathPartsRecordClasses[] = BaseDTForeignReference::getRecordClassForFieldName($pathPart);
+				$pathPartsNew[] = BaseDTForeignReference::getForeignFieldNameStatically($pathPart);
+			} else {
+				// ref
+				$pathPartsRecordClasses[] = BaseDTRecordReference::getRecordClassStatically($pathPart, $currentRecordClass::getFieldDefinition($pathPart));
+				$pathPartsNew[] = BaseDTRecordReference::getForeignFieldNameStatically($pathPart, $currentRecordClass);
+			}
+		}
+		
+		// 
+		return implode('.', array_reverse($pathPartsNew));
 	}
 }
 
