@@ -1230,6 +1230,7 @@ fieldset.STHidden {
 }
 
 /* BLUR #uiContainer ON DIALOG OPEN */
+/*
 #uiContainer {
 	-webkit-transition: -webkit-filter 500ms linear;
 	-moz-transition: -moz-filter 500ms linear;
@@ -1253,7 +1254,7 @@ body.STDialogOpen #uiContainer {
 	-ms-filter: blur(5px);
 	filter: blur(5px);
 }
-
+*/
 /* default background color, so blur does not make list panel entries shine through */
 .STDetailPane {
 	background-color: #FFFFFF;
