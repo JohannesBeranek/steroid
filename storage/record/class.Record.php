@@ -3317,6 +3317,9 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 				$values[ $languageField ] = isset( $changes[ 'language' ] ) ? $changes[ 'language' ] : $this->getFieldValue( $languageField );
 
 				if ( isset( $changes[ 'live' ] ) ) {
+					if($this->{$languageField} === NULL){
+					Log::write(get_called_class(), $this->getValues());
+					}
 					$values[ $languageField ] = $this->{$languageField}->getFamilyMember( $changes );
 				}
 
