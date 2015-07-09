@@ -14,6 +14,7 @@ class DownloadFileInfo implements IFileInfo {
 	protected $storedFilename;
 
 	protected $tempFilename;
+	protected $fullFilename;
 
 	public function __construct( $url ) {
 		$this->tempFilename = $url;
@@ -31,8 +32,12 @@ class DownloadFileInfo implements IFileInfo {
 		$this->storedFilename = $filename;
 	}
 
+	public function setFullFilename( $filename ) {
+		$this->fullFilename = $filename;
+	}
+
 	public function getFullFilename() {
-		return NULL;
+		return $this->fullFilename;
 	}
 
 	public function getDownloadFilename() {
@@ -55,7 +60,7 @@ class DownloadFileInfo implements IFileInfo {
 		return NULL;
 	}
 
-	public function getMeta( $name ) {
+	public function getFileMeta( $name ) {
 		return NULL;
 	}
 

@@ -35,7 +35,7 @@ class RCDomainGroup extends Record {
 		);
 	}
 
-	protected function afterSave( $isUpdate, $isFirst, array $saveResult ) {
+	protected function afterSave( $isUpdate, $isFirst, array $saveResult, array &$savePaths = NULL ) {
 		if ( !$isUpdate && $isFirst ) {
 			if ( $this->parent ) {
 				$this->copyPermissionsFromParent();
@@ -45,7 +45,7 @@ class RCDomainGroup extends Record {
 		}
 
 		// needs to be called after adding perms as foreign reference, so they get saved as well
-		parent::afterSave( $isUpdate, $isFirst, $saveResult );
+		parent::afterSave( $isUpdate, $isFirst, $saveResult, $savePaths );
 	}
 
 	protected function copyPermissionsForUser( $user ) {
@@ -133,8 +133,8 @@ class RCDomainGroup extends Record {
 		}
 	}
 
-	public static function modifySelect( array &$queryStruct, IRBStorage $storage, array &$userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass ) {
-		parent::modifySelect( $queryStruct, $storage, $userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass );
+	public static function modifySelect( array &$queryStruct, IRBStorage $storage, array &$userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass, $isSearchField = false ) {
+		parent::modifySelect( $queryStruct, $storage, $userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass, $isSearchField );
 
 		if ( ( is_subclass_of( $mainRecordClass, 'IRecord' ) || $mainRecordClass === NULL ) && $recordClass === get_called_class() && $requestFieldName === NULL && $requestingRecordClass === NULL ) {
 			$user = User::getCurrent();

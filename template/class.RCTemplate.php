@@ -58,7 +58,7 @@ class RCTemplate extends Record {
 		return new Template( $this->storage, $this->filename );
 	}
 
-	public static function modifySelect( array &$queryStruct, IRBStorage $storage, array &$userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass ) {
+	public static function modifySelect( array &$queryStruct, IRBStorage $storage, array &$userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass, $isSearchField = false ) {
 		if ( isset( $mainRecordClass ) && $mainRecordClass != 'RCTemplate' ) {
 			if ( !isset( $queryStruct[ 'where' ] ) ) {
 				$queryStruct[ 'where' ] = array();
@@ -71,7 +71,7 @@ class RCTemplate extends Record {
 			$queryStruct[ 'where' ][ ] = array( $mainRecordClass );
 		}
 
-		parent::modifySelect( $queryStruct, $storage, $userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass );
+		parent::modifySelect( $queryStruct, $storage, $userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass, $isSearchField );
 	}
 
 	public static function getDisplayedFilterFields() {

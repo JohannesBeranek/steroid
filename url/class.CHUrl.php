@@ -7,7 +7,9 @@
 require_once STROOT . '/clihandler/class.CLIHandler.php';
 require_once STROOT . '/util/class.ClassFinder.php';
 
+require_once STROOT . '/page/class.RCPage.php';
 require_once STROOT . '/datatype/class.DTSteroidLive.php';
+require_once STROOT . '/datatype/class.DTSteroidReturnCode.php';
 require_once __DIR__ . '/class.RCUrlRewrite.php';
 
 // polyfill for php < 5.5
@@ -32,6 +34,9 @@ class CHUrl extends CLIHandler {
 			case 'fixrewrite':
 				$this->commandFixRewrite();
 			break;
+			case 'fixprimary':
+				$this->commandFixPrimary();
+				break;
 			default:
 				$this->notifyError( $this->getUsageText( $called, $command, $params ) );
 				return EXIT_FAILURE;
@@ -40,11 +45,51 @@ class CHUrl extends CLIHandler {
 	
 		return EXIT_SUCCESS;
 	}
+
+	final private function commandFixPrimary(){
+		$this->storage->init();
+
+		printf("-- Fix page primary urls\n");
+
+		$pages = $this->storage->fetchAll('select `primary`, title, domainGroup_primary from rc_page where `primary` not in (select page_primary from rc_page_url where url_primary in (select `primary`from rc_url where returnCode = "200"))');
+
+		printf("Number of page primary urls to fix: %d\n", count($pages));
+
+		foreach($pages as $page){
+			$rcpage = RCPage::get($this->storage, array(Record::FIELDNAME_PRIMARY => $page['primary']), Record::TRY_TO_LOAD);
+
+			if(!$rcpage->exists()){
+				printf("Page already deleted: %d\n", $page['primary']);
+				continue;
+			}
+
+			$urls = $rcpage->collect('page:RCPageUrl.url');
+
+			$tx = $this->storage->startTransaction();
+
+			if(empty($urls)){
+				printf("Page has no urls: %d, re-saving page\n", $page['primary']);
+				$rcpage->save();
+				$tx->commit();
+				continue;
+			}
+
+			$firstUrl = $urls[0];
+
+			$firstUrl->returnCode = DTSteroidReturnCode::RETURN_CODE_PRIMARY;
+
+			printf("Making first url primary: %s\n", $firstUrl->url);
+
+			$firstUrl->save();
+
+			$tx->commit();
+		}
+	}
 	
 	final private function commandFixRewrite() {
 		$this->storage->init();
-		
-		printf("Preface: fixing url primaries.\n");
+
+		printf("-- Fix url primaries\n");
 		
 		$rows = $this->storage->fetchAll('SELECT `primary`, id, live FROM rc_url WHERE `primary` != id | ((live & 1) << 24)');
 		
@@ -114,6 +159,11 @@ class CHUrl extends CLIHandler {
 			
 			$relevantFields = array( $idPath, $rewriteField, $rewriteField . '.*', $rewriteField . '.url.*' );
 			
+			
+// TODO: delete multiple owners of same RCUrlRewrite
+			
+			
+			
 	
 			Record::pushIndex();	
 							
@@ -127,13 +177,18 @@ class CHUrl extends CLIHandler {
 			printf("Fixing preview records, currently %d records indexed.\n", Record::getRecordCount());
 			
 			
-			foreach ($previewRecords as $previewRecord) {
+			foreach ($previewRecords as $n => $previewRecord) {
 				$this->fixRecord( $previewRecord, $rewriteField, $rewriteRecordPrimaries );
+				printf("\rRecords checked: %d ", $n + 1);
 			}
+
+			unset($previewRecords);
+			unset($previewRecord);
+			
+			echo "\nDone.\n";
 			
 			Record::popIndex();
-			unset($previewRecords);
-			
+						
 			Record::pushIndex();
 			
 			// there might be live records with rewrite where the corresponding preview record has no rewrite
@@ -158,6 +213,10 @@ class CHUrl extends CLIHandler {
 				}
 			}
 			
+			unset($liveRecords);
+			unset($liveRecord);
+			unset($previewRecord);
+			
 			
 			Record::popIndex();
 				
@@ -169,7 +228,7 @@ class CHUrl extends CLIHandler {
 			
 		}
 
-		echo "\nFinished Part 1, will continue trying to remove url rewrites without owner.\n";
+		echo "\nFinished, will continue trying to remove url rewrites without owner.\n";
 		
 		$urlRewritePrimaries = $this->storage->fetchAll('SELECT `primary` FROM rc_url_rewrite');
 		
@@ -180,9 +239,7 @@ class CHUrl extends CLIHandler {
 		
 		foreach ($urlRewritePrimaries as $urlRewritePrimaryRow) {
 			$urlRewritePrimary = $urlRewritePrimaryRow['primary'];
-			
-			Record::pushIndex();
-			
+						
 			$urlRewriteRecord = RCUrlRewrite::get( $this->storage, array( 'primary' => $urlRewritePrimary ), Record::TRY_TO_LOAD );
 			$isReferenced = false;
 			
@@ -198,6 +255,7 @@ class CHUrl extends CLIHandler {
 				
 				try {
 					$urlRewriteRecord->delete();
+					unset($urlRewriteRecord);
 					
 					$deleteCount ++;
 					echo " deleted\n";
@@ -206,14 +264,12 @@ class CHUrl extends CLIHandler {
 					echo " failed: " . $e->getMessage() . "\n";
 				}
 				
-			}
-			
-			Record::popIndex();
+			}			
 		}
 		
-		printf( "\nFinished Part 2. Deleted: %d  ; Failed: %d\n", $deleteCount, $failCount );
+		printf( "\nFinished. Deleted: %d  ; Failed: %d\n", $deleteCount, $failCount );
 		
-		printf( "\nPart 3: try to correct wrong live value on url records\n");
+		printf( "\n-- try to correct wrong live value on url records\n");
 		
 		$tableName = RCUrl::getTableName();
 		
@@ -251,15 +307,13 @@ class CHUrl extends CLIHandler {
 			
 			$urlFields = array_keys($urlFields);
 		}
-
-		Record::pushIndex();
 		
 		$tx = $this->storage->startTransaction();
 			
 		try {
 			$liveRecord = $previewRecord->getFamilyMember( array( 'live' => DTSteroidLive::LIVE_STATUS_LIVE ) );
 			
-			if ($liveRecord->exists()) {
+			if ($liveRecord->exists() && $liveRecord !== $previewRecord) {
 				// check if live record has a rewrite record
 				$liveRewriteRecord = $liveRecord->getFieldValue( $rewriteField );
 				
@@ -276,184 +330,194 @@ class CHUrl extends CLIHandler {
 					
 					$liveUrlRecord = $liveRewriteRecord->url;
 					
-					if ($liveUrlRecord->live !== DTSteroidLive::LIVE_STATUS_LIVE) {
-						
-						
-						if ($liveRewriteAlreadyHandled) {
-							printf("Live status not live on url, but should be, id: %d ; liveRewrite of record already handled, will delete connection.\n", $liveUrlRecord->id);
-							
-							$liveRewriteRecord->readOnly = true;
-							$liveRecord->{$rewriteField} = NULL;
-							$liveRecord->save();
-							$liveRewriteRecord->readOnly = false;
-							
-							echo "Connection deleted, continuing.\n";
-						} else {
-							printf("SKIP: Live status not live on url, but should be, id: %d ; liveRewrite of record not yet handled.\n", $liveUrlRecord->id);
-							$this->skipped['RCUrl'][$liveUrlRecord->primary] = $liveUrlRecord->id;
-							$this->urlWithWrongLive[$liveUrlRecord->primary] = $liveUrlRecord->id;
-						}
+					if (!$liveUrlRecord) {
+						printf("No url record for live rewrite with primary %d", $liveRewriteRecord->primary);
 					} else {
 					
-						// check if preview has a rewriteRecord
-						$previewRewriteRecord = $previewRecord->getFieldValue( $rewriteField );
-						
-						
-						if ($previewRewriteRecord) {
-							// preview + live version of rewrite record exist - compare id fields of urls							
-							$previewRewriteRecordPrimary = $previewRewriteRecord->getFieldValue( Record::FIELDNAME_PRIMARY );
+						if ($liveUrlRecord->live !== DTSteroidLive::LIVE_STATUS_LIVE) {
 							
-							if (in_array($previewRewriteRecordPrimary, $rewriteRecordPrimaries, true)) {
-								printf("Found previewRewriteRecord primary already handled: %d\n", $liveRewriteRecordPrimary);
-								$previewRewriteAlreadyHandled = true;
+							
+							if ($liveRewriteAlreadyHandled) {
+								printf("Live status not live on url, but should be, id: %d ; liveRewrite of record already handled, will delete connection.\n", $liveUrlRecord->id);
+								
+								$liveRewriteRecord->readOnly = true;
+								$liveRecord->{$rewriteField} = NULL;
+								$liveRecord->save();
+								$liveRewriteRecord->readOnly = false;
+								
+								echo "Connection deleted, continuing.\n";
 							} else {
-								$rewriteRecordPrimaries[] = $previewRewriteRecordPrimary;
-								$previewRewriteAlreadyHandled = false;
-							}
-									
-							$previewUrlRecord = $previewRewriteRecord->url;
-							
-							if ($previewUrlRecord->id !== $liveUrlRecord->id) {
-								printf("Url record id field does not match between preview and live: %d != %d\n", $previewUrlRecord->id, $liveUrlRecord->id);
-								
-								$liveRewriteRecord->load();
-								
-								$liveUrlRecord->load();
-								$liveUrlValues = array();
-								
-								// save current values
-								foreach ($urlFields as $urlField) {
-									$liveUrlValues[$urlField] = $liveUrlRecord->getFieldValue( $urlField );
+								if (!$liveUrlRecord->id) {
+									throw new Exception(Debug::getStringRepresentation($liveUrlRecord->getValues()));
 								}
 								
-								$liveRewriteRecord->url = NULL; // disconnect
-								$liveRewriteRecord->readOnly = true; // prevent delete
-	
-								$liveUrlRecord->delete(); // delete wrong url
-		
-								$liveRewriteRecord->readOnly = false; // unprotect
-		
-								
-								$missingRefArr = array();
-								$newLiveUrlRecord = $previewUrlRecord->copy(array( 'live' => DTSteroidLive::LIVE_STATUS_LIVE ), $missingRefArr);
-								unset($missingRefArr);
-								
-								// equivalent to 							
-								// $newLiveUrlRecord->setValues( $liveUrlValues );
-								// but prevents unneccessary dirtying
-								foreach ($liveUrlValues as $field => $value) {
-									if ($newLiveUrlRecord->getFieldValue($field) !== $value) {
-										$newLiveUrlRecord->{$field} = $value;
-									}
-								}
-
-								// set live record readonly to prevent unecessary save calls
-								$liveRecord->readOnly = true;
-
-								
-								$liveRewriteRecord->url = $newLiveUrlRecord;
-								
-								// check if saving rewriterecord would result in duplicate key
-								if ($newLiveUrlRecord->fieldHasBeenSet( Record::FIELDNAME_PRIMARY )) {
-									$exists = (bool)$this->storage->select( 'RCUrlRewrite', array( 'where' => array(
-										'url' => array( $newLiveUrlRecord )
-									) ), 0, 0, true );
-									
-									if ($exists === true) {
-										printf( "SKIP: Saving rewrite would probably result in duplicate key for url_primary = %d\n", $newLiveUrlRecord->{Record::FIELDNAME_PRIMARY});
-									} else {
-										// will also automatically save url
-										$liveRewriteRecord->save();				
-									}
-								} else {
-								
-									// will also automatically save url
-									$liveRewriteRecord->save();
-								}
-						
-								
-								printf( "Fixed live record from preview record, live url: %s\n", $liveUrlValues['url'] );
+								printf("SKIP: Live status not live on url, but should be, id: %d ; liveRewrite of record not yet handled.\n", $liveUrlRecord->id);
+								$this->skipped['RCUrl'][$liveUrlRecord->primary] = $liveUrlRecord->id;
+								$this->urlWithWrongLive[$liveUrlRecord->primary] = $liveUrlRecord->id;
 							}
 						} else {
-							// do not create preview rewrite record!!!
-							
-/*							
-							// no preview record exists - copy live to preview - this should also copy url
-							$missingRefArr = array();
-							$previewRewriteRecord = $liveRewriteRecord->copy( array( 'live' => DTSteroidLive::LIVE_STATUS_PREVIEW ), $missingRefArr );
-							unset($missingRefArr);
-							
-							
-							// test for url unique key collision
-							$previewUrlRecord = $previewRewriteRecord->url;
 						
+							// check if preview has a rewriteRecord
+							$previewRewriteRecord = $previewRecord->getFieldValue( $rewriteField );
 							
-							if (!$previewUrlRecord->exists()) {
-								$collidingRecordData = $this->storage->selectFirst( 'RCUrl', array(
-									'fields' => array( 'id' ),
-									'where' => array(
-										'url', '=', array( $previewUrlRecord->url ), 
-										'AND', 'domainGroup', '=', array( $previewUrlRecord->domainGroup ), 
-										'AND', 'live', '=', array( $previewUrlRecord->live ), 
-										'AND', 'id', '!=', array( $previewUrlRecord->id )
-									)
-								), NULL, NULL, NULL, NULL, NULL, true );
+							
+							if ($previewRewriteRecord) {
+								// preview + live version of rewrite record exist - compare id fields of urls							
+								$previewRewriteRecordPrimary = $previewRewriteRecord->getFieldValue( Record::FIELDNAME_PRIMARY );
 								
-								// var_dump($collidingRecordData);
-								
-								if ($collidingRecordData !== NULL) {
-									printf( "Would have collision with unique url on urls with ids: %d - %d, will change rewrite\n", $previewUrlRecord->id, $collidingRecordData['id']);
-									
-									
-									if ( preg_match('/^(.+)(\.[^\.\/]+)$/', $previewUrlRecord->url, $matches) ) {
-										$prefix = $matches[1];
-										$suffix = $matches[2];	
-									} else {
-										$prefix = $previewUrlRecord->url;
-										$suffix = '';
-									}
-									
-									$count = 0;
-									
-									do {
-										$count++;
-										
-										$previewUrlRecord->url = $prefix . '-' . $count . $suffix;
-										
-										$collidingRecordData = $this->storage->selectFirst( 'RCUrl', array(
-											'fields' => array( 'id' ),
-											'where' => array(
-												'url', '=', array( $previewUrlRecord->url ), 
-												'AND', 'domainGroup', '=', array( $previewUrlRecord->domainGroup ), 
-												'AND', 'live', '=', array( $previewUrlRecord->live ), 
-												'AND', 'id', '!=', array( $previewUrlRecord->id )
-											)
-										), NULL, NULL, NULL, NULL, NULL, true );
-									} while( $collidingRecordData !== NULL && $count < 20 );
-									
-									if ($collidingRecordData === NULL) {
-										echo "Fixed the problem by changing url.\n";
-									}
-								} 
-								
-								if (isset($collidingRecordData)) {
-									echo "SKIP: Gave up on changing url.\n";
+								if (in_array($previewRewriteRecordPrimary, $rewriteRecordPrimaries, true)) {
+									printf("Found previewRewriteRecord primary already handled: %d\n", $liveRewriteRecordPrimary);
+									$previewRewriteAlreadyHandled = true;
 								} else {
-									$previewRewriteRecord->save();
-									$previewRecord->save();
+									$rewriteRecordPrimaries[] = $previewRewriteRecordPrimary;
+									$previewRewriteAlreadyHandled = false;
+								}
+										
+								$previewUrlRecord = $previewRewriteRecord->url;
+								
+								if ($previewUrlRecord->id !== $liveUrlRecord->id) {
+									printf("Url record id field does not match between preview and live: %d != %d\n", $previewUrlRecord->id, $liveUrlRecord->id);
 									
-									printf( "Copied preview record from live record, preview url: %s\n", $previewRewriteRecord->url->url );
+									$liveRewriteRecord->load();
+									
+									$liveUrlRecord->load();
+									$liveUrlValues = array();
+									
+									// save current values
+									foreach ($urlFields as $urlField) {
+										$liveUrlValues[$urlField] = $liveUrlRecord->getFieldValue( $urlField );
+									}
+									
+									$liveRewriteRecord->url = NULL; // disconnect
+									$liveRewriteRecord->readOnly = true; // prevent delete
+		
+									$liveUrlRecord->delete(); // delete wrong url
+									unset($liveUrlRecord);
+			
+									$liveRewriteRecord->readOnly = false; // unprotect
+			
+									
+									$missingRefArr = array();
+									$newLiveUrlRecord = $previewUrlRecord->copy(array( 'live' => DTSteroidLive::LIVE_STATUS_LIVE ), $missingRefArr);
+									unset($missingRefArr);
+									
+									// equivalent to 							
+									// $newLiveUrlRecord->setValues( $liveUrlValues );
+									// but prevents unneccessary dirtying
+									foreach ($liveUrlValues as $field => $value) {
+										if ($newLiveUrlRecord->getFieldValue($field) !== $value) {
+											$newLiveUrlRecord->{$field} = $value;
+										}
+									}
+	
+									// set live record readonly to prevent unecessary save calls
+									$liveRecord->readOnly = true;
+	
+									
+									$liveRewriteRecord->url = $newLiveUrlRecord;
+									
+									// check if saving rewriterecord would result in duplicate key
+									if ($newLiveUrlRecord->fieldHasBeenSet( Record::FIELDNAME_PRIMARY )) {
+										$exists = (bool)$this->storage->select( 'RCUrlRewrite', array( 'where' => array(
+											'url' => array( $newLiveUrlRecord )
+										) ), 0, 0, true );
+										
+										if ($exists === true) {
+											printf( "SKIP: Saving rewrite would probably result in duplicate key for url_primary = %d\n", $newLiveUrlRecord->{Record::FIELDNAME_PRIMARY});
+										} else {
+											// will also automatically save url
+											$liveRewriteRecord->save();				
+										}
+									} else {
+									
+										// will also automatically save url
+										$liveRewriteRecord->save();
+									}
+							
+									
+									printf( "Fixed live record from preview record, live url: %s\n", $liveUrlValues['url'] );
+								}
+							} else {
+								// do not create preview rewrite record!!!
+								
+	/*							
+								// no preview record exists - copy live to preview - this should also copy url
+								$missingRefArr = array();
+								$previewRewriteRecord = $liveRewriteRecord->copy( array( 'live' => DTSteroidLive::LIVE_STATUS_PREVIEW ), $missingRefArr );
+								unset($missingRefArr);
+								
+								
+								// test for url unique key collision
+								$previewUrlRecord = $previewRewriteRecord->url;
+							
+								
+								if (!$previewUrlRecord->exists()) {
+									$collidingRecordData = $this->storage->selectFirst( 'RCUrl', array(
+										'fields' => array( 'id' ),
+										'where' => array(
+											'url', '=', array( $previewUrlRecord->url ), 
+											'AND', 'domainGroup', '=', array( $previewUrlRecord->domainGroup ), 
+											'AND', 'live', '=', array( $previewUrlRecord->live ), 
+											'AND', 'id', '!=', array( $previewUrlRecord->id )
+										)
+									), NULL, NULL, NULL, NULL, NULL, true );
+									
+									// var_dump($collidingRecordData);
+									
+									if ($collidingRecordData !== NULL) {
+										printf( "Would have collision with unique url on urls with ids: %d - %d, will change rewrite\n", $previewUrlRecord->id, $collidingRecordData['id']);
+										
+										
+										if ( preg_match('/^(.+)(\.[^\.\/]+)$/', $previewUrlRecord->url, $matches) ) {
+											$prefix = $matches[1];
+											$suffix = $matches[2];	
+										} else {
+											$prefix = $previewUrlRecord->url;
+											$suffix = '';
+										}
+										
+										$count = 0;
+										
+										do {
+											$count++;
+											
+											$previewUrlRecord->url = $prefix . '-' . $count . $suffix;
+											
+											$collidingRecordData = $this->storage->selectFirst( 'RCUrl', array(
+												'fields' => array( 'id' ),
+												'where' => array(
+													'url', '=', array( $previewUrlRecord->url ), 
+													'AND', 'domainGroup', '=', array( $previewUrlRecord->domainGroup ), 
+													'AND', 'live', '=', array( $previewUrlRecord->live ), 
+													'AND', 'id', '!=', array( $previewUrlRecord->id )
+												)
+											), NULL, NULL, NULL, NULL, NULL, true );
+										} while( $collidingRecordData !== NULL && $count < 20 );
+										
+										if ($collidingRecordData === NULL) {
+											echo "Fixed the problem by changing url.\n";
+										}
+									} 
+									
+									if (isset($collidingRecordData)) {
+										echo "SKIP: Gave up on changing url.\n";
+									} else {
+										$previewRewriteRecord->save();
+										$previewRecord->save();
+										
+										printf( "Copied preview record from live record, preview url: %s\n", $previewRewriteRecord->url->url );
+									}
+									
+								} else {		
+									$previewRewriteRecord->save();
+									$previewRecord->{$rewriteField} = $previewRewriteRecord; // should already have been set by notify after copy/save, but just to be sure ...
+									$previewRecord->save();
+								
+									printf( "Copied preview record from live record, url already existed, preview url: %s\n", $previewRewriteRecord->url->url );
 								}
 								
-							} else {		
-								$previewRewriteRecord->save();
-								$previewRecord->{$rewriteField} = $previewRewriteRecord; // should already have been set by notify after copy/save, but just to be sure ...
-								$previewRecord->save();
-							
-								printf( "Copied preview record from live record, url already existed, preview url: %s\n", $previewRewriteRecord->url->url );
+	*/
 							}
-							
-*/
 						}
 					}
 				}
@@ -465,10 +529,7 @@ class CHUrl extends CLIHandler {
 			$tx->rollback();
 				
 			throw $e;
-		}
-		
-		Record::popIndex();
-		
+		}		
 	}
 
 	public function getUsageText( $called, $command, array $params ) {

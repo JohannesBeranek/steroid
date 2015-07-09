@@ -78,7 +78,7 @@ define([
 			if (me.hasDroppable() && i == me.containerFieldName) {
 				fieldConf = {
 					style: 'width: 100% !important;min-height: 40px;',
-					class: 'STInlineEditableWidget',
+					"class": 'STInlineEditableWidget',
 					accept: ['widget', 'area'],
 					dndManager: me.dndManager,
 					backend: me.backend,
@@ -145,7 +145,7 @@ define([
 
 			var fields = me.inherited(arguments);
 
-			if (me.mainClassConfig.className != 'RCTemplate' && me.owningRecordClass != 'RCElementInArea' && me.ownClassConfig.className == 'RCArea') {
+			if (me.ownClassConfig.className == 'RCArea' && me.parentWidget && me.parentWidget.ownClassConfig.className == 'RCPageArea') {
 				fields.push('title');
 			}
 

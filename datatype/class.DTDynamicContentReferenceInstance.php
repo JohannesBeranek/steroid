@@ -18,5 +18,3 @@ class DTDynamicContentReferenceInstance extends DTDynamicRecordReferenceInstance
 		}
 	}
 }
-
-?>

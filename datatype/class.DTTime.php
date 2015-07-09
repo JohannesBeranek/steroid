@@ -21,7 +21,7 @@ class DTTime extends BaseDTDateTime {
 		);
 	}
 
-	public function setValue( $data = NULL, $loaded = false ) {
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
 		if ( ctype_digit($data) ) { // probably a timestamp
 			parent::setValue( date( "H:i:s", intval($data) ), $loaded );
 		} else {
@@ -29,7 +29,7 @@ class DTTime extends BaseDTDateTime {
 				$data = ltrim($data, 'T');
 			}
 
-			parent::setValue( $data, $loaded );
+			parent::setValue( $data, $loaded, $path, $dirtyTracking );
 		}
 	}
 

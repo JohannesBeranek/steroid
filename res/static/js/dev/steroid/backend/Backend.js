@@ -33,7 +33,6 @@ define([
 	"dojo/store/Observable",
 	"dijit/Dialog",
 	"dojox/lang/functional/object",
-	"dijit/layout/StackContainer",
 	"dijit/layout/AccordionContainer",
 	"dojo/window",
 	"dojo/aspect",
@@ -59,7 +58,7 @@ define([
 	"steroid/backend/dnd/Clipboard",
 	"steroid/backend/dnd/DndManager",
 	"steroid/backend/stats/stats"
-], function (_WidgetBase, declare, TitlePane, ContentPane, BorderContainer, MenuBar, DropDownMenu, PopupMenuBarItem, MenuBarItem, StackContainer, STUser, STDomainGroupSelector, STLanguageSelector, STMenuTime, STServerComm, ModuleMenuItem, WizardMenuItem, i18n, i18nRC, i18nErr, hash, DetailPane, JsonRestStore, STStore, ObservableStore, Dialog, langFuncObj, StackContainer, AccordionContainer, win, aspect, lang, ioQuery, connect, domConstruct, domClass, Button, array, ErrorDialog, ReferenceDialog, ModuleContainer, _ModuleContainerList, domStyle, _hasStandBy, WelcomeScreen, Toaster, i18nToaster, baseWindow, registry, _hasInitListeners, Clipboard, DndManager, STStats) {
+], function (_WidgetBase, declare, TitlePane, ContentPane, BorderContainer, MenuBar, DropDownMenu, PopupMenuBarItem, MenuBarItem, StackContainer, STUser, STDomainGroupSelector, STLanguageSelector, STMenuTime, STServerComm, ModuleMenuItem, WizardMenuItem, i18n, i18nRC, i18nErr, hash, DetailPane, JsonRestStore, STStore, ObservableStore, Dialog, langFuncObj, AccordionContainer, win, aspect, lang, ioQuery, connect, domConstruct, domClass, Button, array, ErrorDialog, ReferenceDialog, ModuleContainer, _ModuleContainerList, domStyle, _hasStandBy, WelcomeScreen, Toaster, i18nToaster, baseWindow, registry, _hasInitListeners, Clipboard, DndManager, STStats) {
 	return declare([ _WidgetBase, _hasStandBy, _hasInitListeners], {
 		debugMode: false,
 		moduleContainer: null,
@@ -213,7 +212,7 @@ define([
 			me.dndManager = new DndManager({});
 
 			me.STViewPort = new BorderContainer({
-				style: 'width: 100%;height: 36px;overflow:hidden;padding:0;position:relative;',
+				style: 'width: 100%;height: 50px;overflow:hidden;padding:0;position:relative;',
 				gutters: false
 			});
 
@@ -234,7 +233,7 @@ define([
 			if (me.config.User.config.permission == '__dev__') {
 				me.BTDebug = new MenuBarItem({
 					label: 'Debug: Off',
-					class: 'STForceIcon',
+					"class": 'STForceIcon',
 					style: 'float:right;',
 					onClick: function () {
 						me.debugMode = !me.debugMode;
@@ -247,7 +246,7 @@ define([
 
 				me.BTStats = new MenuBarItem({
 					label: i18n.BTStats.label,
-					class: 'STForceIcon STModule_stats',
+					"class": 'STForceIcon STModule_stats',
 					style: 'float:left;',
 					onClick: function () {
 						me.openStatistics();
@@ -291,7 +290,7 @@ define([
 			var me = this;
 
 			me.statisticsModule = new STStats({
-				class: 'STStats',
+				"class": 'STStats',
 				region: 'center',
 				backend: me
 			});
@@ -469,7 +468,7 @@ define([
 			me.STBTLogout = new MenuBarItem({
 				label: i18n.logout,
 				style: 'float:right',
-				class: 'STForceIcon STIconLogout',
+				"class": 'STForceIcon STIconLogout',
 				onClick: function () {
 					var conf = {
 						data: {
@@ -520,7 +519,7 @@ define([
 			me.wizardTypeMenu = new PopupMenuBarItem({
 				label: i18nRC.type_wizard,
 				popup: wizardMenu,
-				class: 'STForceIcon STModule_wizard'
+				"class": 'STForceIcon STModule_wizard'
 			});
 
 			for (var i = 0, item; item = me.config.wizards[i]; i++) {
@@ -540,10 +539,13 @@ define([
 
 			if (me.contentTypeMenus) {
 				for (type in me.contentTypeMenus) {
-					me.contentTypeMenus[type].destroyRecursive();
 					me.STMenuBar.removeChild(me.contentTypeMenus[type]);
+					me.contentTypeMenus[type].popup.destroyRecursive();
+					me.contentTypeMenus[type].destroyRecursive();
 				}
 			}
+
+			me.STMenuBar.selected = null; //fixes menuBar to stop working after domainGroup switch
 
 			me.contentTypeMenus = {};
 
@@ -606,7 +608,7 @@ define([
 				var typeMenuItem = new PopupMenuBarItem({
 					label: i18nRC['type_' + type],
 					popup: typeMenu,
-					class: 'STForceIcon STModule_' + type
+					"class": 'STForceIcon STModule_' + type
 				});
 
 				me.contentTypeMenus[type] = typeMenuItem;
@@ -657,6 +659,7 @@ define([
 
 			me.moduleContainerCloseAspect = aspect.after(me.moduleContainer, 'hasClosed', function () {
 				me.STViewPort.removeChild(me.moduleContainer);
+				domStyle.set(me.STViewPort.domNode, 'height', '50px');
 			});
 
 			domStyle.set(me.STViewPort.domNode, 'height', '100%');
@@ -701,6 +704,9 @@ define([
 
 			me.STServerComm.sendAjax(conf);
 		},
+		userSwitched: function(){
+			window.location.reload();
+		},
 		languageSwitched: function (response) {
 			var me = this;
 
@@ -721,9 +727,9 @@ define([
 		domainGroupSwitched: function (response) {
 			var me = this;
 
-			me.setConf(response.data);
-
 			me.clearInitListeners();
+
+			me.setConf(response.data);
 
 			me.addInitListener(function () {
 				me.setMenuBarItemsByUserConf();
@@ -798,7 +804,7 @@ define([
 			var me = this;
 
 			if (!me.toaster) {
-				var toasterNode = domConstruct.create('div', { class: 'STToaster', id: 'STToaster' });
+				var toasterNode = domConstruct.create('div', { "class": 'STToaster', id: 'STToaster' });
 
 				baseWindow.body().appendChild(toasterNode);
 

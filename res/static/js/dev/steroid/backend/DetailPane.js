@@ -234,7 +234,7 @@ define([
 		setUpRecordLabel: function () {
 			var me = this;
 
-			me.recordClassLabel = domConstruct.create('div', { innerHTML: me.isFilterPane ? i18nDetailPane.filterPaneLabel : me.i18nExt ? me.i18nExt[me.classConfig.className + '_name'] : i18nRC[me.classConfig.className + '_name'] || me.classConfig.className, class: 'STDetailPaneRecordClassLabel' });
+			me.recordClassLabel = domConstruct.create('div', { innerHTML: me.isFilterPane ? i18nDetailPane.filterPaneLabel : me.i18nExt ? me.i18nExt[me.classConfig.className + '_name'] : i18nRC[me.classConfig.className + '_name'] || me.classConfig.className, "class": 'STDetailPaneRecordClassLabel' });
 			me.containerNode.appendChild(me.recordClassLabel);
 		},
 		setUpFormContainer: function () {
@@ -288,7 +288,7 @@ define([
 				me.actionButtons.close = new MenuBarItem({
 					label: i18nDetailPane.BTClose,
 					action: 'close',
-					class: 'STForceIcon STAction_close',
+					"class": 'STForceIcon STAction_close',
 					disabled: false,
 					onClick: function () {
 						me.close();
@@ -302,7 +302,7 @@ define([
 				me.actionButtons.reset = new MenuBarItem({
 					label: i18nDetailPane.BTReset,
 					action: 'reset',
-					class: 'STForceIcon STAction_reset',
+					"class": 'STForceIcon STAction_reset',
 					disabled: true,
 					onClick: lang.hitch(me, 'resetForm')
 				});
@@ -368,7 +368,7 @@ define([
 							button = new PopupMenuBarItem({
 								label: i18nDetailPane['BT' + action],
 								action: action,
-								class: 'STForceIcon STAction_' + action,
+								"class": 'STForceIcon STAction_' + action,
 								style: style,
 								popup: menuPopup,
 								disabled: disabled
@@ -379,7 +379,7 @@ define([
 							button = new MenuBarItem({
 								label: i18nDetailPane['BT' + action],
 								action: action,
-								class: 'STForceIcon STAction_' + action,
+								"class": 'STForceIcon STAction_' + action,
 								style: style,
 								disabled: true
 							});
@@ -429,7 +429,7 @@ define([
 			domConstruct.place(me.timePicker.domNode, me.timeItem.focusNode);
 
 			button = new ModuleMenuItem({
-				class: "STForceIcon STAction_delete" + dovar,
+				"class": "STForceIcon STAction_delete" + dovar,
 				style: "display:none;clear:both;float:left;"
 			});
 
@@ -446,8 +446,8 @@ define([
 
 			button = new ModuleMenuItem({
 				label: i18nDetailPane['BTLater' + dovar],
-				class: 'STForceIcon STAction_delay' + dovar,
-				style: 'clear:both;float:left;',
+				"class": 'STForceIcon STAction_delay' + dovar,
+				style: 'clear:both;float:left;'
 			});
 
 			button.onClick = lang.hitch(
@@ -465,7 +465,7 @@ define([
 
 			button = new ModuleMenuItem({
 				label: i18nDetailPane['BTNow' + dovar],
-				class: 'STForceIcon STAction_' + dovar,
+				"class": 'STForceIcon STAction_' + dovar,
 				style: 'clear:both;float:left;',
 				disabled: false
 			});
@@ -526,6 +526,8 @@ define([
 								}
 
 								me.setUpActionButtons(response.actions || {});
+							} else {
+								me.backend.showError(response);
 							}
 						});
 
@@ -549,6 +551,8 @@ define([
 							}
 
 							me.setUpActionButtons(response.actions || {});
+						} else {
+							me.backend.showError(response);
 						}
 					});
 
@@ -613,6 +617,16 @@ define([
 
 			me.backend.doStandBy();
 
+			if(action == 'previewRecord'){ // popup block workaround without having to use synchronous ajax call (http://stackoverflow.com/questions/4602964/how-do-i-prevent-google-chrome-from-blocking-my-popup)
+				var win = window.open('');
+				window.oldOpen = window.open;
+				window.open = function(url){
+					win.location = url;
+					window.open = oldOpen;
+					win.focus();
+				};
+			}
+
 			var conf = {
 				data: {
 					requestType: action,
@@ -622,8 +636,7 @@ define([
 					pubDate: pubDate,
 					pubTime: pubTime,
 					constants: constants,
-					additionalPublish: additionalPublish,
-					sync: action === 'previewRecord' ? true : false // action previewRecord needs sync to avoid popup blockers
+					additionalPublish: additionalPublish
 				},
 				error: function (response) {
 					me.handleError(response, action);
@@ -640,6 +653,24 @@ define([
 			if ((action == 'publishRecord' || action == 'delayPublish') && !!me.form.getDirtyNess() && !doAction) {
 				previousActionDef = me.saveRecord(true);
 				hasPreviousAction = true;
+			}
+
+			if(action == 'revertRecord'){
+				var dialog = new YesNoDialog({
+					messageType: 'revertRecord',
+					onYes: function () {
+						dialog.hide();
+						me.backend.STServerComm.sendAjax(conf); // FIXME: use deferred?
+					},
+					onNo: function () {
+						dialog.hide();
+						me.backend.hideStandBy();
+					}
+				});
+
+				dialog.show();
+
+				return;
 			}
 
 			dojo.when(previousActionDef, function (response) {
@@ -681,7 +712,7 @@ define([
 			return me.afterActionSuccess(response, action);
 		},
 		afterActionSuccess: function (response, action) {
-			return action == 'previewRecord' || action == 'deleteRecord' ? action : response.data;
+			return action == 'previewRecord' || action == 'deleteRecord' || action == 'duplicateRecord' ? action : response.data;
 		},
 		handleError: function (response, action) {
 			var me = this;
@@ -772,6 +803,9 @@ define([
 			var formValid = me.formValid;
 
 			switch (action) {
+				case 'duplicateRecord':
+					button.set('disabled', !me.recordCanDuplicate(me.record));
+					break;
 				case 'reset':
 					button.set('disabled', !formDirty || me.readOnly);
 					break;
@@ -832,6 +866,11 @@ define([
 			return !!record.primary;
 		},
 		recordCanPreview: function (record) {
+			var me = this;
+
+			return record && record.primary;
+		},
+		recordCanDuplicate: function (record) {
 			var me = this;
 
 			return record && record.primary;

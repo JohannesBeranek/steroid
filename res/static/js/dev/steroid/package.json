@@ -1,11 +1,15 @@
 {
-	"name": "steroid",
-	"description": "base package for steroid backend",
-	"version": 0.1,
-	"dojoBuild": "steroid.profile.js",
-	"dependencies": {
-		"dojo": "current",
-		"dijit": "current",
-		"dojox": "current"
-	}
+    "name": "steroid",
+    "description": "Steroid",
+    "version": "1.4.4",
+    "keywords": ["JavaScript", "Steroid"],
+    "dependencies": {
+        "dojo": "latest",
+        "dijit": "latest",
+        "dojox": "latest",
+        "dgrid": "latest",
+        "put-selector": "latest",
+        "xstyle": "latest"
+    },
+    "dojoBuild": "steroid.profile.js"
 }

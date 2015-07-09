@@ -23,7 +23,7 @@ define([
 
 	return declare([ContentPane, _DTFormFieldMixin], {
 		style: 'padding:0;',
-		class: 'STRecordSelector STFormField',
+		"class": 'STRecordSelector STFormField',
 		searchField: null,
 		recordList: null,
 		recordFetchStore: null,
@@ -131,7 +131,7 @@ define([
 			var me = this;
 
 			if (me.form.isFilterPane) {
-				me.labelNode = domConstruct.create('label', { 'for': me.id, 'innerHTML': me.getLabel(), class: 'STLabel_' + me.fieldName.replace(':', '-')});
+				me.labelNode = domConstruct.create('label', { 'for': me.id, 'innerHTML': me.getLabel(), "class": 'STLabel_' + me.fieldName.replace(':', '-')});
 
 				domConstruct.place(me.labelNode, me.domNode, 'first');
 			} else {
@@ -172,7 +172,8 @@ define([
 				accept: [me.fieldName],
 				dndManager: me.dndManager,
 				submitName: me.submitName,
-				backend: me.backend
+				backend: me.backend,
+				useIndex: me.fieldConf.useIndex
 			});
 
 			me.dropWatch = me.recordList.watch('STValue', function () {

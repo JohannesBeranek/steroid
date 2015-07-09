@@ -11,7 +11,7 @@ define([
 
 	return declare([Canvas], {
 //		style: 'border: 1px solid black',
-		class: 'STDTAreaJoinForeignReference',
+		"class": 'STDTAreaJoinForeignReference',
 
 		postCreate: function () {
 			var me = this;

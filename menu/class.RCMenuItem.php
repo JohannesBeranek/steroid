@@ -54,7 +54,8 @@ class RCMenuItem extends BaseMenuItem {
 			'subItemsFromPage' => DTBool::getFieldDefinition( true ),
 			'url' => DTString::getFieldDefinition( 255, false, NULL, true ),
 			'pagesFromRecordClass' => DTRecordClassSelect::getFieldDefinition( array( array( 'RCPage', 'pageTypeFilter' ) ), true ),
-			'icon' => DTImageRecordReference::getFieldDefinition( false )
+			'icon' => DTImageRecordReference::getFieldDefinition( false ),
+			'alignRight' => DTBool::getFieldDefinition()
 		);
 	}
 
@@ -69,6 +70,7 @@ class RCMenuItem extends BaseMenuItem {
 			'url',
 			'pagesFromRecordClass',
 			'icon',
+			'alignRight',
 			'parent:RCMenuItem',
 			'sorting'
 		);
@@ -153,14 +155,12 @@ class RCMenuItem extends BaseMenuItem {
 		return $title === NULL ? '' : $title;
 	}
 
-	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction, array &$basket = NULL ) {
+	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction ) {
 		if ( get_class( $originRecord ) == 'RCPage' && $reflectingFieldName == 'page' && $triggeringFunction == 'setValue' ) { // menuItem is being removed from within page editor, so delete it
-			$this->delete( $basket );
+			$this->delete();
 			return;
 		}
 
-		parent::notifyReferenceRemoved( $originRecord, $reflectingFieldName, $triggeringFunction, $basket );
+		parent::notifyReferenceRemoved( $originRecord, $reflectingFieldName, $triggeringFunction );
 	}
 }
-
-?>

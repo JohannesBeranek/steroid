@@ -26,7 +26,7 @@ define([
 		mainClassConfig: null,
 		owningRecordClass: null,
 		valueNodeName: 'valueNode',
-		class: 'STFormField',
+		"class": 'STFormField',
 		hideField: false,
 		isFieldConditionSource: false,
 		isFieldConditionTarget: false,
@@ -45,14 +45,14 @@ define([
 			me.inherited(arguments);
 
 			if (me.isFieldConditionSource) {
-				me.class += ' STFieldConditionSource';
+				me["class"] += ' STFieldConditionSource';
 			}
 
 			if (me.isFieldConditionTarget) {
-				me.class += ' STFieldConditionTarget';
+				me["class"] += ' STFieldConditionTarget';
 			}
 
-			me.class += ' ' + me.fieldName.replace(':', '_');
+			me["class"] += ' ' + me.fieldName.replace(':', '_');
 
 			me.constraints = me.getConstraints();
 
@@ -126,7 +126,7 @@ define([
 			if (typeof me.fieldConf.extensions != 'undefined') {
 				me.extensionContainer = new FieldExtensionContainer({
 					doLayout: false,
-					class: 'STFieldExtensionContainer'
+					"class": 'STFieldExtensionContainer'
 				});
 
 				me.extensionContainer.startup();
@@ -227,7 +227,7 @@ define([
 		createLabel: function () {
 			var me = this;
 
-			me.labelNode = domConstruct.create('label', {'for': me.id, innerHTML: me.getLabel(), class: 'STLabel_' + me.fieldName.replace(':', '-')});
+			me.labelNode = domConstruct.create('label', {'for': me.id, innerHTML: me.getLabel(), "class": 'STLabel_' + me.fieldName.replace(':', '-')});
 			domConstruct.place(me.labelNode, me.domNode, 'before');
 		},
 		_setValueAttr: function (value) {

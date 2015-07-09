@@ -1,0 +1,21 @@
+[submodule "res/static/js/dev/put-selector"]
+	path = res/static/js/dev/put-selector
+	url = https://github.com/kriszyp/put-selector
+[submodule "res/static/js/dev/xstyle"]
+	path = res/static/js/dev/xstyle
+	url = https://github.com/kriszyp/xstyle
+[submodule "res/static/js/dev/dojo"]
+	path = res/static/js/dev/dojo
+	url = https://github.com/dojo/dojo.git
+[submodule "res/static/js/dev/dgrid"]
+	path = res/static/js/dev/dgrid
+	url = https://github.com/SitePen/dgrid.git
+[submodule "res/static/js/dev/dijit"]
+	path = res/static/js/dev/dijit
+	url = https://github.com/dojo/dijit.git
+[submodule "res/static/js/dev/dojox"]
+	path = res/static/js/dev/dojox
+	url = https://github.com/dojo/dojox.git
+[submodule "res/static/js/dev/util"]
+	path = res/static/js/dev/util
+	url = https://github.com/dojo/util.git

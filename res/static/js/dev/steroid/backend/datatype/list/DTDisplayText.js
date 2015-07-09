@@ -1,6 +1,6 @@
 define([
 	"dojo/_base/declare",
-	"steroid/backend/datatype/list/DTText",
+	"steroid/backend/datatype/list/DTText"
 ], function (declare, DTText) {
 
 	return declare([DTText], {

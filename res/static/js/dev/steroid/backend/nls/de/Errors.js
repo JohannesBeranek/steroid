@@ -1,7 +1,7 @@
 define({
 	generic: {
 		title: 'Fehler',
-		message: 'Das kann ich nicht tun, Dave'
+		message: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut, oder kontaktieren Sie Ihren Systemadministrator'
 	},
 	confirm: {
 		title: 'Bitte bestätigen',
@@ -9,7 +9,7 @@ define({
 	},
 	unexpected_token: {
 		title: 'Unbekanntes Zeichen',
-		message: 'Ups, da ist was schief gegangen'
+		message: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut, oder kontaktieren Sie Ihren Systemadministrator'
 	},
 	UnknownRequestException: {
 		title: 'Sie wurden ausgeloggt',
@@ -17,6 +17,10 @@ define({
 	},
 	LoginFailException: {
 		title: 'Login falsch'
+	},
+	DuplicateEntryException: {
+		title: 'Doppelter Eintrag',
+		message: 'Dieser Eintrag existiert bereits'
 	},
 	MissingTemplateException: {
 		title: 'Template fehlt',
@@ -32,7 +36,7 @@ define({
 	},
 	Exception: {
 		title: 'Ausnahmefehler',
-		message: 'Ausnahmsweise ist eine Ausnahme aufgetreten'
+		message: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut, oder kontaktieren Sie Ihren Systemadministrator'
 	},
 	CannotCopyRecordException: {
 		title: 'Referenz nicht veröffentlicht',
@@ -40,7 +44,7 @@ define({
 	},
 	NoChangeException: {
 		title: 'Nichts passiert',
-		message: "Sie wollten etwas tun das nicht passiert ist. Und jetzt?"
+		message: "Sie wollten etwas tun, aber es ist nicht passiert"
 	},
 	MissingReferencesException: {
 		title: 'Andere Einträge die ebenfalls veröffentlich werden müssen (ausgegraut), bzw können (auswählbar)'
@@ -50,7 +54,7 @@ define({
 	},
 	AccessDeniedException: {
 		title: 'Zugriff verweigert',
-		message: 'Sie haben im aktuellen Subweb keine Zugriffsberechtigung auf den Inhaltstyp "$rc"'
+		message: 'Sie haben im aktuellen Subweb keine Zugriffsberechtigung auf den Inhaltstyp $rc "$record"'
 	},
 	ActionDeniedException: {
 		title: 'Aktion verweigert',
@@ -112,6 +116,10 @@ define({
 		title: 'Ungespeicherte Änderungen',
 		message: 'Ihre Änderungen wurden noch nicht gespeichert. Möchten Sie trotzdem schließen?'
 	},
+	revertRecord: {
+		title: 'Auf Liveversion zurücksetzen',
+		message: 'Beim Zurücksetzen auf die Liveversion gehen alle vorgenommenen Änderungen verloren. Trotzdem fortfahren?'
+	},
 	affected: {
 		hide: 'References that will be hidden: ',
 		'delete': 'References that will be deleted: ',
@@ -122,6 +130,10 @@ define({
 	domainGroupModified: {
 		title: 'Subwebänderung',
 		message: 'Sie haben ein Subweb erstellt oder verändert. Möchten Sie in dieses wechseln?'
+	},
+	DomainTakenException: {
+		title: 'Domain vergeben',
+		message: 'Diese Domain ist bereits bei $rc $record in Verwendung.'
 	},
 	BtnOK: 'OK',
 	BtnMore: 'Details',

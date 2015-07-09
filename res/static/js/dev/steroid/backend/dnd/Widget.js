@@ -35,12 +35,16 @@ define([
 		hideWatch: null,
 		hideHandle: null,
 		containerPadding: 10,
-		class: 'STWidget',
+		"class": 'STWidget',
 		i18nExt: null,
 		copyButton: null,
 		copyHandle: null,
+		containingPages: null,
 		previewStartHandle: null,
 		previewEndHandle: null,
+		containingPagesIcon: null,
+		containingPagesShowHandle: null,
+		containingPagesHideHandle: null,
 
 		constructor: function () {
 			this.itemsAlreadyExist = [];
@@ -137,6 +141,70 @@ define([
 				});
 			}
 		},
+		_setValueAttr: function (value) {
+			var me = this;
+
+			me.inherited(arguments);
+
+			if(value && typeof value[me.inlineSubstitutionFieldName] !== 'undefined'){
+				me.containingPages = value[me.inlineSubstitutionFieldName]['_containingPages'];
+
+				me.setupContainingPages(me.containingPages);
+			} else {
+				me.removeContainingPagesIcon();
+				me.containingPages = null;
+			}
+		},
+		setupContainingPages: function(pages){
+			var me = this;
+
+			if(typeof pages == 'undefined'){
+				me.removeContainingPagesIcon();
+
+				return;
+			}
+
+			if(me.containingPagesIcon == null){
+				me.containingPagesIcon = domConstruct.create('div', {'class': 'containingPagesIcon' });
+				domConstruct.place(me.containingPagesIcon, me.titleBarNode);
+
+				me.containingPagesShowHandle = on(me.containingPagesIcon, 'mouseenter', function (e) {
+					me.showContainingPages();
+				});
+
+				me.containingPagesHideHandle = on(me.containingPagesIcon, 'mouseleave', function (e) {
+					me.hideContainingPages();
+				});
+			}
+		},
+		showContainingPages: function(){
+			var me = this;
+
+			var text = i18nRC.widget_reference_warning + '<br/><br/>';
+
+			for(var i in me.containingPages){
+				text += me.containingPages[i] + '<br/>';
+			}
+
+			Tooltip.show(text, me.domNode);
+		},
+		hideContainingPages: function(){
+			var me = this;
+		},
+		removeContainingPagesIcon: function(){
+			var me = this;
+
+			if (me.containingPagesIcon) {
+				me.containingPagesShowHandle.remove();
+				delete me.containingPagesShowHandle;
+
+				me.containingPagesHideHandle.remove();
+				delete me.containingPagesHideHandle;
+
+				domConstruct.destroy(me.containingPagesIcon);
+				delete me.containingPagesIcon;
+			}
+		},
 		doPreview: function(){
 			var me = this, preview;
 
@@ -166,19 +234,19 @@ define([
             var me = this;
             
             if (typeof me.record.element !== 'undefined') {
-	            if (typeof me.record.element.pubStart !== 'undefined' && me.record.element.pubStart !== null) {
+	            if (typeof me.record.element.pubStart !== 'undefined' && me.record.element.pubStart !== null && me.record.element.pubStart !== '') {
 	                
 	                var pubStart = dojo.date.locale.format(new Date(me.record.element.pubStart));
 	 
-	                me.pubstartNode = domConstruct.create('div', { class: 'pubstartNode STWidgetIcon_pubStart', title: 'Publish: ' + pubStart });
+	                me.pubstartNode = domConstruct.create('div', { "class": 'pubstartNode STWidgetIcon_pubStart', title: 'Publish: ' + pubStart });
 					me.titleBarNode.appendChild(me.pubstartNode);
 	            }
 	            
-	            if (typeof me.record.element.pubEnd !== 'undefined' && me.record.element.pubEnd !== null) {
+	            if (typeof me.record.element.pubEnd !== 'undefined' && me.record.element.pubEnd !== null && me.record.element.pubEnd !== '') {
 	                
 	                var pubEnd = dojo.date.locale.format(new Date(me.record.element.pubEnd));
 	                
-	                me.pubendNode = domConstruct.create('div', { class: 'pubendNode STWidgetIcon_pubEnd', title: 'Unpublish: ' + pubEnd });
+	                me.pubendNode = domConstruct.create('div', { "class": 'pubendNode STWidgetIcon_pubEnd', title: 'Unpublish: ' + pubEnd });
 					me.titleBarNode.appendChild(me.pubendNode);
 	            }
 			}
@@ -190,8 +258,8 @@ define([
 				return;
 			}
 
-			if (me.inlineClassConfig.className !== 'RCArea' && !me.isFixed && me.inlineRecord.record.primary) {
-				me.copyNode = domConstruct.create('div', { class: 'copyNode STWidgetIcon_copy', title: i18nRC.widgets.copy });
+			if (!me.isFixed && me.inlineRecord.record.primary) {
+				me.copyNode = domConstruct.create('div', { "class": 'copyNode STWidgetIcon_copy', title: i18nRC.widgets.copy });
 				me.titleBarNode.appendChild(me.copyNode);
 
 				me.copyHandle = on(me.copyNode, 'click', function (e) {
@@ -213,7 +281,7 @@ define([
 			var hiddenField = me.getFieldByFieldName(me.getDataTypeFieldName('DTSteroidHidden'));
 
 			if (hiddenField) {
-				me.hideButton = domConstruct.create('div', { class: 'hideNode STWidgetIcon_hide', title: i18nRC.widgets.hide });
+				me.hideButton = domConstruct.create('div', { "class": 'hideNode STWidgetIcon_hide', title: i18nRC.widgets.hide });
 				me.titleBarNode.appendChild(me.hideButton);
 
 				me.hideHandle = on(me.hideButton, 'click', function (e) {
@@ -569,6 +637,7 @@ define([
 			var me = this;
 
 			me.removePreview();
+			me.removeContainingPagesIcon();
 
 			if(me.previewStartHandle){
 				me.previewStartHandle.remove();

@@ -41,5 +41,3 @@ class RCTemplateArea extends Record {
 		);
 	}
 } 
-
-?>

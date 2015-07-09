@@ -8,6 +8,7 @@ class VirtualFile implements IFileInfo {
 	protected $data;
 	protected $mimeType;
 	protected $filename;
+	protected $fullFilename;
 
 	public function __construct( $data, $mimeType = NULL, $filename = NULL ) {
 		$this->data = $data;
@@ -23,8 +24,12 @@ class VirtualFile implements IFileInfo {
 		$this->storedFilename = $filename;
 	}
 
+	public function setFullFilename( $filename ) {
+		$this->fullFilename = $filename;
+	}
+
 	public function getFullFilename() {
-		return NULL;
+		return $this->fullFilename;
 	}
 
 	public function getDownloadFilename() {
@@ -47,7 +52,7 @@ class VirtualFile implements IFileInfo {
 		return $this->mimeType === NULL ? NULL : strstr( $this->mimeType, '/', true );
 	}
 
-	public function getMeta( $name ) {
+	public function getFileMeta( $name ) {
 		return NULL;
 	}
 

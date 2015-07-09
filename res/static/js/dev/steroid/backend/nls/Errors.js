@@ -1,7 +1,7 @@
 define({ root: ({
 	generic: {
 		title: 'Error',
-		message: 'I cannot do that, Dave'
+		message: 'An error has occured, please try again or contact your system administrator'
 	},
 	confirm: {
 		title: 'Please confirm',
@@ -9,7 +9,7 @@ define({ root: ({
 	},
 	unexpected_token: {
 		title: 'Unexpected token',
-		message: 'I did not expect such a token to be taken'
+		message: 'An error has occured, please try again or contact your system administrator'
 	},
 	UnknownRequestException: {
 		title: 'You have been logged out',
@@ -17,6 +17,10 @@ define({ root: ({
 	},
 	LoginFailException: {
 		title: 'Login incorrect'
+	},
+	DuplicateEntryException: {
+		title: 'Duplicate entry',
+		message: 'This entry already exists'
 	},
 	WarningException: {
 		title: 'Warning',
@@ -31,8 +35,8 @@ define({ root: ({
 		message: "I'm sorry, but I can't let you go"
 	},
 	Exception: {
-		title: 'Exceptional error',
-		message: 'Whoopsie, you managed to blow up the internets. Good job'
+		title: 'Exception',
+		message: 'An error has occured, please try again or contact your system administrator'
 	},
 	CannotCopyRecordException: {
 		title: 'Reference not published',
@@ -50,7 +54,7 @@ define({ root: ({
 	},
 	AccessDeniedException: {
 		title: 'Access denied',
-		message: 'You are not allowed to access "$rc" in current subweb'
+		message: 'You are not allowed to access $rc "$record" in current subweb'
 	},
 	ActionDeniedException: {
 		title: 'Action denied',
@@ -112,6 +116,10 @@ define({ root: ({
 		title: 'Unsaved changes',
 		message: 'There are unsaved changes, do you really want to continue?'
 	},
+	revertRecord: {
+		title: 'Revert to live',
+		message: 'Any changes you have made will be overwritten by the live version. Continue?'
+	},
 	affected: {
 		hide: 'References that will be hidden: ',
 		'delete': 'References that will be deleted: ',
@@ -122,6 +130,10 @@ define({ root: ({
 	domainGroupModified: {
 		title: 'Domain group changed',
 		message: 'You have created or modified a domain group. Would you like to switch to it?'
+	},
+	DomainTakenException: {
+		title: 'Domain taken',
+		message: 'This domain is already taken by $rc $record.'
 	},
 	BtnOK: 'OK',
 	BtnMore: 'Details',

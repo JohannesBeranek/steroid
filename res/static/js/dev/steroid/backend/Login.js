@@ -139,6 +139,12 @@ define([
 				action: '',
 				method: 'post',
 				onSubmit: function (event) { // TODO: dojox.busyButton sets busy _after_ onSubmit, which in theory could give us a race condition
+					if(me.submitting){
+					 	return false;
+					}
+
+					me.submitting = true;
+
 					if (me.form.validate()) {
 						me.form.submitButton.makeBusy(); // needed because of people pressing return key ; this also makes submitButton value unavailable to form.getValues()
 
@@ -153,8 +159,7 @@ define([
 						}
 
 						data.requestType = 'login';
-						data.login = me.config.login.class;
-
+						data.login = me.config.login["class"];
 
 						var conf = {
 							data: data,
@@ -177,14 +182,10 @@ define([
 		loginSuccess: function (response) {
 			var me = this;
 
-			if (response.data.interface.languages.current == kernel.locale) {
-				require(["steroid/backend/Backend"], function (Backend) {
-//					if (window.Backend) {
-//						// FIXME: why is this necessary?
-					// FIXME: why doesn't this work?
-//						return;
-//					}
+			me.submitting = false;
 
+			if (response.data["interface"].languages.current == kernel.locale) {
+				require(["steroid/backend/Backend"], function (Backend) {
 					window.Backend = new Backend({ config: response.data });
 				});
 
@@ -196,6 +197,8 @@ define([
 		},
 		loginFail: function (response) {
 			var me = this;
+
+			me.submitting = false;
 
 			var err = i18nErr[response.error] ? i18nErr[response.error].title : i18nErr.generic.title;
 

@@ -11,6 +11,7 @@ class RequestInfo implements IRequestInfo {
 	const PROXY_SAFE_HTTP_HOST = 'proxy_safe_http_host';
 	const PROXY_SAFE_IS_HTTPS = 'proxy_safe_is_https';
 	const FULL_URL = 'full_url';
+	const PROXY_SAFE_FULL_URL = 'proxy_safe_full_url';
 	
 	/** @var float */
 	protected $requestTime; // float since PHP 5.4.0
@@ -236,6 +237,9 @@ class RequestInfo implements IRequestInfo {
 					((!empty($this->serverInfo['HTTPS']) && $this->serverInfo['HTTPS'] !== 'off') ? 'https' : 'http') .
 					'://' . $this->serverInfo['HTTP_HOST'] . $this->serverInfo['REQUEST_URI'];
 				}	
+			break;
+			case self::PROXY_SAFE_FULL_URL:
+				$ret = ($this->getServerInfo(self::PROXY_SAFE_IS_HTTPS) ? 'https' : 'http') . '://' . $this->getServerInfo(self::PROXY_SAFE_HTTP_HOST) . $this->serverInfo['REQUEST_URI'];
 			break;
 			default:
 				$ret = isset($this->serverInfo[$name]) ? $this->serverInfo[$name] : $unsetValue;

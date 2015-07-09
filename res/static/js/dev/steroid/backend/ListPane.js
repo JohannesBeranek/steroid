@@ -1,8 +1,58 @@
-define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "dojo/i18n!steroid/backend/nls/ListPane", "dijit/layout/BorderContainer", "dijit/layout/ContentPane", "steroid/backend/ServerComm", "dojo/_base/lang", "dojox/grid/EnhancedGrid", "dojox/grid/LazyTreeGrid", "dojox/lang/functional", "dojo/data/ObjectStore", "dojox/grid/LazyTreeGridStoreModel", "dojo/_base/array", "dojo/Deferred", "dojo/_base/connect", "dojox/grid/enhanced/plugins/NestedSorting", "dojox/grid/enhanced/plugins/IndirectSelection", "dojox/grid/enhanced/plugins/Filter", "dgrid/OnDemandGrid", "dgrid/Selection", "dgrid/tree", "dojo/dom-style", "dgrid/extensions/ColumnHider", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnResizer", "dgrid/extensions/DijitRegistry", "dgrid/Keyboard", "dojo/aspect", "dijit/MenuBar", "dijit/MenuBarItem", "dijit/form/TextBox", "dojo/_base/json", "steroid/backend/STStore", "dojo/store/Observable", "dojo/dom-construct", "steroid/backend/FilterPane", "dojo/dom-class", "steroid/backend/mixin/_hasStandBy", "put-selector/put", "dojo/dom-class", "dgrid/Grid", "dijit/Tooltip", "steroid/backend/ReferenceDialog", "dojo/on", "dojo/_base/event", "dojo/query", "dojo/mouse", "dojo/keys", "dojo/dom-attr", "dijit/form/ToggleButton"], function(declare, i18nRC, i18nListPane, BorderContainer, ContentPane, STServerComm, lang, EnhancedGrid, LazyTreeGrid, langFunc, ObjectStore, LazyTreeGridStoreModel, array, Deferred, Connect, GridNestedSorting, GridIndirectSelection, GridFilter, dGrid, dGridSelection, dGridTree, domStyle, dGridHider, dGridReorder, dGridResizer, DijitRegistry, dGridKeyboard, aspect, MenuBar, MenuBarItem, TextBox, json, STStore, ObservableStore, domConstruct, FilterPane, domClass, _hasStandBy, put, domClass, Grid, Tooltip, ReferenceDialog, on, event, query, mouse, keys, domAttr, ToggleButton) {
+define([
+        "dojo/_base/declare", 
+        "dojo/i18n!steroid/backend/nls/RecordClasses", 
+        "dojo/i18n!steroid/backend/nls/ListPane", 
+        "dijit/layout/BorderContainer", 
+        "dijit/layout/ContentPane", 
+        "steroid/backend/ServerComm", 
+        "dojo/_base/lang", 
+        "dojox/grid/EnhancedGrid", 
+        "dojox/grid/LazyTreeGrid", 
+        "dojox/lang/functional", 
+        "dojo/data/ObjectStore", 
+        "dojox/grid/LazyTreeGridStoreModel", 
+        "dojo/_base/array", 
+        "dojo/Deferred", 
+        "dojo/_base/connect", 
+        "dojox/grid/enhanced/plugins/NestedSorting", 
+        "dojox/grid/enhanced/plugins/IndirectSelection", 
+        "dojox/grid/enhanced/plugins/Filter", 
+        "dgrid/OnDemandGrid", 
+        "dgrid/Selection", 
+        "dgrid/tree", 
+        "dojo/dom-style", 
+        "dgrid/extensions/ColumnHider", 
+        "dgrid/extensions/ColumnReorder", 
+        "dgrid/extensions/ColumnResizer", 
+        "dgrid/extensions/DijitRegistry", 
+        "dgrid/Keyboard", 
+        "dojo/aspect", 
+        "dijit/MenuBar",
+        "dijit/MenuBarItem", 
+        "dijit/form/TextBox", 
+        "dojo/_base/json", 
+        "steroid/backend/STStore", 
+        "dojo/store/Observable", 
+        "dojo/dom-construct", 
+        "steroid/backend/FilterPane", 
+        "dojo/dom-class", 
+        "steroid/backend/mixin/_hasStandBy", 
+        "put-selector/put",
+        "dgrid/Grid", 
+        "dijit/Tooltip", 
+        "steroid/backend/ReferenceDialog", 
+        "dojo/on", 
+        "dojo/_base/event", 
+        "dojo/query", 
+        "dojo/mouse", 
+        "dojo/keys", 
+        "dojo/dom-attr", 
+        "dijit/form/ToggleButton"
+], function(declare, i18nRC, i18nListPane, BorderContainer, ContentPane, STServerComm, lang, EnhancedGrid, LazyTreeGrid, langFunc, ObjectStore, LazyTreeGridStoreModel, array, Deferred, Connect, GridNestedSorting, GridIndirectSelection, GridFilter, dGrid, dGridSelection, dGridTree, domStyle, dGridHider, dGridReorder, dGridResizer, DijitRegistry, dGridKeyboard, aspect, MenuBar, MenuBarItem, TextBox, json, STStore, ObservableStore, domConstruct, FilterPane, domClass, _hasStandBy, put, Grid, Tooltip, ReferenceDialog, on, event, query, mouse, keys, domAttr, ToggleButton) {
 	return declare([BorderContainer, _hasStandBy], {
 
 		classConfig : null,
-		class: "STListPane",
+		"class": "STListPane",
 		loadInitDef : false,
 		currentFilter : null,
 		filterPane : null,
@@ -240,6 +290,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 								var originalRenderCell = structure[0].renderCell || Grid.defaultRenderCell;
 
 								structure[0] = dGridTree(structure[0]);
+
 								structure[0].renderCell = me._getRenderTreeCellFunc(structure[0], originalRenderCell);
 								// overwrite renderCell function, because we want the data when rendering the expando
 								structure[0].shouldExpand = function(row, level, previouslyExpanded) {
@@ -291,6 +342,11 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 		},
 		actionSuccess : function(action, response) {
 			var me = this;
+
+			if(action == 'switchUser'){
+				me.backend.userSwitched();
+				return;
+			}
 
 			me.backend.hideStandBy();
 
@@ -367,7 +423,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 				}
 
 				var icon = domConstruct.create('div', {
-					class : 'STListAction STIcon_' + item,
+					"class": 'STListAction STIcon_' + item,
 					'data-record-primary' : object.primary,
 					'data-record-action' : item
 				});
@@ -424,6 +480,22 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 				query : me.query || {},
 				keepSelection : true
 			});
+			
+			// FIX FF TRANSITIONEND NOT HAPPENING
+			(function() {
+				var grid = me.view.columns[0].grid;
+				
+				var origExpand = grid.expand;
+				grid.expand = function(target, expand, noTransition) {
+					var ret = origExpand.call(grid, target, expand, noTransition);
+					var row = target.element ? target : grid.row(target);
+
+					var container = row.element.connected;
+					var x = container.clientHeight;
+					
+					return ret;
+				};
+			})();
 
 			me.contentPane = new ContentPane({
 				region : 'center',
@@ -472,7 +544,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 
 			me.filterPane = new FilterPane({
 				style : 'border:0;overflow:hidden;padding:0;',
-				class : 'STFilterPane',
+				"class": 'STFilterPane',
 				splitter : true,
 				gutters : true,
 				backend : me.backend,
@@ -511,7 +583,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 				content : me.filterPane,
 				style : 'display:none;height:150px;overflow:scroll',
 				layoutPriority : 2,
-				class : 'STFilterBar',
+				"class": 'STFilterBar',
 				minimize : function() {
 					domClass.add(this.domNode, 'minimized');
 				},
@@ -532,7 +604,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 
 			me.selectionBar = new MenuBar({
 				region : 'bottom',
-				class : 'STListMenu',
+				"class": 'STListMenu',
 				style : 'overflow: hidden;',
 				splitter : false,
 				layoutPriority : 1
@@ -550,17 +622,12 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 			me.selectionBar.addChild(me.BTSelect);
 			me.addChild(me.selectionBar);
 		},
-		reselectAfterLoad : function(primary) {
-			var me = this;
-
-			console.debug(primary);
-		},
 		initMenuBar : function() {
 			var me = this;
 
 			me.menuBar = new MenuBar({
 				region : 'top',
-				class : 'STListMenu',
+				"class": 'STListMenu',
 				style : 'overflow: hidden;',
 				splitter : false,
 				layoutPriority : 1
@@ -569,7 +636,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 			if (me.mayCreateNew()) {
 				me.BTNewRecord = new MenuBarItem({
 					label : i18nListPane.newRecord,
-					class : 'STForceIcon STAction_new',
+					"class": 'STForceIcon STAction_new',
 					style : 'float: left',
 					// FIXME: touch?
 					onClick : function() {
@@ -593,7 +660,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 
 			me.BTCloseList = new MenuBarItem({
 				label : i18nListPane.BTClose,
-				class : 'STForceIcon STAction_close',
+				"class": 'STForceIcon STAction_close',
 				style : 'float: right',
 				// FIXME: touch?
 				onClick : function() {
@@ -604,7 +671,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 			me.filterBox = new TextBox({
 				//				style: 'width: 100px; margin: 0 auto;margin-top:3px;',
 				style : 'margin-bottom: 0',
-				class : 'STQuicksearch',
+				"class": 'STQuicksearch',
 				intermediateChanges : true,
 				placeHolder : 'Quicksearch',
 				onKeyDown : function(e) {// onKeyPressed does not get event -caught somewhere before after onKeyDown
@@ -636,7 +703,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 			me.BTRefresh = new MenuBarItem({
 				label : i18nListPane.BTRefresh,
 				style : 'float: left',
-				class : 'STForceIcon STAction_refresh',
+				"class": 'STForceIcon STAction_refresh',
 				// FIXME: touch?
 				onClick : function() {
 					me.view.refresh();
@@ -654,7 +721,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 			if (me.hasFilters()) {
 				me.BTFilter = new MenuBarItem({
 					label : i18nListPane.BTFilter,
-					class : 'STForceIcon STAction_filter',
+					"class": 'STForceIcon STAction_filter',
 					style : 'float: left',
 					// FIXME: touch?
 					onClick : function() {
@@ -667,7 +734,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 
 			if (me.isHierarchic()) {
 				me.BTToggleList = new MenuBarItem({
-					class : 'STForceIcon STToggleListButton_' + (me.classConfig.startHierarchic ? 'list' : 'tree'),
+					"class": 'STForceIcon STToggleListButton_' + (me.classConfig.startHierarchic ? 'list' : 'tree'),
 					label : i18nListPane['toggleList_' + (me.classConfig.startHierarchic ? 'list' : 'tree')],
 					listMode : !me.classConfig.startHierarchic,
 					// FIXME: touch?
@@ -702,7 +769,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 
 			me.listLabel = domConstruct.create('div', {
 				innerHTML : recordClassName,
-				class : 'STListLabel'
+				"class": 'STListLabel'
 			});
 
 			me.menuBar.domNode.appendChild(me.listLabel);
@@ -753,19 +820,17 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 			var filter = [];
 			var hasQuickSearchFilter = false;
 
-			for (i in me.currentFilter) {
+			for (var i in me.currentFilter) {
 				// Code to handle entered spaces in quicksearch: "a b" is handled as "a" AND "b"
 				if (i == 'quicksearch') {
-					if (value) {
-						hasQuickSearchFilter = true;
+					hasQuickSearchFilter = true;
 
-						var tokens = value.split(' ');
-						for (n in tokens) {
-							if (tokens[n].length) {
-								var f = dojo.clone(me.currentFilter[i]);
-								f.filterValue = tokens[n];
-								filter.push(f);
-							}
+					var tokens = me.currentFilter.quicksearch.filterValue.split(' ');
+					for (var n in tokens) {
+						if (tokens[n].length) {
+							var f = dojo.clone(me.currentFilter[i]);
+							f.filterValue = tokens[n];
+							filter.push(f);
 						}
 					}
 				} else {
@@ -961,7 +1026,7 @@ define(["dojo/_base/declare", "dojo/i18n!steroid/backend/nls/RecordClasses", "do
 		selectionChanged : function() {
 			var me = this;
 
-			if (me.nextSelectionEventKey === 0 || me.nextSelectionEventKey === 13) {
+			if (me.nextSelectionEventKey === null || me.nextSelectionEventKey === 0 || me.nextSelectionEventKey === 13) {
 				delete me.nextSelectionEventKey;
 				me.rowsSelected();
 			}

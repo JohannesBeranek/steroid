@@ -45,5 +45,3 @@ class DTImageRecordReference extends BaseDTFileRecordReference {
 		return $fields;
 	}
 }
-
-?>

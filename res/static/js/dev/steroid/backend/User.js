@@ -13,8 +13,8 @@ define([
 		postCreate: function () {
 			var me = this,
 				userName = me.backend.config.User.values.username,
-				availableLanguages = me.backend.config.interface.languages.available,
-				availableThemes = me.backend.config.interface.themes.available;
+				availableLanguages = me.backend.config["interface"].languages.available,
+				availableThemes = me.backend.config["interface"].themes.available;
 
 			if (me.backend.config.User.values.firstname && me.backend.config.User.values.lastname) {
 				userName = me.backend.config.User.values.firstname + ' ' + me.backend.config.User.values.lastname;
@@ -24,7 +24,7 @@ define([
 
 			me.BTUser = new PopupMenuBarItem({
 				label: userName,
-				class: 'STForceIcon STIconUser',
+				"class": 'STForceIcon STIconUser' + (me.backend.config.User.isSwitched ? ' isSwitched' : ''),
 				style: 'float:right;',
 				popup: me.userMenu
 			});
@@ -35,7 +35,7 @@ define([
 			me.languageMenuItem = new PopupMenuBarItem({
 				label: i18nLang.language,
 				popup: me.languageMenu,
-				class: 'STUserMenu_language'
+				"class": 'STUserMenu_language'
 			});
 
 			me.userMenu.addChild(me.languageMenuItem);
@@ -46,7 +46,7 @@ define([
 			me.themeMenuItem = new PopupMenuBarItem({
 				label: i18n.theme,
 				popup: me.themeMenu,
-				class: 'STUserMenu_theme'
+				"class": 'STUserMenu_theme'
 			});
 
 			me.userMenu.addChild(me.themeMenuItem);
@@ -58,7 +58,7 @@ define([
 			if (FullScreenHandler.isAvailable) {
 				me.userMenu.addChild(new MenuBarItem({
 					label: 'Fullscreen On/Off',
-					class: 'STUserMenu_fullscreen',
+					"class": 'STUserMenu_fullscreen',
 					onClick: function () {
 						FullScreenHandler.toggle(document.body);
 					}
@@ -112,17 +112,27 @@ define([
 			}
 
 			// apply current theme after login
-			if (me.backend.config.interface.themes.current) {
-				me.setTheme(me.backend.config.interface.themes.current);
+			if (me.backend.config["interface"].themes.current) {
+				me.setTheme(me.backend.config["interface"].themes.current);
 			}
 
 			me.userMenu.addChild(new MenuBarItem({
 				label: i18n.editProfile,
-				class: 'STUserMenu_editProfile',
+				"class": 'STUserMenu_editProfile',
 				onClick: function () {
 					me.loadProfileEdit();
 				}
 			}));
+
+			if(me.backend.config.User.isSwitched){
+				me.userMenu.addChild(new MenuBarItem({
+					label: i18n.unSwitchUser,
+					"class": 'STUserMenu_unSwitch',
+					onClick: function () {
+						me.unSwitchUser();
+					}
+				}));
+			}
 		},
 		setTheme: function (theme) {
 			var linkElement = document.getElementById('stylesheet-theme');
@@ -156,6 +166,23 @@ define([
 					linkElementOverridePost.parentNode.insertBefore(linkElementOverride, linkElementOverridePost);
 				}
 			}
+		},
+		unSwitchUser: function () {
+			var me = this;
+
+			var conf = {
+				data: {
+					requestType: 'unSwitchUser'
+				},
+				success: function (response) {
+					window.location.reload();
+				},
+				error: function (response) {
+					me.backend.showError(response);
+				}
+			};
+
+			me.backend.STServerComm.sendAjax(conf);
 		},
 		loadProfileEdit: function () {
 			var me = this;

@@ -15,18 +15,24 @@ class DTJSON extends BaseDTText {
 		);
 	}
 
+	public function cleanup() {
+		parent::cleanup();
+		
+		unset($this->value);
+	}
+
 	public function getValue() {
 		return $this->value;
 	}
 
-	protected function _setValue( $data, $loaded, $skipRaw = false, $skipReal = false ) {
+	protected function _setValue( $data, $loaded, $skipRaw = false, $skipReal = false, $path = NULL, array &$dirtyTracking = NULL ) {
 		if ( $data === NULL || is_array( $data ) ) {
 			if ( !$skipReal ) {
 				$this->value = $data;
 			}
 
 			if ( !$skipRaw ) {
-				parent::setValue( $data === NULL ? NULL : json_encode( $data ), $loaded );
+				parent::setValue( $data === NULL ? NULL : json_encode( $data ), $loaded, $path, $dirtyTracking );
 			}
 		} elseif ( is_string( $data ) ) {
 			if ( !$skipReal ) {
@@ -40,7 +46,7 @@ class DTJSON extends BaseDTText {
 			}
 
 			if ( !$skipRaw ) {
-				parent::setValue( $data, $loaded );
+				parent::setValue( $data, $loaded, $path, $dirtyTracking );
 			}
 		} else {
 			throw new InvalidArgumentException( 'Unable to handle given type for record reference.' );
@@ -63,17 +69,17 @@ class DTJSON extends BaseDTText {
 	 *
 	 * @throws InvalidArgumentException
 	 */
-	public function setValue( $data = NULL, $loaded = false ) {
-		$this->_setValue( $data, $loaded );
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
+		$this->_setValue( $data, $loaded, false, false, $path, $dirtyTracking );
 	}
 
-	public function setRawValue( $data = NULL, $loaded = false ) {
-		$this->_setValue( $data, $loaded, false, true );
+	public function setRawValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
+		$this->_setValue( $data, $loaded, false, true, $path, $dirtyTracking );
 
 		$this->lastRawValue = isset( $this->values[ $this->colName ] ) ? $this->values[ $this->colName ] : NULL;
 	}
 
-	public function setRealValue( $data = NULL, $loaded = false ) {
-		$this->_setValue( $data, $loaded, true, false );
+	public function setRealValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
+		$this->_setValue( $data, $loaded, true, false, $path, $dirtyTracking );
 	}
 }

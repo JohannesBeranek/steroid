@@ -19,8 +19,6 @@ require_once STROOT . '/backend/class.RCClipboard.php';
 class CHElement extends CLIHandler {
 	
 	public function performCommand( $called, $command, array $params ) {
-		$this->storage->init();
-
 		if ( count( $params ) !== 1 ) {
 			$this->notifyError( $this->getUsageText( $called, $command, $params ) );
 			return EXIT_FAILURE;
@@ -33,9 +31,12 @@ class CHElement extends CLIHandler {
 				$this->notifyError( $this->getUsageText( $called, $command, $params ) );
 				return EXIT_FAILURE;
 		}
+		
 
 		$allRecordClasses = ClassFinder::getAll( ClassFinder::CLASSTYPE_RECORD, true );		
 
+		$this->storage->init();
+		
 		foreach ($allRecordClasses as $recordClassInfo) {
 			Record::pushIndex();
 						
@@ -91,7 +92,7 @@ class CHElement extends CLIHandler {
 
 	public function getUsageText( $called, $command, array $params ) {
 		return $this->formatUsageArguments( array(
-			ST::PRODUCT_NAME . ' classinfo command' => array(
+			ST::PRODUCT_NAME . ' ' . $command . ' command' => array(
 				'usage:' => array(
 					'php ' . $called . ' fixelement' => 'try to find and fix broken element records'
 				)

@@ -33,7 +33,7 @@ define([
 		postCreate: function () {
 			var me = this;
 
-			me.displayNode = domConstruct.create('div', { class: 'STDisplayTextNode' });
+			me.displayNode = domConstruct.create('div', { "class": 'STDisplayTextNode' });
 
 			me.domNode.appendChild(me.displayNode);
 

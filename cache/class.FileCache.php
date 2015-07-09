@@ -10,12 +10,15 @@ require_once STROOT . '/log/class.Log.php';
 require_once STROOT . '/util/class.Responder.php';
 require_once STROOT . '/util/class.StringFilter.php';
 
+require_once __DIR__ . '/interface.IIncludeCache.php';
+
+
 /**
  *
  * @package steroid\cache
  *
  */
-class FileCache implements ICache {
+class FileCache implements ICache, IIncludeCache {
 	const CACHE_DIR = '/cache';
 	
 	protected $locks = array();
@@ -144,4 +147,22 @@ class FileCache implements ICache {
 			}			
 		}
 	}
+	
+	/* IIncludeCache */
+	final public function doInclude( $key ) {
+		return ( include $this->convertKey($key) );
+	}
+	
+	final public function doIncludeOnce( $key ) {
+		return ( include_once $this->convertKey($key) );
+	}
+	
+	final public function doRequire( $key ) {
+		return ( require $this->convertKey($key) );
+	}
+	
+	final public function doRequireOnce( $key ) {
+		return ( require_once $this->convertKey($key) );
+	}
+	
 }

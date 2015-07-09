@@ -55,7 +55,7 @@ class DTParentReference extends BaseDTRecordReference {
 	}
 
 	public static function getForeignReferences( $recordClass, $calledClass, $fieldName, $fieldDef, &$fieldNames ) {
-		if ( $fieldDef[ 'recordClass' ] == $recordClass ) {
+		if ( $fieldDef[ 'recordClass' ] === $recordClass ) {
 			$fieldNames[ $fieldName . ':' . $calledClass ] = DTParentForeignReference::getFieldDefinition();
 		}
 	}
@@ -68,14 +68,14 @@ class DTParentReference extends BaseDTRecordReference {
 		return $this->value;
 	}
 
-	protected function _setValue( $data, $loaded, $skipRaw = false, $skipReal = false ) {
-		if(($data instanceof IRecord && $data === $this->record)
+	protected function _setValue( $data, $loaded, $skipRaw = false, $skipReal = false, $path = NULL, array &$dirtyTracking = NULL ) {
+		if($this->record->exists() && (($data instanceof IRecord && $data === $this->record)
 		|| ( ( is_string( $data ) || is_int( $data ) ) && $this->record->{Record::FIELDNAME_PRIMARY} == $data)
-		|| ( is_array( $data ) && $data[ Record::FIELDNAME_PRIMARY ] == $this->record->{Record::FIELDNAME_PRIMARY}) ){
+		|| ( is_array( $data ) && $data[ Record::FIELDNAME_PRIMARY ] == $this->record->{Record::FIELDNAME_PRIMARY}) )){
 			throw new ParentOfItselfException('Record cannot be parent of itself');
 		}
 
-		parent::_setValue($data, $loaded, $skipRaw, $skipReal);
+		parent::_setValue($data, $loaded, $skipRaw, $skipReal, $path, $dirtyTracking);
 	}
 }
 

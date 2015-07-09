@@ -23,6 +23,7 @@ abstract class BaseDTRecordReference extends DataType {
 	protected $value;
 
 	protected $lastRawValue;
+	protected $lastPersistentRealValue;
 
 	public static function getRecordClassStatically( $fieldName, array $fieldDefinition ) {
 		return isset( $fieldDefinition[ 'recordClass' ] ) ? $fieldDefinition[ 'recordClass' ] : NULL;
@@ -65,6 +66,25 @@ abstract class BaseDTRecordReference extends DataType {
 
 		return $values;
 	}
+	
+	public function cleanup() {
+		$foreignFieldName = $this->getForeignFieldName();
+
+		$value = $this->value;
+		$this->value = NULL;
+		
+		if ( $value !== NULL ) {
+			$value->unloadField( $foreignFieldName );
+		}
+		
+		unset($value);
+
+		unset($this->lastPersistentRealValue);
+		
+		parent::cleanup();
+		
+		$this->lastRawValue = NULL;
+	}
 
 	public function getValue() {
 		return $this->value;
@@ -85,7 +105,7 @@ abstract class BaseDTRecordReference extends DataType {
 		}
 	}
 
-	protected function _setValue( $data, $loaded, $skipRaw = false, $skipReal = false ) {
+	protected function _setValue( $data, $loaded, $skipRaw = false, $skipReal = false, $path = NULL, array &$dirtyTracking = NULL  ) {
 		$foreignRecordClass = $this->getRecordClass();
 
 		if ( !class_exists( $foreignRecordClass ) ) {
@@ -98,18 +118,31 @@ abstract class BaseDTRecordReference extends DataType {
 			}
 
 			if ( !$skipReal ) {
-				$this->value = $data;
+				if ($data !== $this->value) {
+					$this->value = $data;
+	
+					if ($loaded) {
+						$this->lastPersistentRealValue = $this->value;
+					}
+				}
 			}
 
 			if ( isset( $data->{Record::FIELDNAME_PRIMARY} ) || $data->exists() ) {
 				if ( !$skipRaw ) {
-					parent::setValue( (string)$data->getFieldValue( Record::FIELDNAME_PRIMARY ), $loaded );
+					parent::setValue( (string)$data->getFieldValue( Record::FIELDNAME_PRIMARY ), $loaded, $path, $dirtyTracking );
 				}
 			} else {
 				if ( !$skipRaw ) {
-					parent::setValue( NULL, $loaded );
-				} else {
-					$this->isDirty = !$loaded;
+					parent::setValue( NULL, $loaded, $path, $dirtyTracking );
+				} else if ( !$skipReal ) {
+// FIXME: only allow upgrade to not dirty in case record is the same
+					if ((bool)$loaded === $this->isDirty) {
+						$this->isDirty = !$loaded;
+						
+						if (!$loaded && $dirtyTracking !== NULL) {
+							$dirtyTracking[$path] = true;
+						}
+					}
 				}
 			}
 
@@ -117,27 +150,74 @@ abstract class BaseDTRecordReference extends DataType {
 		} else {
 			if ( $data === NULL || $data === '' ) {
 				if ( !$skipRaw ) {
-					parent::setValue( NULL, $loaded );
+					parent::setValue( NULL, $loaded, $path, $dirtyTracking );
 				}
 
 				if ( !$skipReal ) {
 					$this->value = NULL;
+
+					if ($loaded) {
+						$this->lastPersistentRealValue = NULL;
+					}
 				}
 			} else if ( is_array( $data ) ) {
 				if ( !$skipReal && $foreignRecordClass ) {
-					$this->value = $foreignRecordClass::get( $this->storage, $data, $loaded ? $loaded : Record::TRY_TO_LOAD );
+					if ($this->value !== NULL && isset($data[Record::FIELDNAME_PRIMARY]) && isset($this->value->{Record::FIELDNAME_PRIMARY}) && $this->value->{Record::FIELDNAME_PRIMARY} === (int)$data[Record::FIELDNAME_PRIMARY]) {
+						// set data on current value
+						$this->value->setValues( $data, $loaded, $path, $dirtyTracking );
+						
+						// dirty does not change here, as the value stays the same (we don't vare if it's fields change)
+					} else {
+						// synthesize new record
+						$this->value = $foreignRecordClass::get( $this->storage, $data, $loaded ? $loaded : Record::TRY_TO_LOAD, $path, $dirtyTracking );
+						
+						if ($loaded) {
+							$this->lastPersistentRealValue = $this->value;
+						} 
+						
+						
+						if ((bool)$loaded === $this->isDirty) {
+							$this->isDirty = !$loaded;
+							
+							if (!$loaded && $dirtyTracking !== NULL) {
+								$dirtyTracking[$path] = true;
+							}
+						}
+					}
+					
+				
 				}
 
 				if ( !$skipRaw ) {
-					parent::setValue( isset( $data[ Record::FIELDNAME_PRIMARY ] ) ? $data[ Record::FIELDNAME_PRIMARY ] : NULL, $loaded );
+					parent::setValue( isset( $data[ Record::FIELDNAME_PRIMARY ] ) ? $data[ Record::FIELDNAME_PRIMARY ] : NULL, $loaded, $path, $dirtyTracking );
 				}
 			} else if ( is_string( $data ) || is_int( $data ) ) {
 				if ( !$skipReal && $foreignRecordClass ) {
-					$this->value = $foreignRecordClass::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $data ), $loaded ? $loaded : Record::TRY_TO_LOAD );
+					if ($this->value !== NULL && isset($this->value->{Record::FIELDNAME_PRIMARY}) && $this->value->{Record::FIELDNAME_PRIMARY} === (int)$data) {
+						// in case value is the same, allow upgrading to not-dirty
+						if ($loaded) {
+							$this->isDirty = false;
+						}
+					} else {
+						// only synthesize record in case it's different from the current one
+						$this->value = $foreignRecordClass::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $data ), $loaded ? $loaded : Record::TRY_TO_LOAD, $path, $dirtyTracking );
+						
+						if ($loaded) {
+							$this->lastPersistentRealValue = $this->value;							
+						}
+						
+						if ((bool)$loaded === $this->isDirty) {
+							$this->isDirty = !$loaded;
+							
+							if (!$loaded && $dirtyTracking !== NULL) {
+								$dirtyTracking[$path] = true;
+							}
+						}
+					}
 				}
 
 				if ( !$skipRaw ) {
-					parent::setValue( (string)$data, $loaded );
+					parent::setValue( (string)$data, $loaded, $path, $dirtyTracking );
 				}
 			} else {
 				throw new InvalidArgumentException( 'Unable to handle given type for record reference.' );
@@ -145,7 +225,6 @@ abstract class BaseDTRecordReference extends DataType {
 
 		}
 
-		// TODO: comment why $this->isDirty is handled this way
 	}
 
 	/**
@@ -164,49 +243,53 @@ abstract class BaseDTRecordReference extends DataType {
 	 *
 	 * @throws InvalidArgumentException
 	 */
-	public function setValue( $data = NULL, $loaded = false ) {
-		$oldValue = $this->value; // TODO: support lazy loading old value?
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
+		$oldValue = $this->value;
 
-		$this->_setValue( $data, $loaded );
+		$this->_setValue( $data, $loaded, false, false, $path, $dirtyTracking );
 
 		$this->doNotifications( $oldValue, $loaded );
 	}
 
-	public function setRawValue( $data = NULL, $loaded = false ) {
-		$this->_setValue( $data, $loaded, false, true );
+	public function setRawValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
+		$this->_setValue( $data, $loaded, false, true, $path, $dirtyTracking );
 
 		$this->lastRawValue = isset( $this->values[ $this->colName ] ) ? $this->values[ $this->colName ] : NULL;
 	}
 
-	public function setRealValue( $data = NULL, $loaded = false ) {
+	public function setRealValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
 		$oldValue = $this->value;
 
-		$this->_setValue( $data, $loaded, true, false );
+		$this->_setValue( $data, $loaded, true, false, $path, $dirtyTracking );
 
 		$this->doNotifications( $oldValue, $loaded );
 	}
 
 	protected function doNotifications( $oldValue, $loaded ) {
 		if ( $oldValue !== $this->value ) {
-			$basket = NULL;
 			$foreignFieldName = $this->getForeignFieldName();
 
 			if ( $oldValue ) {
-				$oldValue->notifyReferenceRemoved( $this->record, $foreignFieldName, __FUNCTION__, $basket );
+				$oldValue->notifyReferenceRemoved( $this->record, $foreignFieldName, __FUNCTION__ );
 			}
 
 			if ( $this->value ) {
+				// might in turn call notifyReferenceRemoved on this record again
 				$this->value->notifyReferenceAdded( $this->record, $foreignFieldName, $loaded );
 			}
 		}
 	}
 
 
-	public function fillUpValues( array $values, $loaded ) {
+	public function fillUpValues( array $values, $loaded, $path = NULL, array &$dirtyTracking = NULL ) {
 		if ( $this->value ) {
-			$this->value->fillUpValues( $values, $loaded );
+			$this->value->fillUpValues( $values, $loaded, $path, $dirtyTracking );
 		} else {
-			$this->record->setValues( array( $this->fieldName => $values ), $loaded );
+			// need to remove last pathPart as we already have our fieldName appended
+			$pathParts = explode('.', $path);
+			array_pop($pathParts);
+			
+			$this->record->setValues( array( $this->fieldName => $values ), $loaded, implode('.', $path), $dirtyTracking );
 		}
 	}
 
@@ -218,7 +301,7 @@ abstract class BaseDTRecordReference extends DataType {
 	 *
 	 * @throws RecordReferenceMismatchException
 	 */
-	public function beforeSave( $isUpdate ) {
+	public function beforeSave( $isUpdate, array &$savePaths = NULL ) {
 		$valueHadBeenSet = isset( $this->value );
 
 		if ( $this->config[ 'requireForeign' ] && !isset( $this->record->{$this->fieldName} ) && !$this->record->exists() ) { // TODO: change to some generic pre-save-validation-fail exception so it can be caught centrally
@@ -228,8 +311,8 @@ abstract class BaseDTRecordReference extends DataType {
 			);
 		}
 
-		if ( $this->value !== NULL && ( $this->value->isDirty() || !$this->value->exists() ) ) {
-			$this->value->save();
+		if ( $this->value !== NULL && ( $this->value->isDirty( true ) || !$this->value->exists() ) ) {
+			$this->value->save( $savePaths );
 
 			$this->refresh();
 		} else if ( !isset( $this->values[ $this->colName ] ) && $this->value !== NULL && $this->value->exists() ) {
@@ -237,7 +320,11 @@ abstract class BaseDTRecordReference extends DataType {
 
 			$this->refresh();
 		} else if ( $valueHadBeenSet ) { // need to save record anyway as soon as it has been set, as record itself might not be dirty
-			$this->value->save();
+			$this->value->save( $savePaths );
+		}
+
+		if ($this->lastPersistentRealValue !== NULL) {
+			$this->lastPersistentRealValue->scheduleCheckOnSaveComplete();
 		}
 	}
 
@@ -251,23 +338,35 @@ abstract class BaseDTRecordReference extends DataType {
 	protected function getForeignFieldName() {
 		return $this->fieldName . ':' . get_class( $this->record );
 	}
+	
+	final public static function getForeignFieldNameStatically( $fieldName, $recordClass ) {
+		return $fieldName . ':' . $recordClass;
+	}
 
 	/**
 	 * Before delete
 	 *
 	 * if datatype has been configured with requireSelf = true, it will delete the foreign record
 	 */
-	public function beforeDelete( array &$basket = NULL ) {
+	public function beforeDelete( ) {
 		if ( $this->record->{$this->fieldName} ) { // support lazy loading
-			$this->value->notifyReferenceRemoved( $this->record, $this->getForeignFieldName(), __FUNCTION__, $basket );
+			$this->value->notifyReferenceRemoved( $this->record, $this->getForeignFieldName(), __FUNCTION__ );
 
-			if ( $this->deleteValueOnBeforeDelete() ) {
-				if ( ! $this->value instanceof IRecord ) {
-					throw new Exception(Debug::getStringRepresentation($this->value) . " = \$this->value, not instanceof IRecord!" );
+			if ($this->value !== NULL) { // null check is needed for circular function calling
+				if ( $this->deleteValueOnBeforeDelete()) { 
+					if ( !$this->value instanceof IRecord ) {
+						throw new exception( debug::getstringrepresentation( $this->value ) . " = \$this->value, not instanceof IRecord!" );
+					}
+
+					$this->value->delete();
+				}
+
+				// help with gc
+				if ( Record::$basket !== NULL ) {
+					Record::$basketRollbackSet[] = array( 'record' => $this->record, 'fieldName' => $this->fieldName, 'value' => $this->value);
 				}
 				
-				$this->value->delete( $basket );
-				
+				$this->value = NULL;
 			}
 		}
 
@@ -345,7 +444,6 @@ abstract class BaseDTRecordReference extends DataType {
 
 	public function checkForDelete() {
 		// TODO: should we check $this->hasBeenSet() ?
-		// DONE need verify
 		if ( ( !$this->record->isDeleted() ) && $this->config[ 'requireForeign' ] && ( !$this->value ) && ( $this->hasBeenSet() || !$this->record->{$this->fieldName} ) && ( !isset( $this->values[ $this->colName ] ) ) ) {
 			return true;
 		}
@@ -378,7 +476,7 @@ abstract class BaseDTRecordReference extends DataType {
 				} else if ( $mayCopyReferenced === 0 ) {
 					// $mayCopyRefenced should not return 0 unless requireForeign is false 
 					$nval = NULL;
-				} else if ( $val->isDirty() || ( ( $nval = $val->getFamilyMember( $changes ) ) && !$nval->exists() ) ) {
+				} else if ( $val->isDirty( true ) || ( ( $nval = $val->getFamilyMember( $changes ) ) && !$nval->exists() ) ) {
 					// might exist from an old published record, in which case we would still want to copy
 				
 					if ( $val->getMeta( 'missing' ) !== false ) {
@@ -430,16 +528,22 @@ abstract class BaseDTRecordReference extends DataType {
 	}
 
 
-	public function notifyReferenceRemoved( IRecord $originRecord, $triggeringFunction, array &$basket = NULL ) {
+	public function notifyReferenceRemoved( IRecord $originRecord, $triggeringFunction ) {
 		if ( $this->hasBeenSet() || $this->record->exists() ) {
 			// need to check this in case we get remove notification after already having a new value
-			if ( $this->value && ( $originRecord === $this->value ) || ( isset( $this->values[ $this->colName ] ) && ( isset( $originRecord->{Record::FIELDNAME_PRIMARY} ) || $originRecord->exists() ) && $originRecord->{Record::FIELDNAME_PRIMARY} == $this->values[ $this->colName ] ) ) {
+			if ( ( $this->value && ( $originRecord === $this->value ) ) || ( isset( $this->values[ $this->colName ] ) && ( isset( $originRecord->{Record::FIELDNAME_PRIMARY} ) || $originRecord->exists() )	&& $originRecord->{Record::FIELDNAME_PRIMARY} == $this->values[ $this->colName ] ) ) {
 				if ( isset( $this->values[ $this->colName ] ) ) { // this is needed so we can still delete the record if this reference is part of the primary key
 					$lastRawValue = $this->values[ $this->colName ];
 				}
 
-				$this->_setValue( NULL, false );
+				if (Record::$basket !== NULL) {
+					Record::$basketRollbackSet[] = array( 'record' => $this->record, 'fieldName' => $this->fieldName, 'value' => $this->value );
+				}
 
+				$this->record->wrapReindex( $this->fieldName, function() {
+					$this->_setValue( NULL, false );	
+				});
+					
 				if ( isset( $lastRawValue ) ) {
 					$this->lastRawValue = $lastRawValue;
 				}
@@ -454,9 +558,30 @@ abstract class BaseDTRecordReference extends DataType {
 		}
 
 		// FIXME: we actually don't know if the value we get is the same as in DB
-		$this->_setValue( $originRecord, false );
+		$this->record->wrapReindex( $this->fieldName, function() use ( $originRecord ){
+			$this->_setValue( $originRecord, false );
+		});
 	}
+	
+	public function unload() {
+		// loop guard
+		if ( $this->value !== NULL ) {
+			$foreignFieldName = $this->getForeignFieldName();
+			
+			$value = $this->value;
+			$this->value = NULL;
+			
+			$value->unloadField( $foreignFieldName );
+			
+			unset($value);
 
+			// might be needed for delete afterwards, so we don't unset it here
+			// $this->lastRawValue = NULL;
+			
+			parent::unload();
+		}		
+	}
+	
 	protected static function getRequiredPermissions( $fieldDef, $fieldName, $currentForeignPerms, $permissions, $owningRecordClass ) {
 		$owningRecordPerms = $permissions[ $owningRecordClass ];
 

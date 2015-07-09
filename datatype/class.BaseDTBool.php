@@ -11,8 +11,7 @@ require_once STROOT . '/datatype/class.DataType.php';
  
 class BaseDTBool extends DataType {
 
-	public function setValue( $data = NULL, $loaded = false ) {
-		parent::setValue( $data === NULL ? NULL : ((int)$data == 0 ? 0 : 1), $loaded );
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
+		parent::setValue( $data === NULL ? NULL : ((int)$data == 0 ? 0 : 1), $loaded, $path, $dirtyTracking );
 	}
 }
-?>

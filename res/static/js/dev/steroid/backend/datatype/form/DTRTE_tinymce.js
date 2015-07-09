@@ -8,8 +8,8 @@ define([
 	"dojo/_base/window",
 	"dojo/NodeList-manipulate",
 	"dojo/dom-class",
-	"/steroid/res/static/js/dev/steroid/backend/datatype/form/_DTFormFieldMixin.js",
-	"/steroid/res/static/js/dev/steroid/backend/datatype/_DTText.js"
+	"steroid/backend/datatype/form/_DTFormFieldMixin",
+	"steroid/backend/datatype/_DTText"
 ], function (declare, _Widget, domConstruct, string, i18n, query, win, manipulate, domClass, _DTFormFieldMixin, _DTText) {
 
 	return declare([_DTFormFieldMixin, _DTText, _Widget], {
@@ -59,7 +59,7 @@ define([
 			for (var i in this.fieldConf.customization) {
 				var custom = this.fieldConf.customization[i];
 				if (custom.showInStyleSelect) {
-					this.advancedStyles.push(i18n[custom.title] + '=' + custom.class);
+					this.advancedStyles.push(i18n[custom.title] + '=' + custom["class"]);
 				}
 			}
 
@@ -217,8 +217,8 @@ define([
 						selector.push(custom.tags);
 					}
 
-					if (custom.class) {
-						selector.push('.' + custom.class);
+					if (custom["class"]) {
+						selector.push('.' + custom["class"]);
 					}
 
 					if (!selector.length) {

@@ -20,6 +20,3 @@ class DTDynamicRecordReferenceClass extends BaseDTString {
 		);
 	}
 }
- 
- 
-?>

@@ -675,8 +675,8 @@ class GFX {
 		}
 
 		if (isset($params['src']) && $params['src'] instanceof RCFile) {
-			if ($renderConfig = $params['src'] -> renderConfig) {
-				$params = array_merge($renderConfig, $params);
+			if ($renderConfig = $params['src']->renderConfig) {
+				$params = array_merge_recursive($renderConfig, $params);
 			}
 		}
 
@@ -1208,16 +1208,35 @@ class GFX {
 													}
 
 													// $bbox = imagettftext($textImage, $params['fontSize'] * self::$gdFontUnitMultiplier, 0, round($temp_x), -$metrics['boundingBox']['y1'], $color, $params['font'], $params['text'][$i]);
-													$draw -> annotation($temp_x, $metrics['ascender'] * 1.1, $textArr[$i]);
-													// TODO: instead of ascender use bbox of whole text string
+													$oldLocale = setlocale(LC_ALL, 'C');
+
+													try {
+														$draw -> annotation($temp_x, $metrics['ascender'] * 1.1, $textArr[$i]);
+														// TODO: instead of ascender use bbox of whole text string
+													} catch(Exception $e) {
+														setlocale(LC_ALL, $oldLocale);
+														throw($e);
+													}
+
+													setlocale(LC_ALL, $oldLocale);
 
 													$temp_x += $this -> getAdvanceWidth($params['font'], $params['fontSize'], $textArr[$i]);
 												}
 
 											} else {
 												$metrics = $im -> queryFontMetrics($draw, $params['text']);
-												$draw -> annotation(0, $metrics['ascender'] * 1.1, $params['text']);
-												// TODO: instead of ascender use bbox
+
+												$oldLocale = setlocale(LC_ALL, 'C');
+
+												try {
+													$draw -> annotation(0, $metrics['ascender'] * 1.1, $params['text']);
+													// TODO: instead of ascender use bbox
+												} catch(Exception $e) {
+													setlocale(LC_ALL, $oldLocale);
+													throw $e;
+												}
+
+												setlocale(LC_ALL, $oldlocale);
 											}
 
 											// TODO: find out why newImage is sometimes too small (why we add +5 to width), especially with small fonts (8px etc)
@@ -2119,7 +2138,7 @@ class GFX {
 				}
 
 				if (!array_key_exists('alt', $params['attr']) && isset($fileInfo)) {
-					$alt = $fileInfo -> getMeta('alt');
+					$alt = $fileInfo -> getFileMeta('alt');
 
 					$params['attr']['alt'] = ($alt === NULL) ? '' : $alt;
 				}

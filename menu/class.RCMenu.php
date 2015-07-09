@@ -158,5 +158,3 @@ class RCMenu extends BaseMenuItem {
 		return $ret;
 	}
 }
-
-?>

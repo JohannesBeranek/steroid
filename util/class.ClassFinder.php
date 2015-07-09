@@ -16,6 +16,7 @@ class ClassFinder {
 	const CLASSTYPE_LOGIN_EXTENSION = 'LE'; // BACKEND login extensions only!
 	const CLASSTYPE_EMAIL_PROVIDER = 'EP';
 	const CLASSTYPE_AUTHENTICATOR = 'AC';
+	const CLASSTYPE_TESTRECORD = 'RT';
 
 	const CLASSFILE_KEY_FULLPATH = 'fullPath';
 	const CLASSFILE_KEY_FILENAME = 'fileName';
@@ -23,6 +24,8 @@ class ClassFinder {
 
 	protected static $classes = array();
 	protected static $required = array();
+
+	public static $ignoreLocal = false;
 
 	protected static $cache;
 
@@ -138,20 +141,22 @@ class ClassFinder {
 		$files = array();
 
 		foreach ( $types as $type => $className ) {
-			if ( class_exists( $className[ 0 ], false ) ) {
-				$files[ ] = array( self::CLASSFILE_KEY_CLASSNAME => $className[ 0 ] );
-				continue;
-			}
-
 			self::getAll( $type, false, $include, $exclude );
 
-			if ( !isset( self::$classes[ $type ][ $className[ 0 ] ] ) ) {
-				throw new ClassNotFoundException( $className[ 0 ] . ' does not exist' );
-			} else if ( $andRequire ) {
-				require_once self::$classes[ $type ][ $className[ 0 ] ][ self::CLASSFILE_KEY_FULLPATH ];
-			}
+			foreach($className as $idx => $class){
+				if ( class_exists( $className[ $idx ], false ) ) {
+					$files[ ] = array( self::CLASSFILE_KEY_CLASSNAME => $className[ $idx ] );
+					continue;
+				}
 
-			$files[ ] = self::$classes[ $type ][ $className[ 0 ] ];
+				if ( !isset( self::$classes[ $type ][ $className[ $idx ] ] ) ) {
+					throw new ClassNotFoundException( $className[ $idx ] . ' does not exist' );
+				} else if ( $andRequire ) {
+					require_once self::$classes[ $type ][ $className[ $idx ] ][ self::CLASSFILE_KEY_FULLPATH ];
+				}
+
+				$files[ ] = self::$classes[ $type ][ $className[ $idx ] ];
+			}
 		}
 
 		return $files;
@@ -159,7 +164,11 @@ class ClassFinder {
 
 	protected static function getFiles( $regex, $include = NULL, $exclude = NULL ) {
 		if ( $include === NULL ) {
-			$include = array( STROOT, LOCALROOT );
+			$include = array( STROOT );
+		}
+
+		if(!static::$ignoreLocal){
+			$include[] = LOCALROOT;
 		}
 
 		if ( $exclude === NULL ) {

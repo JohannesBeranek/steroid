@@ -15,7 +15,7 @@ define([
 		constructor: function(){
 			var me = this;
 
-			me.nonSelectableFields = ['primary', 'id', 'live', 'language', 'domainGroup'];
+			me.nonSelectableFields = ['primary', 'id', 'live', 'language', 'domainGroup', 'creator'];
 		},
 		_setDisabledAttr: function(disabled){
 			var me = this;
@@ -41,6 +41,10 @@ define([
 
 			for(var fieldName in me.recordConfig.formFields){
 				if(me.isSelectableField(fieldName, me.recordConfig.formFields[fieldName])){
+					if(!me.recordConfig.formFields[fieldName].nullable && !(me.recordConfig.formFields[fieldName].dataType == 'DTBool' || me.recordConfig.formFields[fieldName].dataType == 'DTDecision')){
+						continue;
+					}
+
 					fields.push({
 						name: fieldName,
 						label: me.getFieldLabel(fieldName)
@@ -54,7 +58,7 @@ define([
 			var me = this;
 
 			me.checkBoxContainer = new TitlePane({
-				class: 'STFieldSelector',
+				"class": 'STFieldSelector',
 				open: false
 			});
 

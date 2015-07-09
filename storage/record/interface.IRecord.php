@@ -75,7 +75,7 @@ interface IRecord {
 	 *
 	 * @return bool
 	 */
-	public function isDirty( $checkForeign = true );
+	public function isDirty( $checkForeign );
 
 
 	/**
@@ -90,7 +90,7 @@ interface IRecord {
 	 *
 	 * @return mixed
 	 */
-	public function save();
+	public function save( &$savePaths = NULL );
 
 
 	/**
@@ -105,7 +105,7 @@ interface IRecord {
 	/**
 	 * Called by referencing field
 	 */
-	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction, array &$basket = NULL );
+	public function notifyReferenceRemoved( IRecord $originRecord, $reflectingFieldName, $triggeringFunction );
 
 	/**
 	 * Called by referencing field

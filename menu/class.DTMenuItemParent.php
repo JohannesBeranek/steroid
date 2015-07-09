@@ -10,5 +10,3 @@ class DTMenuItemParent extends DTParentReference {
 		}
 	}
 }
-
-?>

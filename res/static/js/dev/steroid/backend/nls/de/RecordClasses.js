@@ -12,6 +12,7 @@ define({
 	type_ext_content: 'Externe Inhalte',
 	type_util: 'Werkzeuge',
 	type_wizard: 'Assistenten',
+	widget_reference_warning: 'Widget wird referenziert in:',
 	RCFile_name: 'Datei',
 	RCChangeLog_name: 'Changelog',
 	RCDomainGroup_name: 'Subweb',
@@ -65,7 +66,7 @@ define({
 		chart_liveStatus: {
 			0: 'Unveröffentlicht',
 			1: 'Veröffentlicht',
-			2: 'Modifiziert',
+			2: 'Modifiziert'
 		},
 		widget_description: 'Ein Widget',
 		fs_main: 'Allgemein',
@@ -83,7 +84,7 @@ define({
 		area: 'Bereich',
 		sorting: 'Sortierung',
 		key: 'Schlüssel',
-		class: 'Klasse',
+		"class": 'Klasse',
 		customUrl: 'Benutzerdefinierte URL',
 		text: 'Text',
 		link: 'Link',
@@ -96,7 +97,7 @@ define({
 		firstname: 'Vorname',
 		lastname: 'Nachname',
 		gender: 'Geschlecht (m/f)',
-		filename: 'Dateiname',
+		filename: 'Dateiname (Mindestgröße 710x400px für Bilder)',
 		template: 'Template',
 		description: 'Beschreibung',
 		url: 'Url',
@@ -182,7 +183,11 @@ define({
 	},
 	RCUser: {
 		_title: 'Name',
-		username: 'CRM ID'
+		username: 'Username (frei wählbar, unique) oder CRM ID',
+		gender_values: {
+			m: 'Männlich',
+			f: 'Weiblich'
+		}
 	},
 	RCUrl: {
 		url: 'Url',
@@ -231,12 +236,13 @@ define({
 		returnCode_values: {
 			200: 'Primär',
 			418: 'Alias'
-		}
+		},
+		redirectToUrl: 'Weiterleiten auf URL',
+		redirectToPage: 'Weiterleiten auf Seite'
 	},
 	RCDomainGroup: {
 		favicon: 'Favicon',
-		notFoundPage: '404 Seite',
-		mayChangeTopicNodeHeadlines: 'Darf Überschriften auf Knotenseiten verändern'
+		notFoundPage: '404 Seite'
 	},
 	RCPermissionEntity: {
 		mayWrite: 'Schreibrechte',
@@ -279,6 +285,7 @@ define({
 		url: 'Externe Url',
 		showInMenu: 'Im Menü anzeigen',
 		subItemsFromPage: 'Unterseiten der ausgewählten Seite anzeigen',
-		pagesFromRecordClass: 'Untermenü aus folgenden Inhaltstypen generieren'
+		pagesFromRecordClass: 'Untermenü aus folgenden Inhaltstypen generieren',
+		alignRight: 'Rechts ausrichten'
 	}
 });

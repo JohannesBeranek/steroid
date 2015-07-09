@@ -109,6 +109,7 @@ abstract class SyncRecord extends Record {
 		return $actions;
 	}
 
+	// FIXME: use interface to force implementation
 	public function doSync( $complete = false ) {
 		throw new LogicException( 'Cannot call syncRecord on abstract class, did you forget to implement?' );
 	}
@@ -123,5 +124,3 @@ class UrlParseException extends SteroidException {
 
 class NoSyncKeyRecordException extends SteroidException {
 }
-
-?>

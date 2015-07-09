@@ -59,7 +59,7 @@ define([
 				delete me.emptySubmitNode;
 			}
 
-			if (!hasNonGenerated && setName && !me.emptySubmitNode) { // need to submit empty
+			if (me.originalValue && !hasNonGenerated && setName && !me.emptySubmitNode) { // need to submit empty
 				var inputName = 'page:RCMenuItem';
 
 				if (me.mainClassConfig.className != 'RCPage') {
@@ -218,6 +218,8 @@ define([
 
 				me.valueWatches = [];
 			}
+
+			delete me.STValue;
 
 			me.inherited(arguments);
 		},

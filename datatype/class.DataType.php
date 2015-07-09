@@ -67,7 +67,7 @@ abstract class DataType implements IDataType {
 	 * @param null     $fieldName
 	 * @param array    $config
 	 */
-	public function __construct( IStorage &$storage, IRecord $record, array &$values, $fieldName = NULL, array $config = NULL ) {
+	public function __construct( IStorage $storage, IRecord $record, array &$values, $fieldName = NULL, array $config = NULL ) {
 		if ( $fieldName === NULL || $config === NULL ) {
 			throw new InvalidArgumentException( '$fieldName and $config must be set' );
 		}
@@ -77,7 +77,17 @@ abstract class DataType implements IDataType {
 		$this->fieldName = $fieldName;
 		$this->colName = static::getColName( $fieldName, $config );
 		$this->config = $config;
-		$this->storage = & $storage;
+		$this->storage = $storage;
+	}
+	
+	public function cleanup() {
+		$this->record = NULL;
+
+		$this->values = NULL;
+		$this->fieldName = NULL;
+		$this->colName = NULL;
+		$this->config = NULL;
+		$this->storage = NULL;
 	}
 
 	public static function getDefaultValue( IStorage $storage, $fieldName = NULL, array $fieldConf = NULL, array $extraParams = NULL ) {
@@ -100,19 +110,28 @@ abstract class DataType implements IDataType {
 		return NULL;
 	}
 
-	public function setValue( $data = NULL, $loaded = false ) {
-		if ( !array_key_exists( $this->colName, $this->values ) || ( $data !== $this->values[ $this->colName ] ) || ( $loaded && $this->isDirty ) ) {
+// FIXME: change dirty tracking to save records and paths
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL ) {
+		if ( !array_key_exists( $this->colName, $this->values ) || ( $data !== $this->values[ $this->colName ] ) ) {
 			$this->values[ $this->colName ] = $data;
 
-			$this->isDirty = !$loaded;
+			if ((bool)$loaded === $this->isDirty) {
+				$this->isDirty = !$loaded;
+				
+				if (!$loaded && $dirtyTracking !== NULL) {
+					$dirtyTracking[$path] = true;
+				}
+			}
+		} else if ( $loaded && $this->isDirty ) {
+			$this->isDirty = !$loaded; // undirty as we got loaded but value is the same
 		}
 	}
 
-	public function setRawValue( $data = NULL, $loaded = false ) {
-		$this->setValue( $data, $loaded );
+	public function setRawValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL  ) {
+		$this->setValue( $data, $loaded, $path, $dirtyTracking );
 	}
 
-	public function setRealValue( $data = NULL, $loaded = false ) {
+	public function setRealValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL  ) {
 		// stub	
 	}
 
@@ -120,21 +139,24 @@ abstract class DataType implements IDataType {
 		return array_key_exists( $this->colName, $this->values );
 	}
 
+	public function unload() {
+		if ($this->colName !== NULL) {
+			unset( $this->values[$this->colName] );
+		}
+		
+		$this->isDirty = false;
+	}
+
 	public function hasValidValue() {
 		return !empty( $this->config[ 'nullable' ] ) ? array_key_exists( $this->colName, $this->values ) : !empty( $this->values[ $this->colName ] );
 	}
 
-	public function beforeSave( $isUpdate ) {
+	public function beforeSave( $isUpdate, array &$savePaths = NULL ) {
 		// stub
 	}
 
 	public function recordMaySave() {
 		return true;
-	}
-
-	// ONLY FOR EMERGENCY CASES LIKE BACKUP RECOVERY!
-	public function setDirty( $dirty ) {
-		$this->isDirty = $dirty;
 	}
 
 
@@ -150,15 +172,15 @@ abstract class DataType implements IDataType {
 		}
 	}
 
-	public function afterSave( $isUpdate, array $saveResult ) {
-	}
-
-
-	public function beforeDelete( array &$basket = NULL ) {
+	public function afterSave( $isUpdate, array $saveResult, array &$savePaths = NULL ) {
 		// stub
 	}
 
-	public function afterDelete( array &$basket = NULL ) {
+	public function beforeDelete() {
+		// stub
+	}
+
+	public function afterDelete() {
 		// stub
 	}
 
@@ -222,7 +244,7 @@ abstract class DataType implements IDataType {
 		$values[ $this->fieldName ] = $this->record->{$this->fieldName};
 	}
 
-
+// FIXME: use interface
 	public function earlyCopy( array &$values, array $changes, array &$missingReferences, array &$originRecords, array &$copiedOriginRecords ) {
 		// stub
 	}
@@ -231,20 +253,22 @@ abstract class DataType implements IDataType {
 		// stub
 	}
 
-
+// FIXME: use interface
 	public function refresh() {
 		// stub
 	}
-
+	
+// FIXME: use interface
 	public function notifySaveComplete() {
 		// stub
 	}
 
+// TODO: maybe use interface for this?
 	public function checkForDelete() {
 		return false;
 	}
 
-	public function fillUpValues( array $values, $loaded ) {
+	public function fillUpValues( array $values, $loaded, $path = NULL, array &$dirtyTracking = NULL ) {
 		throw new Exception( 'Unexpected fillUpValues call on datatype not implementing this functionality.' );
 	}
 

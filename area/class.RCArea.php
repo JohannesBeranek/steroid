@@ -5,10 +5,6 @@
 
 require_once STROOT . '/element/class.ElementRecord.php';
 
-require_once STROOT . '/datatype/class.DTKey.php';
-require_once STROOT . '/datatype/class.DTSteroidPrimary.php';
-require_once STROOT . '/datatype/class.DTSteroidID.php';
-require_once STROOT . '/datatype/class.DTSteroidLive.php';
 require_once STROOT . '/datatype/class.DTString.php';
 
 /**
@@ -98,5 +94,20 @@ class RCArea extends ElementRecord {
 
 	protected function getCopiedForeignFields() {
 		return array( 'area:RCElementInArea' );
+	}
+
+	public function duplicate(){
+		$newArea = parent::duplicate();
+
+		$newElementsInArea = array();
+		$elementsInArea = $this->{'area:RCElementInArea'};
+
+		foreach($elementsInArea as $elementInArea){
+			$newElementsInArea[] = $elementInArea->duplicate($newArea);
+		}
+
+		$newArea->{'area:RCElementInArea'} = $newElementsInArea;
+
+		return $newArea;
 	}
 }

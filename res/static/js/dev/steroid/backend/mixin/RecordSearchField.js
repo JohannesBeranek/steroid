@@ -66,7 +66,7 @@ define([
 
 			me.listButton = new Button({
 				label: i18n.listButtonTitle,
-				class: 'browseButton',
+				"class": 'browseButton',
 				disabled: me.readOnly,
 				onClick: function () {
 					me.openList();
@@ -166,7 +166,7 @@ define([
 
 			if (me.recordSelector && me.hasMultiple) {
 				exclude = me.recordSelector.get('STValue');
-			} else if (me.item && me.item.primary) {
+			} else if (me.item && me.item.primary && !me.fieldClassConfig.isHierarchic) {
 				exclude = [ me.item.primary ];
 			} else {
 				exclude = null;

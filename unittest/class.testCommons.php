@@ -1,6 +1,7 @@
 <?php
 
 require_once STROOT . '/util/class.Config.php';
+require_once STROOT . '/storage/class.DBInfo.php';
 
 class testCommons {
 	const DATABASE = 'steroid_testing';
@@ -19,7 +20,17 @@ class testCommons {
 
 	public static function getTestingLocalconf(){
 		if(static::$conf === NULL){
-			static::$conf = Config::loadNamed( STROOT . '/unittest/testconf.ini.php', 'testconf' );
+			static::$conf = Config::loadNamed( STROOT . '/unittest/testconf.ini.php', 'localconf' );
+		}
+
+		return static::$conf;
+	}
+
+	public static function getRealLocalconf() {
+		throw new Exception('WHAT?!?!? No, I wont do this.');
+
+		if ( static::$conf === NULL ) {
+			static::$conf = Config::loadNamed( LOCALROOT . '/localconf.ini.php', 'localconf' );
 		}
 
 		return static::$conf;
@@ -30,12 +41,22 @@ class testCommons {
 			throw new Exception('Invalid storage type');
 		}
 
+		$conf = self::getTestingLocalconf();
+
+		return self::getStorage($conf, $type);
+	}
+
+	public static function getRealStorage($type){
+		$conf = self::getRealLocalconf();
+
+		return self::getStorage( $conf, $type );
+	}
+
+	protected static function getStorage($config, $type){
 		require_once STROOT . '/storage/class.' . $type . '.php';
 
-		$conf = testCommons::getTestingLocalconf();
-
-		$dbConfig = $conf->getSection( 'DB' );
-		$filestoreConfig = $conf->getSection( 'filestore' );
+		$dbConfig = $config->getSection( 'DB' );
+		$filestoreConfig = $config->getSection( 'filestore' );
 
 		$DB = new $type(
 			$dbConfig[ 'host' ], $dbConfig[ 'username' ], $dbConfig[ 'password' ], $dbConfig[ 'database' ],
@@ -48,5 +69,15 @@ class testCommons {
 		$DB->init();
 
 		return $DB;
+	}
+
+	public static function updateTestRecordTables(RBStorage $storage, $recordClasses = array()){
+		if(empty($recordClasses)){
+			$recordClasses = ClassFinder::getAll('RT', true);
+		}
+
+		$dbInfo = new DBInfo( $storage, $recordClasses );
+
+		return $dbInfo->execute( true, true, true, false, false, true );
 	}
 }

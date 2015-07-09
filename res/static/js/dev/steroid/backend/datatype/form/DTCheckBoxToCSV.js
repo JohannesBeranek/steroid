@@ -8,7 +8,7 @@ define([
 	"dijit/layout/ContentPane"
 ], function (declare, DTText, lang, CheckBox, domConstruct, domStyle, ContentPane) {
 	return declare([DTText], {
-		class: 'STCheckBoxToCSV',
+		"class": 'STCheckBoxToCSV',
 		checkBoxes: null,
 		separator: ',',
 		settingValueFromCheckBox: false,
@@ -88,7 +88,7 @@ define([
 			var values = me.getPossibleValues();
 
 			for(var i = 0, ilen = values.length; i < ilen; i++){
-				var container = domConstruct.create('div', { class: 'STFieldPermissionCheckBoxContainer' });
+				var container = domConstruct.create('div', { "class": 'STFieldPermissionCheckBoxContainer' });
 
 				var cb = new CheckBox({
 					disabled: me.disabled,

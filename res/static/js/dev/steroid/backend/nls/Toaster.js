@@ -3,6 +3,7 @@ define({ root: ({
 	createRecord: 'Record has been created',
 	publishRecord: 'Record has been published',
 	deleteRecord: 'Record has been deleted',
+	duplicateRecord: 'Record has been duplicated',
 	hideRecord: 'Record has been hidden',
 	revertRecord: 'Record has been reverted',
 	previewRecord: 'Preview has been created',

@@ -74,14 +74,16 @@ class DTUrlForeignReference extends BaseDTForeignReference {
 		);
 	}
 
-	public function beforeSave( $isUpdate ) {
+// FIXME: should be moved to some setValue logic so we can use dirtyTracking!
+// -- custom url (DTSteroidUrl) could actively push setValue
+// -- change of title should be listened to
+	public function beforeSave( $isUpdate, array &$savePaths = NULL ) {
 		$recordLiveFieldName = $this->record->getDataTypeFieldName( 'DTSteroidLive' );
 		$recordIsLive = $recordLiveFieldName && ( $recordLiveStatus = $this->record->getFieldValue($recordLiveFieldName) );
 
 		if ( $recordIsLive || ( $recordLiveFieldName && $recordLiveStatus === NULL ) ) {
 			return;
 		}
-				
 
 		$recordLanguageFieldName = $this->record->getDataTypeFieldName( 'DTSteroidLanguage' );
 		$recordParentFieldName = $this->record->getDataTypeFieldName( 'DTParentReference' );
@@ -108,6 +110,10 @@ class DTUrlForeignReference extends BaseDTForeignReference {
 		//  if field wasn't loaded but the record exists, $isUpdate should be true
 		if ( $isUpdate || isset( $this->record->{$this->fieldName} ) ) {
 			$currentUrls = $this->record->getFieldValue($this->fieldName);
+		}
+
+		if(!$isUpdate && isset($currentUrls) && count($currentUrls)){
+			return;
 		}
 
 		$parentRecord = NULL;
@@ -207,6 +213,11 @@ class DTUrlForeignReference extends BaseDTForeignReference {
 
 		// FIXME: using setValue in beforeSave is dangerous, as record might be marked as not dirty and become dirty from this!
 		$this->setValue( $generatedUrls, false );
+
+
+		if ($this->isDirty && $savePaths !== NULL) {
+			$savePaths['url'] = array( true );
+		}
 	}
 
 	// TODO: function does something different from its naming
@@ -286,14 +297,14 @@ class DTUrlForeignReference extends BaseDTForeignReference {
 		return $parentUrls;
 	}
 
-	public function beforeDelete( array &$basket = NULL ) {
+	public function beforeDelete() {
 		$foreignRecords = $this->getForeignRecords();
 
 		foreach ( $foreignRecords as $record ) {
-			$record->url->delete( $basket );
+			$record->url->delete();
 		}
 
-		parent::beforeDelete( $basket );
+		parent::beforeDelete();
 	}
 
 	protected static function getRequiredPermissions( $fieldDef, $fieldName, $currentForeignPerms, $permissions, $owningRecordClass ) {

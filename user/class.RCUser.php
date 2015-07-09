@@ -85,8 +85,8 @@ class RCUser extends Record {
 		);
 	}
 
-	public static function modifySelect( array &$queryStruct, IRBStorage $storage, array &$userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass ) {
-		parent::modifySelect( $queryStruct, $storage, $userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass );
+	public static function modifySelect( array &$queryStruct, IRBStorage $storage, array &$userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass, $isSearchField = false ) {
+		parent::modifySelect( $queryStruct, $storage, $userFilters, $mainRecordClass, $recordClass, $requestFieldName, $requestingRecordClass, $isSearchField );
 
 		if ( $requestingRecordClass == 'RCDomainGroupLanguagePermissionUser' ) {
 			if ( !isset( $queryStruct[ 'where' ] ) ) {
@@ -99,7 +99,30 @@ class RCUser extends Record {
 		}
 	}
 
+	public static function modifyActionsForRecordInstance( $values = null, &$actions ) {
+		parent::modifyActionsForRecordInstance($values, $actions);
+
+		$user = User::getCurrent();
+
+		if($user->maySwitchUser() && isset($values['is_backendAllowed']) && $values[ 'is_backendAllowed' ]){
+			$actions[] = 'switchUser';
+		}
+	}
+
+	public static function handleBackendAction(RBStorage $storage, $requestType, $requestInfo ){
+		$primary = (int)$requestInfo->getPostParam(UHBackend::PARAM_RECORD_ID);
+
+		$currentUser = User::getCurrent();
+		$targetUser = RCUser::get($storage, array(Record::FIELDNAME_PRIMARY => $primary), Record::TRY_TO_LOAD);
+
+		if(!$targetUser->exists()){
+			throw new RecordDoesNotExistException();
+		}
+
+		$currentUser->switchUser( $targetUser );
+
+		return $targetUser;
+	}
+
 	// TODO: getTitle to get name from CRM
 }
-
-?>

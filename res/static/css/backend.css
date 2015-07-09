@@ -164,6 +164,7 @@ label {
 	position: absolute !important;
 	right: 0;
 	left: 0;
+	top: 0;
 	text-align: center;
 	font-size: 20px;
 	line-height: 22px;
@@ -307,6 +308,10 @@ label.STInvalid, .STWidget.STInvalid > .dijitTitlePaneTitle > .dijitTitlePaneTit
 	margin: 0 0 10px 10px;
 }
 
+.RCSingleImage .STFileName {
+	width: 100%;
+}
+
 .dgrid .STFileName {
 	margin: 0;
 }
@@ -448,6 +453,10 @@ label.STInvalid, .STWidget.STInvalid > .dijitTitlePaneTitle > .dijitTitlePaneTit
 	padding: 0 !important;
 }
 
+.STResizeable .dijitContentPane.RCArea {
+	padding-bottom: 10px !important;
+}
+
 .STWidget .fixed {
 	opacity: 0.5;
 }
@@ -532,6 +541,12 @@ label.STInvalid, .STWidget.STInvalid > .dijitTitlePaneTitle > .dijitTitlePaneTit
 
 .STMenuItemContainer .STMenuItemContainer {
 	width: 100%;
+	position: relative;
+	left: 50px;
+}
+
+.STMenuItemContainer, .STMenuItem {
+	overflow: visible;
 }
 
 .STMenuItemContainer .STMenuItem {
@@ -573,6 +588,11 @@ label.STInvalid, .STWidget.STInvalid > .dijitTitlePaneTitle > .dijitTitlePaneTit
 .STDropContainer {
 	width: auto !important;
 	height: auto !important;
+	max-width: 100%;
+}
+
+.STDropContainer > div {
+	max-width: 100%;
 }
 
 .STMenuItem .STDropContainer {
@@ -596,11 +616,11 @@ fieldset.STHidden {
 	display: none;
 }
 
-.STUserMenu_language, .STUserMenu_fullscreen, .STUserMenu_editProfile {
+.STUserMenu_language, .STUserMenu_fullscreen, .STUserMenu_editProfile, .STUserMenu_unSwitch {
 	display: block;
 }
 
-.STUserMenu_language span, .STUserMenu_fullscreen span, .STUserMenu_editProfile span, .STUserMenu_theme span {
+.STUserMenu_language span, .STUserMenu_fullscreen span, .STUserMenu_editProfile span, .STUserMenu_theme span, .STUserMenu_unSwitch span {
 	line-height: 24px;
 	padding: 5px;
 }
@@ -1210,6 +1230,7 @@ fieldset.STHidden {
 }
 
 /* BLUR #uiContainer ON DIALOG OPEN */
+/*
 #uiContainer {
 	-webkit-transition: -webkit-filter 500ms linear;
 	-moz-transition: -moz-filter 500ms linear;
@@ -1233,9 +1254,40 @@ body.STDialogOpen #uiContainer {
 	-ms-filter: blur(5px);
 	filter: blur(5px);
 }
-
+*/
 /* default background color, so blur does not make list panel entries shine through */
 .STDetailPane {
 	background-color: #FFFFFF;
 }
 
+.RCTemplate .STDropContainer {
+	border: 1px dashed #5AAE60;
+	min-height: 50px;
+	overflow: hidden;
+}
+
+.RCTemplate .STDropContainer .STDropContainer {
+	border: none;
+	min-height: 0px;
+}
+
+.RCTemplate .panelFixed .STDropContainer {
+	margin-left: 157px;
+}
+
+.RCTemplate .panelFixed .STDropContainer .STDropContainer {
+	margin-left: 0px;
+}
+
+body .redactor_box_fullscreen {
+	z-index: 100 !important;
+}
+
+.containingPagesIcon {
+	width: 20px;
+	height: 20px;
+	background: transparent url(/steroid/res/static/img/icons/claro/warning.png) no-repeat 0 0;
+	float: left;
+	display: table-cell;
+	margin: 0 !important;
+}

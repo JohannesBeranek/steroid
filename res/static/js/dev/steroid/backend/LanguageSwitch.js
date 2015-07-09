@@ -38,10 +38,10 @@ define([
 				style: me.style
 			});
 
-			for(var i = 0; i < me.backend.config.interface.languages.available.length; i++){
+			for(var i = 0; i < me.backend.config["interface"].languages.available.length; i++){
 				me.langMenu.addChild(new MenuItem({
-					label: i18n[me.backend.config.interface.languages.available[i] + '_short'],
-					lang:me.backend.config.interface.languages.available[i],
+					label: i18n[me.backend.config["interface"].languages.available[i] + '_short'],
+					lang:me.backend.config["interface"].languages.available[i],
 					onClick: function(){
 						me.backend.STServerComm.switchBELang(this.lang);
 					}

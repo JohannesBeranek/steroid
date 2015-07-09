@@ -111,6 +111,7 @@ class UHBackend implements IURLHandler {
 	const REQUEST_TYPE_GETPUBDATE = 'getPubDate';
 	const REQUEST_TYPE_GET_PROFILE_PAGE = 'getProfilePage';
 	const REQUEST_TYPE_GET_PUBLISHABLE_REFERENCES = 'getPublishableReferences';
+	const REQUEST_TYPE_UNSWITCH_USER = 'unSwitchUser';
 
 	const REQUEST_TYPE_LOGOUT = 'logout';
 	const REQUEST_TYPE_LOGIN = 'login';
@@ -142,9 +143,16 @@ class UHBackend implements IURLHandler {
 		if ( $this->isAjaxRequest ) {
 			try {
 				// FIXME: don't use getGPParam - it should be well defined if it's a get or post param (and if it may be both, comment on it!)
+				// leave me alone!
 				$requestType = $this->requestInfo->getGPParam( self::PARAM_REQUEST_TYPE );
 
-				if ( $this->isBackendUser || $requestType == self::REQUEST_TYPE_LOGOUT || $requestType == self::REQUEST_TYPE_LOGIN_EXTENSION ) { // user is already logged out when reaching here, so we don't know if user was a backend user
+				if ( $requestType === self::REQUEST_TYPE_LOGOUT ) {
+					$this->logoutUser();
+				} else if ( $requestType === self::REQUEST_TYPE_LOGIN_EXTENSION ) {
+					 // TODO: no tx needed here
+					// OMG!!
+					$this->loginExtensionRequest( $this->requestInfo->getGPParam( self::PARAM_EXTENSION_CLASS ), $this->requestInfo->getGPParam( self::PARAM_EXTENSION_METHOD ) );
+				} else if ( $this->isBackendUser ) { 
 					switch ( $requestType ) {
 						case self::REQUEST_TYPE_DOMAIN_GROUP:
 							$this->switchDomainGroup();
@@ -164,23 +172,17 @@ class UHBackend implements IURLHandler {
 						case self::REQUEST_TYPE_LIST:
 							$this->recordClassRequest( $this->requestInfo->getGPParam( self::PARAM_RECORDCLASS ) );
 							break;
-						case self::REQUEST_TYPE_LOGOUT:
-							$this->logoutUser();
-							break;
 						case self::REQUEST_TYPE_LOGIN:
 							$this->loginUser();
 							break;
 						case self::REQUEST_TYPE_GET_PROFILE_PAGE:
 							$this->getProfilePage();
 							break;
-						case self::REQUEST_TYPE_EXTENSION: // TODO: no tx needed here
+						case self::REQUEST_TYPE_EXTENSION:
 							$this->extensionRequest( $this->requestInfo->getGPParam( self::PARAM_EXTENSION_CLASS ), $this->requestInfo->getGPParam( self::PARAM_EXTENSION_METHOD ) );
 							break;
 						case self::REQUEST_TYPE_STATS:
 							$this->statRequest( $this->requestInfo->getGPParam( self::PARAM_STAT_TYPE ), $this->requestInfo->getGPParam( self::PARAM_STAT_CLASS ) );
-							break;
-						case self::REQUEST_TYPE_LOGIN_EXTENSION: // TODO: no tx needed here
-							$this->loginExtensionRequest( $this->requestInfo->getGPParam( self::PARAM_EXTENSION_CLASS ), $this->requestInfo->getGPParam( self::PARAM_EXTENSION_METHOD ) );
 							break;
 						case self::REQUEST_TYPE_INSERT_CLIPBOARD:
 							$this->insertFromClipboard( $this->requestInfo->getGPParam( self::PARAM_RECORDCLASS ), $this->requestInfo->getGPParam( self::PARAM_RECORD_ID ) );
@@ -221,6 +223,8 @@ class UHBackend implements IURLHandler {
 							$this->recordHideRequest( $this->requestInfo->getGPParam( self::PARAM_RECORDCLASS ), $this->requestInfo->getGPParam( self::PARAM_RECORD_ID ), $this->requestInfo->getGPParam( 'doAction' ) );
 							break;
 						case self::REQUEST_TYPE_SYNC_RECORD:
+							// FIXME: move to SyncRecord
+							// WONTFIX: syncRecord is core, so no
 							$this->recordSyncRequest( $this->requestInfo->getGPParam( self::PARAM_RECORDCLASS ), $this->requestInfo->getGPParam( self::PARAM_RECORD_ID ) );
 							break;
 						case self::REQUEST_TYPE_DELETE_RECORD:
@@ -232,11 +236,18 @@ class UHBackend implements IURLHandler {
 						case self::REQUEST_TYPE_MESSAGES:
 							$this->getMessages( $this->requestInfo->getGPParam( self::PARAM_REQUEST_TIME ), $this->requestInfo->getGPParam( self::PARAM_CURRENTLY_EDITING ), $this->requestInfo->getGPParam( self::PARAM_CURRENTLY_EDITING_CLASS ), $this->requestInfo->getGPParam( self::PARAM_CURRENTLY_EDITING_PARENT ) );
 							break;
-						case self::REQUEST_TYPE_LOG: // TODO: no tx needed here
-							Log::write( "Log Request:", $this->requestInfo->getGPParam( json_decode( self::PARAM_MESSAGE, true ) ) );
+						case self::REQUEST_TYPE_UNSWITCH_USER:
+							$this->unSwitchUser();
+							break;
+						case self::REQUEST_TYPE_LOG: 
+							// TODO: no tx needed here
+							// TODO: no annoying comments needed here
+							Log::write( "Log Request:", json_decode( $this->requestInfo->getGPParam(  self::PARAM_MESSAGE ), true ) );
 							$this->ajaxSuccess();
 							break;
-						case self::REQUEST_TYPE_DOWNLOAD: // TODO: no tx needed here
+						case self::REQUEST_TYPE_DOWNLOAD: 
+							// TODO: no tx needed here
+							// TODO: even less annoying comments needed here
 							$this->handleDownload( $this->requestInfo->getQueryParam( self::PARAM_FILEPRIMARY ) );
 							break;
 						case self::REQUEST_TYPE_GETPUBDATE:
@@ -244,16 +255,46 @@ class UHBackend implements IURLHandler {
 							break;
 
 						default: // unknown ajax request by backendUser
-							throw new UnknownRequestException();
+							if ($recordClass = $this->requestInfo->getGPParam( self::PARAM_RECORDCLASS )) {
+								// dynamically require RC in case it's not loaded yet
+								if ( ClassFinder::find( array( $recordClass ), true ) ) {
+									// TODO: check if RC implements interface for handleBackendAction
+										// there is no interface for that, but I can make one interYOURface!
+									// TODO: provide recordClass with a way to interact with backend functions
+										// what backend functions?
+									//TODO: remove duplicate code from recordSaveRequest
+									// try to forward request
+									$originalRecord = $recordClass::handleBackendAction( $this->storage, $requestType, $this->requestInfo );
+
+									$values = $originalRecord->getFormValues( array_keys( $originalRecord->getFormFields( $this->storage ) ) );
+
+									$values = $this->setRecordStati( $recordClass, array( $values ) );
+
+									$actions = $this->getRecordActionsForDomainGroup( $recordClass, $values[ 0 ] );
+
+									$recordClass::modifyActionsForRecordInstance( $values[ 0 ], $actions );
+
+									$this->ajaxSuccess(array(
+										'items' => $values,
+										'actions' => $actions
+									));
+								} else {
+									throw new UnknownRequestException();
+								}
+							
+							} else {
+								throw new UnknownRequestException();
+							}
 
 					}
 				} else { // ajax request other than logout by not-backenduser
-					if ( $requestType == self::REQUEST_TYPE_LOGIN ) { // failed login
+					if ( $requestType === self::REQUEST_TYPE_LOGIN ) { // failed login
 						if ( $authException = User::getCurrent()->authException ) {
 							Log::write( "Auth Exception:", $authException );
 						}
 
 						throw new LoginFailException( 'Login failed' ); // FIXME: log + lock user after x retries
+						// TODO: fix it
 					} else { // unknown request by not backend-logged in user
 						throw new UnknownRequestException();
 					}
@@ -685,11 +726,11 @@ class UHBackend implements IURLHandler {
 		$authenticators = $conf->getSection( 'authenticator' );
 		$auth = NULL;
 
-		if($authenticators !== NULL){
+		if ($authenticators !== NULL) {
 			foreach($authenticators as $className => $path){
 				require_once WEBROOT . '/' . $path;
 
-				if($className::AUTH_TYPE === User::AUTH_TYPE_BE){
+				if ($className::AUTH_TYPE === User::AUTH_TYPE_BE) {
 					$auth = $className;
 					break;
 				}
@@ -854,7 +895,7 @@ class UHBackend implements IURLHandler {
 				'text' => $text,
 				'creator' => $entry->creator->getTitle(),
 				'alert' => $entry->alert,
-				'user' => $entry->user ? $entry->user->primary : NULL // TODO: Record::FIELDNAME_PRIMARY
+				'user' => $entry->user ? $entry->user->{Record::FIELDNAME_PRIMARY} : NULL
 			);
 		}
 
@@ -1027,8 +1068,8 @@ class UHBackend implements IURLHandler {
 				'action' => 'publish'
 			) );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER on ALL
+		$userFilter = new PermissionStorageFilter( $this->user, NULL );
 		$this->storage->registerFilter( $userFilter );
 
 		$previewRecord = $recordClass::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $recordPrimary ), Record::TRY_TO_LOAD );
@@ -1062,8 +1103,8 @@ class UHBackend implements IURLHandler {
 				'action' => 'publish'
 			) );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER on recordClass
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClass );
 		$this->storage->registerFilter( $userFilter );
 
 		$previewRecord = $recordClass::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $recordID ), Record::TRY_TO_LOAD );
@@ -1228,20 +1269,7 @@ class UHBackend implements IURLHandler {
 			);
 		}
 
-		$missingReferences = array();
-		$originRecords = array();
-		$copiedRecords = array();
-
-		$newPage = $page->copy( array(), $missingReferences, $originRecords, $copiedRecords, array( 'page:RCMenuItem' ) );
-
-		$newPage->parent = $parent;
-		$newPage->live = DTSteroidLive::LIVE_STATUS_PREVIEW;
-		$newPage->{'page:RCPageUrl'} = array();
-		$newPage->customUrl = NULL;
-		$newPage->title = $newPage->title . ' (copy)';
-		$newPage->domainGroup = $parent->domainGroup;
-		$newPage->creator = $this->user->record;
-
+		$newPage = $page->duplicate($parent);
 
 		$newPage->save();
 
@@ -1266,12 +1294,51 @@ class UHBackend implements IURLHandler {
 		$this->ajaxSuccess();
 	}
 
+	/**
+	 * Saves record as correct and efficient as possible
+	 * 
+	 * - load record with paths according to postData keys
+	 * - set data recursively, correctly tracking changes
+	 * - only save changed records
+	 */
+	final private function saveRecord( $recordClass, $postData ) {
+		
+		if (!$postData[Record::FIELDNAME_PRIMARY]) {
+			// in case record is a new one, simply use recordClass::get 
+			$record = $recordClass::get( $this->storage, $postData, false );
+	
+			$record->save();
+		} else {
+			// if record is an already existing one, we load the existing from db
+			$queryStruct = array(
+				RBStorage::SELECT_FIELDNAME_WHERE => array(
+					Record::FIELDNAME_PRIMARY, '=', array( $postData[Record::FIELDNAME_PRIMARY] )
+				),
+				RBStorage::SELECT_FIELDNAME_FIELDS => Record::arrayKeysToPathSet($postData)
+			);
+
+			$record = $this->storage->selectFirstRecord( $recordClass, $queryStruct, /* $start */ NULL, /* $getTotal */ NULL, /* $vals */ NULL, /* $name */ NULL, /* $noAutoSelect */ false );
+		
+			$dirtyTracking = array();
+
+			$record->setValues( $postData, false, '', $dirtyTracking );
+			
+			$savePaths = Record::getSavePathsFromDirtyTracking( $dirtyTracking );
+
+			$record->save( $savePaths );
+
+
+		}
+			
+		return $record;
+	}
+
 	protected function recordSaveRequest( $recordClass = NULL ) {
 		if ( empty( $recordClass ) || !ClassFinder::find( array( $recordClass ), true ) ) {
 			throw new InvalidArgumentException( '$recordClassName must be set' );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER on recordClass
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClass );
 		$this->storage->registerFilter( $userFilter );
 
 		$this->isIframe = $this->requestInfo->getGPParam( 'isIframe' );
@@ -1279,15 +1346,18 @@ class UHBackend implements IURLHandler {
 		if ( is_subclass_of( $recordClass, 'IRecord' ) ) {
 			$postData = $this->requestInfo->getPost();
 
-			$record = $recordClass::get( $this->storage, $postData, false );
-
-			$record->save();
-
-			$record->readOnly = true; // 4 bettah per4mance
+			try{
+				$record = $this->saveRecord( $recordClass, $postData );
+			} catch(Exception $e){
+				if(strpos( $e->getMessage(), 'Duplicate entry') !== false){
+					throw new DuplicateEntryException();
+				} else {
+					throw $e;
+				}
+			}
 
 			$this->updateContentEdit( $recordClass, $record );
 
-			$record->readOnly = false;
 
 			if ( $mTimeField = $recordClass::getDataTypeFieldName( 'DTMTime' ) ) {
 				$record->{$mTimeField} = $_SERVER[ 'REQUEST_TIME' ];
@@ -1415,8 +1485,8 @@ class UHBackend implements IURLHandler {
 		if ( empty( $recordClass ) || empty( $recordID ) || !ClassFinder::find( array( $recordClass ), true ) ) {
 			throw new InvalidArgumentException( '$recordClassName and $recordID must be set' );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClass );
 		$this->storage->registerFilter( $userFilter );
 
 		try {
@@ -1448,8 +1518,8 @@ class UHBackend implements IURLHandler {
 				'action' => 'hide'
 			) );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClass );
 		$this->storage->registerFilter( $userFilter );
 
 		try {
@@ -1472,8 +1542,8 @@ class UHBackend implements IURLHandler {
 		if ( empty( $recordClass ) || empty( $recordID ) || !ClassFinder::find( array( $recordClass ), true ) ) {
 			throw new InvalidArgumentException( '$recordClassName and $recordID must be set' );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClass );
 		$this->storage->registerFilter( $userFilter );
 
 		$previewRecord = $recordClass::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $recordID ) );
@@ -1525,8 +1595,8 @@ class UHBackend implements IURLHandler {
 				'action' => 'delete'
 			) );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClass );
 		$this->storage->registerFilter( $userFilter );
 
 		$record = $recordClass::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $recordID ) );
@@ -1557,9 +1627,12 @@ class UHBackend implements IURLHandler {
 				$this->hideRecord( $recordClass, $recordID, true );
 			}
 
+			$mainRecordTitle = $record->getTitle();
+			$mainRecordClass = get_class($record);
+
 			$record->delete();
 
-			$this->createDeletionNotifications( $record, $classes );
+			$this->createDeletionNotifications( $mainRecordClass, $mainRecordTitle, $classes );
 
 			$this->ajaxSuccess();
 		} else {
@@ -1567,7 +1640,7 @@ class UHBackend implements IURLHandler {
 		}
 	}
 
-	protected function createDeletionNotifications( IRecord $mainRecord, $classes = array() ) {
+	protected function createDeletionNotifications( $mainRecordClass, $mainRecordTitle, $classes = array() ) {
 		if ( empty( $classes ) ) {
 			return;
 		}
@@ -1612,8 +1685,8 @@ class UHBackend implements IURLHandler {
 					'nlsTitle' => '_messageBox.recordDeleted.title',
 					'nlsMessage' => '_messageBox.recordDeleted.text',
 					'nlsData' => json_encode( array(
-						'recordClass' => '#' . get_class( $mainRecord ) . '#',
-						'recordTitle' => $mainRecord->getTitle(),
+						'recordClass' => '#' . $mainRecordClass . '#',
+						'recordTitle' => $mainRecordTitle,
 						'domainGroup' => $this->user->getSelectedDomainGroup()->getTitle(),
 						'targetDomainGroup' => $domainGroupTitle,
 
@@ -1655,8 +1728,8 @@ class UHBackend implements IURLHandler {
 			// in case user has no permission, transaction will be rolled back, and thus change to content edit will be undone
 			$this->updateContentEdit( $recordClassName, $recordID, $previousRecordClass, $previousRecordID );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClassName );
 		$this->storage->registerFilter( $userFilter );
 
 		if ( $recordID === 'new' ) {
@@ -1727,6 +1800,9 @@ class UHBackend implements IURLHandler {
 			$contentEdit->recordPrimary->readOnly = true;
 
 			$contentEdit->save();
+			
+			$contentEdit->recordPrimary->readOnly = false;
+			
 		}
 
 		ClassFinder::find( $recordClassName, true );
@@ -1735,15 +1811,6 @@ class UHBackend implements IURLHandler {
 	}
 
 	protected function getRecordActionsForDomainGroup( $recordClassName, $record ) {
-//		if ( !( $domainGroupField = $recordClassName::getDataTypeFieldName( 'DTSteroidDomainGroup' ) ) && $this->user->isDev( $this->user->getSelectedDomainGroup()->primary ) ) {
-//			$actions[ ] = Record::ACTION_DELETE;
-//			$actions[ ] = Record::ACTION_SAVE;
-//
-//			if ( $recordClassName::getDataTypeFieldName( 'DTSteroidLive' ) ) {
-//				$actions[ ] = Record::ACTION_PUBLISH;
-//			}
-//		}
-
 		return $this->user->getRecordActionsForDomainGroup( $recordClassName, $record );
 	}
 
@@ -1849,8 +1916,8 @@ class UHBackend implements IURLHandler {
 		if ( !$filePrimary ) {
 			throw new InvalidArgumentException( 'invalid file primary' );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, 'RCFile' );
 		$this->storage->registerFilter( $userFilter );
 
 		$record = $this->storage->selectFirstRecord( 'RCFile', array( 'fields' => '*', 'where' => array( Record::FIELDNAME_PRIMARY, '=', array( $filePrimary ) ) ) );
@@ -1923,8 +1990,8 @@ class UHBackend implements IURLHandler {
 				'rc' => $recordClassName
 			) );
 		}
-
-		$userFilter = new PermissionStorageFilter( $this->user );
+// FILTER
+		$userFilter = new PermissionStorageFilter( $this->user, $recordClassName );
 		$this->storage->registerFilter( $userFilter );
 
 		$fieldsToSelect = $this->getQueryFields( $recordClassName::getExpandedListFields( $this->user ) );
@@ -1933,7 +2000,7 @@ class UHBackend implements IURLHandler {
 		$limitCount = $this->requestInfo->getPostParam( self::PARAM_LIMIT_COUNT );
 
 		if ( !$limitCount || $limitCount == 'Infinity' ) {
-			$limitCount = 9999;
+			$limitCount = NULL;
 		}
 
 		$sorting = json_decode( $this->requestInfo->getPostParam( self::PARAM_SORT ), true );
@@ -1998,14 +2065,14 @@ class UHBackend implements IURLHandler {
 
 		// filter
 		if ( $requestingRecordClass ) {
-			$requestingRecordClass::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass );
+			$requestingRecordClass::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass, $isSearchField );
 		}
 
 		if ( $mainRecordClass ) {
-			$mainRecordClass::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass );
+			$mainRecordClass::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass, $isSearchField );
 		}
 
-		$recordClassName::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass );
+		$recordClassName::modifySelect( $queryStruct, $this->storage, $filter, $mainRecordClass, $recordClassName, $requestFieldName, $requestingRecordClass, $isSearchField );
 
 		// cleanup old content edit entries
 		$this->deleteOldContentEditRecords();
@@ -2410,7 +2477,8 @@ class UHBackend implements IURLHandler {
 			'hideRecord',
 			'previewRecord',
 			'copyRecord',
-			'syncRecord'
+			'syncRecord',
+			'switchUser'
 		);
 
 		$actions = $this->getRecordActionsForDomainGroup( $recordClassName, $item );
@@ -2606,7 +2674,7 @@ class UHBackend implements IURLHandler {
 			$count++;
 		}
 
-		if ( $recordClass == 'RCPage' ) { //copy
+		if ( $recordClass == 'RCPage' || $recordClass == 'RCUser') { //copy
 			$count++;
 		}
 
@@ -2645,7 +2713,7 @@ class UHBackend implements IURLHandler {
 			throw new InvalidArgumentException( '$recordClass must be set' );
 		}
 
-		return $recordClass === 'RCPage' || (bool)$recordClass::getDataTypeFieldName( 'DTSteroidPage' ) || (bool)$recordClass::getDataTypeFieldName( 'DTSteroidLive' ) || is_subclass_of( $recordClass, 'SyncRecord' );
+		return $recordClass === 'RCPage' || $recordClass === 'RCUser' || (bool)$recordClass::getDataTypeFieldName( 'DTSteroidPage' ) || (bool)$recordClass::getDataTypeFieldName( 'DTSteroidLive' ) || is_subclass_of( $recordClass, 'SyncRecord' );
 	}
 
 	protected function cleanUpFilterFields( array $filterFields ) { // removes domainGroup and language filters if there's only 1 of them
@@ -2734,7 +2802,7 @@ class UHBackend implements IURLHandler {
 
 
 		foreach ( $languages as $language ) {
-			if ( $language->iso639 == $this->config[ 'interface' ][ 'languages' ][ 'current' ] ) {
+			if (isset( $this->config[ 'interface' ]) && isset( $this->config[ 'interface' ]['languages']) && isset( $this->config[ 'interface' ][ 'languages' ][ 'current' ]) && $language->iso639 == $this->config[ 'interface' ][ 'languages' ][ 'current' ] ) {
 				$defaultLanguage = $language;
 			}
 		}
@@ -2765,8 +2833,24 @@ class UHBackend implements IURLHandler {
 
 		$this->setLocalBEConf();
 
-		if ( !$this->user->getSelectedDomainGroup() ) {
-			$this->user->setSelectedDomainGroup( $this->urlRecord->domainGroup );
+		$selectedDomainGroup = $this->user->getSelectedDomainGroup();
+
+		if(!$selectedDomainGroup){
+			$perm = $this->storage->selectFirstRecord( 'RCDomainGroupLanguagePermissionUser', array(
+				'where' => array(
+					'user',
+					'=',
+					array( $this->user->record )
+				)
+			) );
+
+			if($perm === NULL){
+				throw new LoginFailException("No permissions for user with primary " . $this->user->record->primary);
+			}
+
+			$selectedDomainGroup = $perm->domainGroup;
+
+			$this->user->setSelectedDomainGroup($selectedDomainGroup);
 		}
 
 		if ( !$this->user->getSelectedLanguage() ) {
@@ -2779,7 +2863,7 @@ class UHBackend implements IURLHandler {
 		// $this->config[ 'interface' ][ 'languages' ][ 'current' ] = $this->user->record->backendPreference->language;
 		// $this->config[ 'interface' ][ 'themes' ][ 'current' ] = $this->user->record->backendPreference->theme;
 
-		$this->config[ 'system' ][ 'domainGroups' ][ 'current' ] = $this->user->getSelectedDomainGroup()->load()->getValues();
+		$this->config[ 'system' ][ 'domainGroups' ][ 'current' ] = $selectedDomainGroup->load()->getValues();
 
 		$this->config[ 'system' ][ 'languages' ][ 'current' ] = $this->user->getSelectedLanguage()->load()->getValues();
 
@@ -2895,12 +2979,39 @@ class UHBackend implements IURLHandler {
 
 // TODO: this might fail to work in case user got multiple permissions
 			if ( $permissions = $this->user->record->{'user:RCDomainGroupLanguagePermissionUser'} ) {
-				$this->userConfig[ 'config' ][ 'permission' ] = $permissions[ 0 ]->permission->title;
+				if(!($selectedDomainGroup = $this->user->getSelectedDomainGroup())){
+					$perm = $this->storage->selectFirstRecord( 'RCDomainGroupLanguagePermissionUser', array(
+						'where' => array(
+							'user',
+							'=',
+							array( $this->user->record )
+						)
+					) );
+
+					$selectedDomainGroup = $perm->domainGroup;
+
+					$this->user->setSelectedDomainGroup($selectedDomainGroup);
+				}
+
+				if(!($defaultLang = $this->user->getSelectedLanguage())){
+					$defaultLang = $this->getDefaultLanguage(); // might throw exception if user doesn't have any permissions!
+
+					$this->user->setSelectedLanguage( $defaultLang );
+				}
+
+				$highestPermIndex = $this->user->getHighestPermissionIndexByDomainGroupLanguage($selectedDomainGroup, $defaultLang);
+
+				if($highestPermIndex > -1){
+					$this->userConfig[ 'config' ][ 'permission' ] = User::$permissionPriority[ $highestPermIndex ];
+				} else {
+					$this->userConfig[ 'config' ][ 'permission' ] = $permissions[0]->permission->title;
+				}
 			}
 
 			$values = $this->getRecordValuesAsJson( 'RCUser', array( $this->user->record->primary ) );
 
 			$this->userConfig[ 'values' ] = array_shift( $values );
+			$this->userConfig['isSwitched'] = $this->user->isSwitchedUser();
 
 			$this->config[ 'User' ] = $this->userConfig;
 		}
@@ -2938,6 +3049,12 @@ class UHBackend implements IURLHandler {
 			'url' => $page->getUrlForPage( $page, false )
 		) );
 	}
+
+	protected function unSwitchUser(){
+		$this->user->unswitchUser();
+
+		$this->ajaxSuccess();
+	}
 }
 
 class RecordIsLockedException extends Exception {
@@ -2969,5 +3086,9 @@ class RecordLimitedToDomainGroupException extends SteroidException {
 }
 
 class InvalidPubDateException extends SteroidException {
+
+}
+
+class DuplicateEntryException extends SteroidException {
 
 }

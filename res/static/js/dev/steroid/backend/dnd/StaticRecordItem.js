@@ -12,7 +12,7 @@ define([
 		toggleable: false,
 		valueSetListener: null,
 		closeNode: null,
-		class: 'STStaticRecord',
+		"class": 'STStaticRecord',
 		ownIndexInParent: 0,
 		readOnly: false,
 
@@ -26,6 +26,11 @@ define([
 					delete me.ownFields[fieldName];
 				}
 			}
+		},
+		getIdentity: function(){
+			var me = this;
+
+			return (me.record && me.record.primary) ? me.record.primary : null;
 		},
 		postCreate: function () {
 			var me = this;
@@ -65,7 +70,7 @@ define([
 				return;
 			}
 
-			me.closeNode = domConstruct.create('div', { class: 'closeNode STWidgetIcon_close' });
+			me.closeNode = domConstruct.create('div', { "class": 'closeNode STWidgetIcon_close' });
 			me.titleBarNode.appendChild(me.closeNode);
 
 			me.closeHandle = on(me.closeNode, 'click', function () {
@@ -91,7 +96,8 @@ define([
 			me.submitName = submitName;
 
 			for (var fieldName in me.ownFields) {
-				me.ownFields[fieldName]._dt.updateSubmitName(me.submitName + '[' + fieldName + ']');
+				var name = me.useIndex ? (me.submitName + '[][' + fieldName + ']') : (me.submitName + '[' + fieldName + ']'); //FIXME: very hacky and will mostly not work except in wizards
+				me.ownFields[fieldName]._dt.updateSubmitName(name);
 			}
 		},
 		destroy: function () {

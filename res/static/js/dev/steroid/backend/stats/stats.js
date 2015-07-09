@@ -36,7 +36,7 @@ define([
 
 			me.menuBar.addChild(new MenuBarItem({
 				label: i18nDetailPane.BTClose,
-				class: 'STForceIcon STAction_close',
+				"class": 'STForceIcon STAction_close',
 				style: 'float: right',
 				onClick: function () {
 					me.backend.removeStatistics();

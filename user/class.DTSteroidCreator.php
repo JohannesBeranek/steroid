@@ -23,7 +23,7 @@ class DTSteroidCreator extends BaseDTRecordReference {
 		);
 	}
 
-	public function beforeSave( $isUpdate ) {
+	public function beforeSave( $isUpdate, array &$savePaths = NULL ) {
 		if ( !$isUpdate && $this->value === NULL ) {
 			$user = User::getCurrent(); // TODO: dependency injection somehow?
 
@@ -72,5 +72,3 @@ class DTSteroidCreator extends BaseDTRecordReference {
 	}
 
 }
-
-?>

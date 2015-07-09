@@ -20,10 +20,15 @@ class CHUnitTest extends CLIHandler {
 	/**
 	 * @var array stores all test classes found below WEBROOT
 	 */
-	protected $allTestClasses = array();
+	protected $testClasses = array();
 
 	/**
 	 * @var array stores test classes to be used/executed
+	 */
+	protected $calledClasses = array();
+
+	/**
+	 * @var array stores test classes to be used/executed including dependencies
 	 */
 	protected $usedClasses = array();
 
@@ -36,20 +41,28 @@ class CHUnitTest extends CLIHandler {
 				case '--coverage':
 					$this->doCoverage = true;
 					break;
+				default:
+					$classConf = ClassFinder::find($param, true);
+					$this->calledClasses[$param] = array_shift($classConf);
+					break;
 			}
 		}
 
-		$this->allTestClasses = ClassFinder::getAll( ClassFinder::CLASSTYPE_UNITTEST, true );
+		$this->testClasses = ClassFinder::getAll( ClassFinder::CLASSTYPE_UNITTEST, true );
+
+		if(empty($this->calledClasses)){
+			$this->calledClasses = $this->testClasses;
+		}
 
 		echo static::COLOR_DESCRIPTION . "\nResolving dependencies\n" . static::COLOR_DEFAULT;
 
-		foreach ( $this->allTestClasses as $className => $conf ) {
+		foreach ( $this->calledClasses as $className => $conf ) {
 			if ( !in_array( $className, $this->usedClasses ) ) {
 				if ( !$this->resolveDependencies( $className ) ) {
 					return EXIT_FAILURE;
 				}
 
-				$this->usedClasses[ ] = $className;
+				$this->usedClasses[] = $className;
 			}
 		}
 
@@ -65,7 +78,7 @@ class CHUnitTest extends CLIHandler {
 			//TODO: delete existing reports
 			//TODO: generate php reports and merge them into a single html report:
 
-			$cmd .= ' ' . escapeshellarg( $this->allTestClasses[$className][ 'fullPath' ] );
+			$cmd .= ' ' . escapeshellarg( $this->testClasses[$className][ 'fullPath' ] );
 
 			$descriptorspec = array(
 				0 => array( "pipe", "r" ), // stdin is a pipe that the child will read from
@@ -134,7 +147,7 @@ class CHUnitTest extends CLIHandler {
 
 		if ( !empty( $dependencies ) ) {
 			foreach ( $dependencies as $dependency ) {
-				if ( !isset( $this->allTestClasses[ $dependency ] ) ) {
+				if ( !isset( $this->testClasses[ $dependency ] ) ) {
 					throw new Exception( 'Test class "' . $testClass . '" depends on class "' . $dependency . '" which could not be found!' );
 					return false;
 				}

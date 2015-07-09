@@ -8,7 +8,7 @@ define([
 ], function (declare, DetailPane, domConstruct, Select, domClass, lang) {
 	return declare([DetailPane], {
 		isFilterPane: true,
-		class: 'STFilterPane',
+		"class": 'STFilterPane',
 		selectContainer: null,
 		selectors: null,
 		updatingFilters: false,
@@ -38,7 +38,7 @@ define([
 			me.inherited(arguments);
 
 			me.form.addInitListener(function () {
-				me.selectContainer = domConstruct.create('div', { class: 'STFilterSelectContainer' });
+				me.selectContainer = domConstruct.create('div', { "class": 'STFilterSelectContainer' });
 
 				domConstruct.place(me.selectContainer, me.form.domNode, 'before');
 

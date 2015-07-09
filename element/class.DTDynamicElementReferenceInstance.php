@@ -2,6 +2,8 @@
 
 require_once STROOT . '/datatype/class.DTDynamicRecordReferenceInstance.php';
 require_once STROOT . '/element/class.ElementRecord.php';
+require_once STROOT . '/datatype/class.DTDynamicForeignReference.php';
+
 
 class DTDynamicElementReferenceInstance extends DTDynamicRecordReferenceInstance {
 	public static function getForeignReferences( $recordClass, $calledClass, $fieldName, $fieldDef, &$fieldNames ) {

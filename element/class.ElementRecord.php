@@ -53,14 +53,27 @@ abstract class ElementRecord extends Record implements IHandleArea {
 		$fieldDefinitions[ 'ctime' ] = DTCTime::getFieldDefinition();
 		$fieldDefinitions[ 'mtime' ] = DTMTime::getFieldDefinition();
 
-		// FIXME: shouldn't be needed
-		require_once STROOT . '/datatype/class.DTDynamicForeignReference.php';
-
 		$fieldDefinitions[ 'element:RCElementInArea' ] = DTDynamicForeignReference::getFieldDefinition( 'class', true ); // TODO: unhardcode 'class'?
 	}
 
 	protected static function getKeys() {
 		return array();
+	}
+
+	public function getFormValues( array $fields ) {
+		$ret = parent::getFormValues($fields);
+
+		$containingPages = $this->getContainingPages();
+
+		if(count($containingPages) > 1){
+			$ret[ '_containingPages' ] = array();
+
+			foreach ( $containingPages as $page ) {
+				$ret[ '_containingPages' ][ ] = '(' . $page->domainGroup->getTitle() . ') ' . $page->getTitle();
+			}
+		}
+
+		return $ret;
 	}
 
 	protected static function addGeneratedKeys( array &$keys ) {
@@ -149,7 +162,6 @@ abstract class ElementRecord extends Record implements IHandleArea {
 
 	public function getContainingPages() {
 		// FIXME: using queries should be better for performance
-		// FIXME: this does not check for RCRTEArea or the like
 
 		$areas = array();
 		$elementInAreas = $this->storage->selectRecords('RCElementInArea', array('fields' => array('area.*'), 'where' => array('element', '=', array($this->{Record::FIELDNAME_PRIMARY}), 'AND', 'class', '=', array(get_called_class()))));
@@ -194,5 +206,54 @@ abstract class ElementRecord extends Record implements IHandleArea {
 		}
 
 		return $pages;
+	}
+
+	public function duplicate(){
+		$values = array();
+		$fields = $this->getOwnFieldDefinitions();
+
+		foreach($fields as $fieldName => $fieldDef){
+			if(in_array($fieldDef['dataType'], array('DTSteroidPrimary', 'DTSteroidID', 'DTMTime', 'DTCTime', 'DTPubStartDateTime', 'DTPubEndDateTime'))){
+				$values[$fieldName] = NULL;
+			} else {
+				$values[$fieldName] = $this->{$fieldName};
+			}
+		}
+
+		$class = get_called_class();
+
+		$newElement = $class::get( $this->storage, $values, false );
+
+		$formFields = $this->getFormFields($this->storage);
+
+		foreach($formFields as $fieldName => $formField){
+			if(is_subclass_of($formField['dataType'], 'BaseDTForeignReference')){
+				$foreignFieldName = $this->fields[ $fieldName ]->getForeignFieldName();
+				$foreignRecordClass = $this->fields[ $fieldName ]->getRecordClass();
+
+				$foreignRecs = $this->{$fieldName};
+				$foreignRecValues = array();
+
+				foreach($foreignRecs as $foreignRec){
+					$values = $foreignRec->getValues();
+					$newValues = array();
+
+					foreach($values as $colName => $value){
+						$newValues[str_replace('_primary', '', $colName)] = $value;
+					}
+
+					$newValues[$foreignFieldName] = $newElement;
+					$foreignRecValues[] = $foreignRecordClass::get($this->storage, $newValues, false);
+				}
+
+				$newElement->{$fieldName} = $foreignRecValues;
+			}
+		}
+
+		return $newElement;
+	}
+
+	public function getRewrites(){
+		return NULL;
 	}
 }

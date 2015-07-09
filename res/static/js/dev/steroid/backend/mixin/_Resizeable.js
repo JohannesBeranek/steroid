@@ -16,7 +16,7 @@ define([
 		sizeableHoriz: false,
 		sizeableVert: false,
 		resizeHandle: null,
-		class: 'STResizeable',
+		"class": 'STResizeable',
 		parentDimensions: null,
 		ownDimensions: null,
 		currentDimensions: null,

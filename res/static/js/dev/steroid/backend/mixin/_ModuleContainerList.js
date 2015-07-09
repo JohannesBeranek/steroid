@@ -34,7 +34,7 @@ define([
 				region: 'left',
 				splitter: false,
 				gutters: false,
-				class: 'STModuleContainerList',
+				"class": 'STModuleContainerList',
 				hasMultiple: me.hasMultiple,
 				isRecordSelector: me.isRecordSelector,
 				backend: me.backend,

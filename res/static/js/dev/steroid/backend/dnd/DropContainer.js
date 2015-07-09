@@ -5,7 +5,6 @@ define([
 	"dojo/_base/array",
 	"dojo/dom-construct",
 	"dojo/aspect",
-	"dojo/_base/array",
 	"dojo/Deferred",
 	"dojo/on",
 	"dojo/_base/lang",
@@ -17,7 +16,7 @@ define([
 	"steroid/backend/mixin/_hasStandBy",
 	"steroid/backend/mixin/_hasInitListeners",
 	"dojo/dom-class"
-], function (declare, ContentPane, domStyle, array, domConstruct, aspect, array, Deferred, on, lang, mouse, event, domGeom, domAttr, DeferredList, _hasStandBy, _hasInitListeners, domClass) {
+], function (declare, ContentPane, domStyle, array, domConstruct, aspect, Deferred, on, lang, mouse, event, domGeom, domAttr, DeferredList, _hasStandBy, _hasInitListeners, domClass) {
 	return declare([ContentPane, _hasStandBy, _hasInitListeners], {
 		itemContainerNode: null,
 		placeHolder: null,
@@ -31,9 +30,10 @@ define([
 		aspects: null,
 		emptySubmitNode: null,
 		submitName: null,
-		class: 'STDropContainer',
+		"class": 'STDropContainer',
 		disabled: false,
 		readOnly: false,
+		useIndex: false,
 
 		constructor: function () {
 			this.items = [];
@@ -45,7 +45,7 @@ define([
 
 			me.standByNode = me.domNode;
 
-			me.itemContainerNode = domConstruct.create('div', { class: 'STDropContainer' });
+			me.itemContainerNode = domConstruct.create('div', { "class": 'STDropContainer' });
 
 			me.containerNode.appendChild(me.itemContainerNode);
 
@@ -168,6 +168,8 @@ define([
 		addItem: function (item, dropIndex) {
 			var me = this;
 
+			item.useIndex = me.useIndex;
+
 			if (item.currentContainer) {
 				item.beforeDomMove();
 			}
@@ -256,7 +258,7 @@ define([
 			var me = this;
 
 			if (append) {
-				return me.itemContainerNode.childNodes.length;
+				return me.incomingValueCount === 0 ? 0 : me.itemContainerNode.childNodes.length;
 			}
 
 			if (!me.placeHolder && item.currentContainer == me) {
@@ -628,7 +630,7 @@ define([
 			var width = me.getPlaceHolderWidth();
 			var height = me.getPlaceHolderHeight();
 
-			return domConstruct.create('div', { style: 'height: ' + height + ';width: ' + width, class: 'STWidgetPlaceholder' });
+			return domConstruct.create('div', { style: 'height: ' + height + ';width: ' + width, "class": 'STWidgetPlaceholder' });
 		},
 		getPlaceHolderWidth: function () {
 			return this.placeHolderWidth;

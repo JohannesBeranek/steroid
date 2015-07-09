@@ -8,7 +8,7 @@ define([
 	"dijit/PopupMenuItem",
 	"dijit/MenuItem",
 	"dijit/a11yclick",
-	"dijit/registry",
+	"dijit/registry"
 ], function (declare, _WidgetBase, MenuBarItem, i18n, DropDownMenu, PopupMenuBarItem, PopupMenuItem, MenuItem, a11yclick, registry) {
 
 	var DropDownMenuWithClickablePopupMenuItems = declare([DropDownMenu], {
@@ -48,9 +48,11 @@ define([
 		menuBar: null,
 		backend: null,
 		listeners: null,
+		items: [],
 
 		constructor: function () {
 			this.listeners = [];
+			this.items = [];
 		},
 		postCreate: function () {
 			var me = this;
@@ -59,7 +61,7 @@ define([
 
 			me.domainGroupMenuItem = new PopupMenuBarItem({
 				label: me.backend.config.system.domainGroups.current.title,
-				class: 'STForceIcon STIconDomainGroup',
+				"class": 'STForceIcon STIconDomainGroup',
 				popup: me.domainGroupMenu,
 				style: 'float:right;'
 			});
@@ -135,7 +137,7 @@ define([
 					label: domainGroups[i].title,
 					domainGroup: domainGroups[i],
 					iconClass: 'STForceIcon STDomainGroup_' + ' STDomainGroup_' + (!domainGroups[i].excludeFromSearch ? 'hasSearch' : 'noSearch'),
-					class: 'STForceIcon STDomainGroup_' + (domainGroups[i].hasTracking ? 'hasTracking' : 'noTracking'),
+					"class": 'STForceIcon STDomainGroup_' + (domainGroups[i].hasTracking ? 'hasTracking' : 'noTracking'),
 					onClick: itemClickFunction
 				};
 
@@ -153,6 +155,8 @@ define([
 
 				// me.listeners.push(item.on(a11yclick, ));
 
+				me.items.push(item);
+
 				menu.addChild(item);
 			}
 		},
@@ -164,6 +168,12 @@ define([
 			}
 
 			me.listeners = [];
+
+			for (var i = 0, ilen = me.items.length; i < ilen; i++) {
+				me.items[i].destroyRecursive();
+			}
+
+			me.items = [];
 
 			me.menuBar.removeChild(me.domainGroupMenuItem);
 

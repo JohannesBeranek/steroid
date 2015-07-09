@@ -72,7 +72,7 @@ define([
 			me.detailPane = new pane({
 				style: 'border: 0;overflow:hidden;padding:0;',
 				region: 'center',
-				class: 'STDetailPane',
+				"class": 'STDetailPane',
 				splitter: false,
 				gutters: false,
 				moduleContainer: me,
@@ -106,7 +106,7 @@ define([
 					me.detailActionSuccess(action);
 
 					if (action !== 'previewRecord') {
-						if (action === 'deleteRecord') {
+						if (action === 'deleteRecord' || action === 'duplicateRecord') {
 							me.detailPane.close(true);
 						} else {
 							me.detailPane.suspendDirtyCheck = true;
@@ -309,6 +309,6 @@ define([
 			delete me.backend;
 
 			me.inherited(arguments);
-		},
+		}
 	});
 });

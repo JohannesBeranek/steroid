@@ -12,6 +12,3 @@ require_once STROOT . '/storage/record/class.Record.php';
 class DTEditableRecordReference extends DTRecordReference {
 
 }
-
-
-?>

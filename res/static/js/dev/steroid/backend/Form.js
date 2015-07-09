@@ -2,7 +2,7 @@ define([
 	"dojo/_base/declare",
 	"dijit/form/Form",
 	"steroid/backend/mixin/_SubFormMixin",
-	"dojo/_base/lang",
+	"dojo/_base/lang"
 ], function (declare, Form, _SubFormMixin, lang) {
 	return declare([Form, _SubFormMixin], {
 		isNew: false,

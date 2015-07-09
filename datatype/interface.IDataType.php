@@ -30,16 +30,15 @@ interface IDataType {
 	 *
 	 * @param null $data the value according to datatype
 	 * @param bool $loaded whether the value was read from db (will not set the field dirty then)
-	 * @param string $fieldName as which fieldName is the data being set
+	 * @param string $path pass empty string to use dirtyTracking or path to be prepended
+	 * @param array &$dirtyTracking pass array to track dirtied paths
 	 */
-	public function setValue( $data = NULL, $loaded = false );
+	public function setValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL );
+	
+	public function setRealValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL );
+	
+	public function setRawValue( $data = NULL, $loaded = false, $path = NULL, array &$dirtyTracking = NULL );
 
-	/**
-	 * Set dirty - ONLY FOR EMERGENCY CASES LIKE RESTORING BACKUP
-	 * 
-	 * @param bool $dirty
-	 */
-	public function setDirty( $dirty );
 
 	/**
 	 * Get value
@@ -59,7 +58,7 @@ interface IDataType {
 	 * 
 	 * @param bool $isUpdate
 	 */
-	public function beforeSave( $isUpdate );
+	public function beforeSave( $isUpdate, array &$savePaths = NULL );
 
 	/**
 	 * After save
@@ -69,33 +68,38 @@ interface IDataType {
 	 * @param bool $isUpdate
 	 * @param array $saveResult
 	 */
-	public function afterSave( $isUpdate, array $saveResult );
+	public function afterSave( $isUpdate, array $saveResult, array &$savePaths = NULL );
 
 	/**
 	 * Before delete
 	 *
 	 * called before the record is deleted from storage
 	 */
-	public function beforeDelete( array &$basket = NULL );
+	public function beforeDelete();
 
 	/**
 	 * After delete
 	 *
 	 * called after the record has been deleted from storage
 	 */
-	public function afterDelete(array &$basket = NULL );
+	public function afterDelete();
 	
 	/**
 	 * Has the value of the dataType ever been set?
 	 */
 	public function hasBeenSet();
 	
-	
+	/**
+	 * Helps with memory management
+	 */
+	public function unload();
+		
 	public static function getTitleFields( $fieldName, $config );
 	
 	public static function fillTitleFields( $fieldName, &$titleFields, $config );
 	
 	public function refresh();
+	
+	public function fillUpValues( array $values, $loaded, $path = NULL, array &$dirtyTracking = NULL );
+		
 }
-
-?>
