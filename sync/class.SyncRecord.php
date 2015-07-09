@@ -113,6 +113,12 @@ abstract class SyncRecord extends Record {
 	public function doSync( $complete = false ) {
 		throw new LogicException( 'Cannot call syncRecord on abstract class, did you forget to implement?' );
 	}
+
+	public static function getDefaultSorting(){
+		return array(
+			Record::FIELDNAME_PRIMARY => DB::ORDER_BY_DESC
+		);
+	}
 }
 
 class SyncFailException extends SteroidException {
