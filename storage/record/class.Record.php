@@ -3614,10 +3614,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$defaultSorting = array(
 				$ctimeField => DB::ORDER_BY_DESC
 			);
-		} else if ( static::fieldDefinitionExists( Record::FIELDNAME_PRIMARY ) ) {
-			$defaultSorting = array(
-				Record::FIELDNAME_PRIMARY => DB::ORDER_BY_ASC
-			);
+		}
+
+		if ( static::fieldDefinitionExists( Record::FIELDNAME_PRIMARY ) ) {
+			$defaultSorting[ Record::FIELDNAME_PRIMARY ] = DB::ORDER_BY_ASC;
 		}
 
 		return $defaultSorting;
