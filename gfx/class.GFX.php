@@ -675,8 +675,8 @@ class GFX {
 		}
 
 		if (isset($params['src']) && $params['src'] instanceof RCFile) {
-			if ($renderConfig = $params['src'] -> renderConfig) {
-				$params = array_merge($renderConfig, $params);
+			if ($renderConfig = $params['src']->renderConfig) {
+				$params = array_merge_recursive($renderConfig, $params);
 			}
 		}
 
@@ -1209,7 +1209,7 @@ class GFX {
 
 													// $bbox = imagettftext($textImage, $params['fontSize'] * self::$gdFontUnitMultiplier, 0, round($temp_x), -$metrics['boundingBox']['y1'], $color, $params['font'], $params['text'][$i]);
 													$oldLocale = setlocale(LC_ALL, 'C');
-													
+
 													try {
 														$draw -> annotation($temp_x, $metrics['ascender'] * 1.1, $textArr[$i]);
 														// TODO: instead of ascender use bbox of whole text string
@@ -1217,17 +1217,17 @@ class GFX {
 														setlocale(LC_ALL, $oldLocale);
 														throw($e);
 													}
-													
+
 													setlocale(LC_ALL, $oldLocale);
-													
+
 													$temp_x += $this -> getAdvanceWidth($params['font'], $params['fontSize'], $textArr[$i]);
 												}
 
 											} else {
 												$metrics = $im -> queryFontMetrics($draw, $params['text']);
-												
+
 												$oldLocale = setlocale(LC_ALL, 'C');
-												
+
 												try {
 													$draw -> annotation(0, $metrics['ascender'] * 1.1, $params['text']);
 													// TODO: instead of ascender use bbox
@@ -1235,7 +1235,7 @@ class GFX {
 													setlocale(LC_ALL, $oldLocale);
 													throw $e;
 												}
-												
+
 												setlocale(LC_ALL, $oldlocale);
 											}
 

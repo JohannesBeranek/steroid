@@ -97,7 +97,7 @@ define({
 		firstname: 'Vorname',
 		lastname: 'Nachname',
 		gender: 'Geschlecht (m/f)',
-		filename: 'Dateiname',
+		filename: 'Dateiname (Mindestgröße 710x400px für Bilder)',
 		template: 'Template',
 		description: 'Beschreibung',
 		url: 'Url',

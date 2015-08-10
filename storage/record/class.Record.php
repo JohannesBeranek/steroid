@@ -3317,6 +3317,9 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 				$values[ $languageField ] = isset( $changes[ 'language' ] ) ? $changes[ 'language' ] : $this->getFieldValue( $languageField );
 
 				if ( isset( $changes[ 'live' ] ) ) {
+					if($this->{$languageField} === NULL){
+					Log::write(get_called_class(), $this->getValues());
+					}
 					$values[ $languageField ] = $this->{$languageField}->getFamilyMember( $changes );
 				}
 
@@ -3611,10 +3614,10 @@ abstract class Record implements IRecord, IBackendModule, JsonSerializable {
 			$defaultSorting = array(
 				$ctimeField => DB::ORDER_BY_DESC
 			);
-		} else if ( static::fieldDefinitionExists( Record::FIELDNAME_PRIMARY ) ) {
-			$defaultSorting = array(
-				Record::FIELDNAME_PRIMARY => DB::ORDER_BY_ASC
-			);
+		}
+
+		if ( static::fieldDefinitionExists( Record::FIELDNAME_PRIMARY ) ) {
+			$defaultSorting[ Record::FIELDNAME_PRIMARY ] = DB::ORDER_BY_ASC;
 		}
 
 		return $defaultSorting;
