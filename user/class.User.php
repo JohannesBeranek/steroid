@@ -684,6 +684,19 @@ class User {
 	}
 
 	public function getSelectedDomainGroup() {
+		$selectedDomainGroup = $this->getSelected( self::SELECTED_DOMAIN_GROUP );
+		$permissions = $this->getPermissionsForDomainGroup( $selectedDomainGroup );
+
+		if(empty($permissions)){
+			$selectableDomainGroups = $this->getSelectableDomainGroups();
+
+			if(!empty($selectableDomainGroups)){
+				$selectedDomainGroup = array_shift($selectableDomainGroups);
+
+				$this->setSelectedDomainGroup($selectedDomainGroup);
+			}
+		}
+
 		return $this->getSelected( self::SELECTED_DOMAIN_GROUP );
 	}
 
