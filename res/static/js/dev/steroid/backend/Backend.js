@@ -27,7 +27,6 @@ define([
 	"dojo/i18n!steroid/backend/nls/RecordClasses",
 	"dojo/i18n!steroid/backend/nls/Errors",
 	"dojo/hash",
-	"steroid/backend/DetailPane",
 	"dojox/data/JsonRestStore",
 	"steroid/backend/STStore",
 	"dojo/store/Observable",
@@ -58,7 +57,7 @@ define([
 	"steroid/backend/dnd/Clipboard",
 	"steroid/backend/dnd/DndManager",
 	"steroid/backend/stats/stats"
-], function (_WidgetBase, declare, TitlePane, ContentPane, BorderContainer, MenuBar, DropDownMenu, PopupMenuBarItem, MenuBarItem, StackContainer, STUser, STDomainGroupSelector, STLanguageSelector, STMenuTime, STServerComm, ModuleMenuItem, WizardMenuItem, i18n, i18nRC, i18nErr, hash, DetailPane, JsonRestStore, STStore, ObservableStore, Dialog, langFuncObj, AccordionContainer, win, aspect, lang, ioQuery, connect, domConstruct, domClass, Button, array, ErrorDialog, ReferenceDialog, ModuleContainer, _ModuleContainerList, domStyle, _hasStandBy, WelcomeScreen, Toaster, i18nToaster, baseWindow, registry, _hasInitListeners, Clipboard, DndManager, STStats) {
+], function (_WidgetBase, declare, TitlePane, ContentPane, BorderContainer, MenuBar, DropDownMenu, PopupMenuBarItem, MenuBarItem, StackContainer, STUser, STDomainGroupSelector, STLanguageSelector, STMenuTime, STServerComm, ModuleMenuItem, WizardMenuItem, i18n, i18nRC, i18nErr, hash, JsonRestStore, STStore, ObservableStore, Dialog, langFuncObj, AccordionContainer, win, aspect, lang, ioQuery, connect, domConstruct, domClass, Button, array, ErrorDialog, ReferenceDialog, ModuleContainer, _ModuleContainerList, domStyle, _hasStandBy, WelcomeScreen, Toaster, i18nToaster, baseWindow, registry, _hasInitListeners, Clipboard, DndManager, STStats) {
 	return declare([ _WidgetBase, _hasStandBy, _hasInitListeners], {
 		debugMode: false,
 		moduleContainer: null,

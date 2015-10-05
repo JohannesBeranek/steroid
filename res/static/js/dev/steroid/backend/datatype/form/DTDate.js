@@ -3,9 +3,9 @@ define([
 	"steroid/backend/datatype/form/_DTFormFieldMixin",
 	"steroid/backend/datatype/_DTDate",
 	"dijit/form/DateTextBox"
-], function (declare, _DTFormFieldMixin, _DTDateTime, DateTextBox) {
+], function (declare, _DTFormFieldMixin, _DTDate, DateTextBox) {
 
-	return declare([DateTextBox, _DTFormFieldMixin, _DTDateTime], {
+	return declare([DateTextBox, _DTFormFieldMixin, _DTDate], {
 		value: "1970-01-01",
 
 		getConstraints: function () {

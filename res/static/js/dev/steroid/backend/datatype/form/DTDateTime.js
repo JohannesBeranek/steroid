@@ -75,7 +75,9 @@ define([
 				var dateString = me.getDateString(date);
 				var timeString = me.getTimeString(time);
 
-				me.set('value', dateString + ' ' + timeString);
+				var newValue = dateString + ' ' + timeString;
+
+				me.set('value', newValue);
 			}
 		},
 		destroy: function () {

@@ -81,8 +81,6 @@ define([
 				classConfig: me.classConfig
 			}));
 
-			var mixins = [STForm];
-
 			if (me.classConfig.customJS && me.classConfig.customJS.indexOf('form') !== -1) {
 				var path;
 
@@ -94,18 +92,14 @@ define([
 				}
 
 				require([path], function (customForm) {
-					mixins.push(customForm);
-
-					me.createForm(mixins);
+					me.createForm(declare([STForm, customForm], {}));
 				});
 			} else {
-				me.createForm(mixins);
+				me.createForm(STForm);
 			}
 		},
 		createForm: function (form) {
 			var me = this;
-
-			var form = declare(form, {});
 
 			me.form = new form({
 				encType: 'multipart/form-data',
