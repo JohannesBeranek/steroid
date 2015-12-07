@@ -490,6 +490,7 @@ define([
 			for (var fieldName in me.ownFields) {
 				var fieldDirtyNess = me.ownFields[fieldName]._dt.getDirtyNess();
 
+
 				if (fieldDirtyNess > 0) {
 					return fieldDirtyNess;
 				}
@@ -563,8 +564,6 @@ define([
 			var valueFieldCount = langFunc.keys(me.ownFields).length;
 
 			for (var fieldName in me.ownFields) {
-				me.ownFields[fieldName]._dt.set('value', me.record[fieldName]);
-
 				me.ownFields[fieldName]._dt.addValueSetListenerOnce(function (dt) {
 					valueFieldCount--;
 
@@ -572,6 +571,8 @@ define([
 						me.valueComplete();
 					}
 				});
+
+				me.ownFields[fieldName]._dt.set('value', me.record[fieldName]);
 			}
 		},
 		resetRecord: function () {

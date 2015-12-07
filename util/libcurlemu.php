@@ -47,7 +47,7 @@ class HTTPRetriever {
 	public $response_headers = array();
 	
 	// Constructor
-	public function HTTPRetriever() {
+	public function __construct() {
 		// default HTTP headers to send with all requests
 		$this->headers = array(
 			"Referer"=>"",

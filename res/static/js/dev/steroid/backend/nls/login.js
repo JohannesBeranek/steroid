@@ -5,7 +5,7 @@ define({ root:
 		labelUsername:'Username',
 		labelPassword:'Password',
 		labelLogin: 'Login',
-		labelLoginBusy: 'Trying to log in &hellip;',
+		labelLoginBusy: "Trying to log in \u2026",
 
 		invalidUsername: 'Invalid username',
 		invalidPassword: 'Invalid password'

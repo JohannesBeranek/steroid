@@ -68,16 +68,15 @@ define([
 
 					urlRecord.startup();
 
+					// in DropContainer.js this adds value set listener once
 					me.addItem(urlRecord, me.items.length);
 
 					urlRecord.set('value', value.urls[i]);
-
-					me.valueWatches.push(urlRecord.watch('STValue', function (name, oldValue, newValue) {
-						me.valueChange();
-					}));
 				}
+
+				// after set has been called on all items once, valueComplete is called in DropContainer.js
 			} else {
-				me.valueComplete();
+				me.inherited(arguments);
 			}
 
 			var text = '';

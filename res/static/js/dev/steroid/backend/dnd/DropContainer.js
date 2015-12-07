@@ -196,12 +196,13 @@ define([
 				}
 			}
 
-	
+
 
 			// add watches, aspects to item for value change and destroyRecursive
 			me.itemWatches.splice(dropIndex, 0, item.watch('STValue', function () {
 				if (!me.backend.suspendValueWatches && !me.incomingValueCount) {
-					me.set('STValue', me.get('value'));
+					// if multiple values are set at once, this should only run once at the end due to check of me.incomingValueCount
+					me.valueChange();
 				}
 			}));
 
@@ -223,7 +224,7 @@ define([
 			// add to items array
 			me.items.splice(dropIndex, 0, item);
 
-			// FIXME: what is this here for?
+			// Make sure that after all values are set, everything is sized correctly, item indexes are correct, and valueComplete is called.
 			item.addValueSetListenerOnce(function (itemWithValue) {
 				if (me.incomingValueCount) {
 					me.incomingValueCount--;
@@ -248,8 +249,13 @@ define([
 				}
 			});
 
-			// FIXME: why do we return item?
+			// return item for chaining
 			return item;
+		},
+		valueChange: function () {
+			var me = this;
+
+			me.set('STValue', me.get('value'));
 		},
 		isOriginalItem: function (item) {
 			return !item.isNew;
@@ -563,7 +569,7 @@ define([
 								}
 							}
 						}
-// DUP END					
+// DUP END
 						if (!found) { // no row for item found, place before
 
 						}
@@ -606,7 +612,7 @@ define([
 								}
 							}
 						}
-// DUP END					
+// DUP END
 
 						if (!found) { // no row for item found, place after
 							after = true;

@@ -235,9 +235,13 @@ define([
 
 			me.inherited(arguments);
 
-			me.valueComplete();
+			// only trigger valueComplete and setting STValue and STSetValue after we're initialized
+			// This catches calls to _setValueAttr in initialization (e.g. in Dijit DateTextBox, where setDisplayedValue calls _setValueAttr)
+			if (me.initialized) {
+				me.valueComplete();
 
-			me.set('STValue', me.STSetValue(value));
+				me.set('STValue', me.STSetValue(value));
+			}
 		},
 		valueComplete: function () {
 			var me = this;

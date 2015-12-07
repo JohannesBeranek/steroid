@@ -4,5 +4,5 @@ define({
 	labelPassword: 'Passwort',
 	labelLogin: 'Anmelden',
 	errorLoginFail:'Anmeldedaten inkorrekt',
-	labelLoginBusy:'Versuche anzumelden &hellip;'
+	labelLoginBusy:"Versuche anzumelden \u2026"
 });
