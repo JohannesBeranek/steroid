@@ -35,25 +35,46 @@ define([
 		postCreate: function () {
 			var me = this;
 
-			me.inherited(arguments);
-
-			me.form.addInitListener(function () {
-				me.selectContainer = domConstruct.create('div', { "class": 'STFilterSelectContainer' });
-
-				domConstruct.place(me.selectContainer, me.form.domNode, 'before');
-
-				me.addSelect(me.getAvailableFilters());
+			me.selectContainer = domConstruct.create('div', { "class": 'STFilterSelectContainer' });
+			
+			me.addInitListener(function () {
+				me.addSelect(me.getAvailableFilters());	
 			});
 
-			me.form.addValueSetListenerOnce(function () {
-				var domainGroupField = me.form.getFieldByFieldName(me.form.getDataTypeFieldName('DTSteroidDomainGroup'));
+			me.inherited(arguments);
+		},
+		setUpRecordLabel: function() {
+			// override and skip inherited
 
-				if (domainGroupField) {
-					domainGroupField.fieldConf.mayBeEmpty = true;
+			var me = this;
+			
+			// this should be called right after setUpFormContainer in DetailPane
+			domConstruct.place(me.selectContainer, me.form.domNode, 'before');
+			
+			
+			me.addInitListener(function () {
+				var val = {};
+
+				for (var fieldName in me.classConfig.filterFields) {
+					val[fieldName] = me.classConfig.filterFields[fieldName]['default'];
 				}
 
-				me.showDefaultFilters();
+				me.form.addValueSetListenerOnce(function(itemWithValue) {
+					// change mayBeEmpty after initial load, as field is only set to current domainGroup value if mayBeEmpty is false!
+					var domainGroupField = me.form.getFieldByFieldName(me.form.getDataTypeFieldName('DTSteroidDomainGroup'));
+					
+					if (domainGroupField) {
+						domainGroupField.fieldConf.mayBeEmpty = true;
+					}
+
+					me.showDefaultFilters();
+				});
+
+				// me.loadRecord would do exactly the same, as everything besides me.form.loadRecord is a noop for FilterPane or skipped due to various checks
+				me.form.loadRecord(val);
+
 			});
+
 		},
 		showDefaultFilters: function () {
 			var me = this;
