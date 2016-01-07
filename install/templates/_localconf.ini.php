@@ -39,11 +39,15 @@ default_theme = "dijit-claro"
 
 [web]
 cache = "file"
+
 ;allow usage of qt, qc, tt, qbt query parameters
 ;enableDebugParameter = true
-;disableHTTPS = true
+
 ;always redirect to HTTPS, except if disabled in backend, for domains matching regex
 ;preferHTTPS = "/^([^\.]+\.)?example\.com$/"
+
+;domains for which to send HSTS header on HTTPS - these will also be preferred to be https automatically, so don't need to be included in preferHTTPS again!
+;domainsHSTS[] = "*.example.com"
 
 ;optional ; possible values: "scssc", "sass", false
 ;scss_cli = "scssc"
