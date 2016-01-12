@@ -27,7 +27,7 @@ class Responder {
 
 	// $maxAge in seconds
 	public static function sendHSTSHeader( $maxAge = 31536000 ) {
-		if ( Request::getCurrent()->getServerInfo( RequestInfo::PROXY_SAFE_IS_HTTPS ) && ( $domains = Config::key('web', 'domainsHSTS') ) && Match::multiFN( $_SERVER['HTTP_HOST'], $domains ) ) {
+		if ( RequestInfo::getCurrent()->getServerInfo( RequestInfo::PROXY_SAFE_IS_HTTPS ) && ( $domains = Config::key('web', 'domainsHSTS') ) && Match::multiFN( $_SERVER['HTTP_HOST'], $domains ) ) {
 			header( "Strict-Transport-Security: max-age=" . $maxAge );
 		}
 	}
