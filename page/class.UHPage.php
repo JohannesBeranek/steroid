@@ -68,13 +68,13 @@ class UHPage implements IURLHandler {
 		if ( ( $newPage = RCPage::getTargetPage( $this->currentPage ) ) !== $this->currentPage ) {
 			$targetLocation = $this->currentPage->getUrlForPage( $newPage, true, true );
 
-			header( 'Location: ' . $targetLocation );
+			Responder::sendLocationHeader( $targetLocation );
 
 			return self::RETURN_CODE_HANDLED;
 		}
 
 		// default content-type, may be overriden by calling header(...) again
-		header( 'Content-Type: text/html; charset=utf-8' );
+		Responder::sendContentTypeHeader( 'text/html', false, 'utf-8' );
 
 		// set locale
 		$locale = $this->currentPage->language->locale;
@@ -230,7 +230,7 @@ class UHPage implements IURLHandler {
 
 
 			$language = $this->currentPage->language;
-			header( 'Content-Language: ' . $language->iso639 );
+			Responder::sendContentLanguageHeader( $language->iso639 );
 
 // output "filter" demo
 			/*
@@ -248,18 +248,14 @@ class UHPage implements IURLHandler {
 							}, $output);
 						}
 			*/
-			$acceptGzip   = false;
 			$acceptHeader = $requestInfo->getServerInfo( 'HTTP_ACCEPT_ENCODING' );
 
 			// TODO: cache gzencoded output ?
 			if ( $acceptHeader && strpos( $acceptHeader, 'gzip' ) !== false ) {
-				$acceptGzip = true;
-				header( 'Content-Encoding: gzip' );
-
-				$output = gzencode( $output, 9 );
+				Responder::sendString( gzencode( $output, 9 ), NULL, NULL, NULL, false, 'gzip' );
+			} else {
+				Responder::sendString( $output );
 			}
-
-			echo $output;
 		}
 
 		return self::RETURN_CODE_HANDLED;
