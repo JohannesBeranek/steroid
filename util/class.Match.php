@@ -17,7 +17,7 @@ class Match {
 		}
 
 		while($patternParts) {
-			$patterPart = array_pop($patternParts);
+			$patternPart = array_pop($patternParts);
 			$strPart = array_pop($strParts);
 
 			if (fnmatch($patternPart, $strPart)) {
