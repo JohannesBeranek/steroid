@@ -197,7 +197,7 @@ class STWeb extends ST {
 
 								Responder::sendReturnCodeHeader( 302 );
 
-								Responder::sendLocationHeader( 'Location: ' . $targetPage->getUrlForPage( RCPage::ABSOLUTE_NO_PROTOCOL ) );
+								Responder::sendLocationHeader( $targetPage->getUrlForPage( RCPage::ABSOLUTE_NO_PROTOCOL ) );
 								
 								return;
 							}
