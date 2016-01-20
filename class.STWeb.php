@@ -203,7 +203,7 @@ class STWeb extends ST {
 							}
 
 						} else if ( ! RequestInfo::getCurrent()->getServerInfo( RequestInfo::PROXY_SAFE_IS_HTTPS ) && !Config::key('web', 'disableHTTPS') && 
-							( ( ( $domainMatch = Config::key( 'web', 'preferHTTPS') ) && preg_match( $domainMatch, $domainRecord->domain ) ) || ( ( $hstsMatchList = Config::key( 'web', 'domainsHSTS' ) ) && Match::multiFN( $domainRecord->domain, $hstsMatchList ) ) ) ) {
+							( ( ( $domainMatch = Config::key( 'web', 'preferHTTPS') ) && preg_match( $domainMatch, $domainRecord->domain ) ) || ( ( $hstsMatchList = Config::key( 'web', 'domainsHSTS' ) ) && Match::multiDN( $domainRecord->domain, $hstsMatchList ) ) ) ) {
 							$this->redirectToHTTPS();
 							
 							return;
