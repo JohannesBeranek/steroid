@@ -25,6 +25,7 @@ class DBTableDefinition implements IDBTableDefinition {
 	const RESULT_EXPECTED = 'expected';
 	const RESULT_ACTUAL = 'actual';
 	const RESULT_SUMMARY = 'summary';
+	const RESULT_RECORD_COUNT = 'recordCount';
 
 	const SAFE_UPDATE_TRUE = 1;
 	const SAFE_UPDATE_FALSE = 0;
