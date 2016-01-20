@@ -228,7 +228,7 @@
 	background: transparent url('/steroid/res/static/img/icons/claro/hide.png') no-repeat center left !important;
 }
 
-.claro .STWidgetIcon_switchUser, .claro .STIcon_switchUser, .visibleNode {
+.claro .STWidgetIcon_switchUser, .claro .STIcon_switchUser {
 	background: transparent url('/steroid/res/static/img/icons/claro/switchUser.png') no-repeat center left !important;
 }
 

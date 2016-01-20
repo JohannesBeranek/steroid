@@ -5,6 +5,11 @@
 
 require_once STROOT . '/url/class.UrlUtil.php';
 
+require_once STROOT . '/util/class.Config.php';
+require_once STROOT . '/util/class.Match.php';
+
+require_once STROOT . '/request/class.RequestInfo.php';
+
 /**
  * @package steroid\util
  */
@@ -20,7 +25,21 @@ class Responder {
 		'html' => 'text/html'
 	);
 
-	protected static function sendContentTypeHeader( $mimetype, $forceDownload = false ) {
+	// $maxAge in seconds
+	public static function sendHSTSHeader( $maxAge = 31536000 ) {
+		if ( RequestInfo::getCurrent()->getServerInfo( RequestInfo::PROXY_SAFE_IS_HTTPS ) && ( $domains = Config::key('web', 'domainsHSTS') ) && Match::multiFN( $_SERVER['HTTP_HOST'], $domains ) ) {
+			header( "Strict-Transport-Security: max-age=" . $maxAge );
+		}
+	}
+
+	public static function sendLocationHeader( $location ) {
+		self::sendHSTSHeader();
+
+		// TODO: escaping!
+		header( 'Location: ' . $location );
+	}
+
+	public static function sendContentTypeHeader( $mimetype = NULL, $forceDownload = false, $charset = '' ) {
 		if ( $forceDownload !== false ) {
 			$ext = pathinfo( $forceDownload, PATHINFO_EXTENSION );
 
@@ -47,13 +66,27 @@ class Responder {
 			header( 'Content-disposition: attachment; filename="' . $simpleFilename . '"; filename*=utf-8\'\'' . rawurlencode( $forceDownload ) );
 			header( 'Content-Type: application/octet-stream' );
 		} else if ( $mimetype !== NULL ) {
-			header( 'Content-Type: ' . $mimetype );
+			header( 'Content-Type: ' . $mimetype . ( $charset ? ( '; charset=' . $charset ) : '' ));
 		}
 
-
+	
 	}
 
-	protected static function sendContentHeader( $mimetype, $size, $mtime, $forceDownload = false ) {
+	public static function sendContentLanguageHeader( $iso639 ) {
+		if ( $iso639 ) {
+			header( 'Content-Language: ' . $iso639 );
+		}
+	}
+
+	public static function sendContentEncodingHeader( $encoding = 'gzip' ) {
+		if ( $encoding !== NULL ) {
+			header( 'Content-Encoding: ' . $encoding );
+		}
+	}
+
+	protected static function sendContentHeader( $mimetype, $size, $mtime, $forceDownload = false, $encoding = NULL ) {
+		self::sendContentEncodingHeader( $encoding );
+
 		self::sendContentTypeHeader( $mimetype, $forceDownload );
 
 		header( 'Content-Length: ' . $size );
@@ -61,12 +94,10 @@ class Responder {
 	}
 
 
-	public static function sendString( $data, $mimetype, $mtime = NULL, $ifModifiedSince = NULL, $forceDownload = false ) {
+	public static function sendString( $data, $mimetype, $mtime = NULL, $ifModifiedSince = NULL, $forceDownload = false, $encoding = NULL ) {
 		if ( !is_string( $data ) ) {
 			throw new InvalidArgumentException( '$data must be string.' );
 		}
-
-		$size = strlen( $data );
 
 		if ( $mtime === NULL ) {
 			$mtime = time();
@@ -77,13 +108,21 @@ class Responder {
 				header_remove( 'Content-Encoding' );
 				header_remove( 'Content-Length' );
 
+				self::sendHSTSHeader();
+				
 				self::sendReturnCodeHeader( 304 );
 
 				return;
 			}
 		}
 
-		self::sendContentHeader( $mimetype, $size, $mtime, $forceDownload );
+		// TODO: Support ETag here?
+
+		self::sendHSTSHeader();
+
+		$size = strlen( $data );
+		
+		self::sendContentHeader( $mimetype, $size, $mtime, $forceDownload, $encoding );
 
 		echo $data;
 	}
@@ -175,6 +214,7 @@ class Responder {
 			throw new InvalidArgumentException( 'File "' . $filename . '" does not exist or is not readable by php user.' );
 		}
 
+		self::sendHSTSHeader();
 
 		// disable output buffering if it is enabled
 		while ( ob_get_level() ) ob_end_clean();

@@ -297,7 +297,7 @@ define([
 									return previouslyExpanded || row.data._parent === null;
 								};
 							}
-
+							
 							if (me.filterPane) {
 								me.filterPane.form.addValueSetListenerOnce(function() {
 									me.createGrid(customGrid, structure);

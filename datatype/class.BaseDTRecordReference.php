@@ -326,6 +326,10 @@ abstract class BaseDTRecordReference extends DataType {
 		if ($this->lastPersistentRealValue !== NULL) {
 			$this->lastPersistentRealValue->scheduleCheckOnSaveComplete();
 		}
+
+		if(isset($this->values[$this->colName]) && (int)$this->values[$this->colName] === 0){
+			throw new Exception('Trying to save recordReference with a value of 0');
+		}
 	}
 
 	public function refresh() {

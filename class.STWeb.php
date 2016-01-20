@@ -150,6 +150,8 @@ class STWeb extends ST {
 					if ( $domainGroupRecord->favicon ) {
 						Responder::sendFile( $domainGroupRecord->favicon->getFullFilename(), $this->requestInfo->getServerInfo( 'HTTP_IF_MODIFIED_SINCE' ), $this->requestInfo->getServerInfo( 'HTTP_RANGE' ) );
 					} else {
+						Responder::sendHSTSHeader();
+
 						Responder::sendReturnCodeHeader( 404 );
 					}
 					break;
@@ -159,9 +161,10 @@ class STWeb extends ST {
 					$domainRecord = $this->getDomainRecordFromRequest();
 
 					if ( $domainRecord->disableTracking ) {
-						$this->sendContentTypeHeader( 'text/plain' );
-						echo "User-agent: *\nDisallow: /";
+						Responder::sendString( "User-agent: *\nDisallow: /", "text/plain" );
 					} else {
+						Responder::sendHSTSHeader();
+
 						Responder::sendReturnCodeHeader( 404 );
 					}
 					break;
@@ -178,22 +181,29 @@ class STWeb extends ST {
 						$domainRecord = $this->getDomainRecordFromRequest();
 
 						if ( $domainRecord->redirectToUrl ) {
+							Responder::sendHSTSHeader();
+
 							Responder::sendReturnCodeHeader( 302 );
-							header( 'Location: ' . UrlUtil::getRedirectUrl( $domainRecord->redirectToUrl ) );
+
+							Responder::sendLocationHeader( UrlUtil::getRedirectUrl( $domainRecord->redirectToUrl ) );
 							
 							return;
 						} else if ( $domainRecord->redirectToPage ) {
 							// TODO: STWeb should not need to know about live states
 							$targetPage = $domainRecord->redirectToPage->getFamilyMember( array( 'live' => 1 ) );
 							
-							if ( $targetPage && $targetPage->live ) {								
+							if ( $targetPage && $targetPage->live ) {
+								Responder::sendHSTSHeader();
+
 								Responder::sendReturnCodeHeader( 302 );
-								header( 'Location: ' . $targetPage->getUrlForPage( RCPage::ABSOLUTE_NO_PROTOCOL ));
+
+								Responder::sendLocationHeader( $targetPage->getUrlForPage( RCPage::ABSOLUTE_NO_PROTOCOL ) );
 								
 								return;
 							}
 
-						} else if ( ! RequestInfo::getCurrent()->getServerInfo( RequestInfo::PROXY_SAFE_IS_HTTPS ) && !Config::key('web', 'disableHTTPS') && ( $domainMatch = Config::key( 'web', 'preferHTTPS') ) && preg_match( $domainMatch, $domainRecord->domain ) ) {
+						} else if ( ! RequestInfo::getCurrent()->getServerInfo( RequestInfo::PROXY_SAFE_IS_HTTPS ) && !Config::key('web', 'disableHTTPS') && 
+							( ( ( $domainMatch = Config::key( 'web', 'preferHTTPS') ) && preg_match( $domainMatch, $domainRecord->domain ) ) || ( ( $hstsMatchList = Config::key( 'web', 'domainsHSTS' ) ) && Match::multiFN( $domainRecord->domain, $hstsMatchList ) ) ) ) {
 							$this->redirectToHTTPS();
 							
 							return;
@@ -289,9 +299,12 @@ class STWeb extends ST {
 			$host = $targetDomain->domain;
 		}
 
+		// no need for sendHSTSHeader here, as we checked that we aren't on https before, otherwise we wouldn't be redirecting to https
+
 		$redirect = "https://" . $host . $this->requestInfo->getRequestURI();
 		Responder::sendReturnCodeHeader( 307 ); // 307 is needed so POST will be used again if original request was POST
-		header( 'Location: ' . $redirect );
+
+		Responder::sendLocationHeader( $redirect );
 	}
 
 	protected function handleUrlRecord( RCUrl $urlRecord ) {
@@ -309,6 +322,8 @@ class STWeb extends ST {
 	}
 
 	protected function handleBadRequest() {
+		Responder::sendHSTSHeader();
+
 		Responder::sendReturnCodeHeader( 400 );
 
 		// TODO
@@ -324,6 +339,8 @@ class STWeb extends ST {
 
 		if ( $skip === NULL ) {
 			$skip = true; // prevent recursion when handling page not found
+
+			Responder::sendHSTSHeader();
 
 			Responder::sendReturnCodeHeader( 404 );
 
@@ -344,10 +361,6 @@ class STWeb extends ST {
 		}
 	}
 
-
-	protected function sendContentTypeHeader( $contentType ) {
-		header( 'Content-Type: ' . $contentType );
-	}
 
 
 	/**

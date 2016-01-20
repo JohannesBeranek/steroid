@@ -156,17 +156,12 @@ define([
 
 			me.setUpFormContainer();
 
-			if (me.isFilterPane) {
-				me.form.addInitListener(function () {
-					me.setFakeFilterRecord();
-				});
-			} else {
-				me.setUpRecordLabel();
-			}
+			// this has to happen after setUpFormContainer, as FilterPane inserts selectContainer here
+			me.setUpRecordLabel();
 
 			me.form.addValueSetListener(function () {
+				// TODO: make sure this runs with highest priority, as other listeners might depend on backend value watches
 				me.backend.suspendValueWatches = false;
-//				me.setButtonStates();
 			});
 
 			if (me.i18nExt) {
@@ -175,7 +170,9 @@ define([
 				me.set('title', i18nRC[me.classConfig.className + '_name'] || me.classConfig.className);
 			}
 
-			me.initComplete();
+			me.form.addInitListener(function() {
+				me.initComplete();
+			});
 		},
 		setPubDateStates: function () {
 			me = this;
@@ -213,17 +210,6 @@ define([
 			}
 
 			me.setButtonStates();
-		},
-		setFakeFilterRecord: function () {
-			var me = this;
-
-			var val = {};
-
-			for (var fieldName in me.classConfig.filterFields) {
-				val[fieldName] = me.classConfig.filterFields[fieldName]['default'];
-			}
-
-			me.loadRecord(val);
 		},
 		setUpRecordLabel: function () {
 			var me = this;

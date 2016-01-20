@@ -303,39 +303,47 @@ define([
 		updateValue: function () {
 			var me = this;
 
-			var skip = false;
-
 			if (me.hasMultiple() && me.recordList.incomingValueCount) {
+				// prevent triggering valueComplete() multiple times
 				return;
 			}
 
-			me.addValueSetListenerOnce(function () {
-				me.items = [];
-
-				if (me.hasMultiple()) {
-					me.values = [];
-
-					me.recordTitle = '';
-
-					me.recordStore.query().forEach(function (item) {
-						me.items.push(item);
-						me.recordTitle += item.title || item._title + '';
-						me.values.push(parseInt(item.primary, 10));
-					});
-
-					me.searchField.query.exclude = json.toJson(me.values);
-				} else {
-					me.values = me.searchField.get('value');
-
-					me.items.push(me.searchField.item);
-
-					me.recordTitle = me.searchField.item ? me.searchField.item.title || me.searchField.item._title : '';
-				}
-
+			var onValuesSet = function () {
 				me.set('STValue', me.STSetValue(me.values));
-
+						
 				me.set('message', '');
-			});
+						
+				me.valueComplete();
+			};
+
+			me.items = [];
+
+			if (me.hasMultiple()) {
+				me.values = [];
+
+				me.recordTitle = '';
+
+				// TODO: is .query() guaranteed to run sync and not async? If it can be async, the lines after should be refactored to take that into account
+				me.recordStore.query().forEach(function (item) {
+					me.items.push(item);
+					me.recordTitle += item.title || item._title + '';
+					me.values.push(parseInt(item.primary, 10));
+				});
+
+				me.searchField.query.exclude = json.toJson(me.values);
+
+			} else {
+				me.values = me.searchField.get('value');
+
+				me.items.push(me.searchField.item);
+
+				me.recordTitle = me.searchField.item ? me.searchField.item.title || me.searchField.item._title : '';
+
+			}
+
+
+			onValuesSet();
+
 		},
 		collectTitle: function () {
 			var me = this;
@@ -422,8 +430,9 @@ define([
 					me.isClearing = true;
 					me.clear();
 					me.isClearing = false;
-					me.valueComplete();
+					
 					me.updateValue();
+					
 					if (me.recordList) {
 						me.recordList.originalItems = [];
 					}
@@ -442,7 +451,6 @@ define([
 					}
 
 					me.recordList.addValueSetListenerOnce(function () {
-						me.valueComplete();
 						me.updateValue();
 					});
 				} else {
@@ -454,7 +462,6 @@ define([
 						me.recordList.originalItems = [];
 					}
 
-					me.valueComplete();
 					me.updateValue();
 				}
 			});
