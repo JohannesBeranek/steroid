@@ -254,7 +254,7 @@ class UHPage implements IURLHandler {
 			if ( $acceptHeader && strpos( $acceptHeader, 'gzip' ) !== false ) {
 				Responder::sendString( gzencode( $output, 9 ), NULL, NULL, NULL, false, 'gzip' );
 			} else {
-				Responder::sendString( $output );
+				Responder::sendString( $output, NULL );
 			}
 		}
 
