@@ -301,6 +301,14 @@ class DTUrlForeignReference extends BaseDTForeignReference {
 		$foreignRecords = $this->getForeignRecords();
 
 		foreach ( $foreignRecords as $record ) {
+			if($record->url === NULL){
+				//FIXME: why is this necessary?!
+				$vals = $record->getValues();
+				$record->url = $vals['url_primary'];
+				$record->load();
+				$record->url->load();
+			}
+
 			$record->url->delete();
 		}
 
