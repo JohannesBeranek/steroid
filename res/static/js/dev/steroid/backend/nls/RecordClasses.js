@@ -255,6 +255,7 @@ define({
 		},
 		RCDomainGroupLanguagePermissionUser: {
 			'permission:RCPermissionPerPage': 'Start at page(s) (empty = "all")',
+			'applyDown': 'Apply permission to children subwebs (only applicable to user group __admin__ and without page restriction)',
 			_title: 'User'
 		},
 		RCFieldPermission_name: 'Field permissions',

@@ -254,6 +254,7 @@ define({
 	},
 	RCDomainGroupLanguagePermissionUser: {
 		'permission:RCPermissionPerPage': 'Ab dieser Seite (leer = "Alle")',
+		'applyDown': 'Rechte auf Untersubwebs kopieren (nur gültig für Benutzergruppe __admin__ und ohne Seitenbeschränkung)',
 		_title: 'Benutzer'
 	},
 	RCFieldPermission: {
