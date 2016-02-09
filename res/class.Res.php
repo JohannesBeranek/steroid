@@ -169,9 +169,9 @@ class Res {
 	}
 
 	final protected static function parseRes( $filename, array &$handledFiles, &$source, $inline = true ) {
-		$mtime = self::handleImports( $filename, $handledFiles, $source, $inline) ;
-
 		$ext = pathinfo($filename, PATHINFO_EXTENSION);
+
+		$mtime = self::handleImports( $filename, $handledFiles, $source, $inline, $ext !== 'js' );
 
 		// TODO: cache compiled, use mtime
 		switch ($ext) {
@@ -233,7 +233,7 @@ class Res {
 		return $mtime;
 	}
 
-	final protected static function handleImports( $filename, array &$handledFiles, &$source, $inline = true ) {
+	final protected static function handleImports( $filename, array &$handledFiles, &$source, $inline = true, $parseImports = true ) {
 		$handledFiles[$filename] = $filename;
 
 		// TODO: handle file not found
@@ -243,56 +243,59 @@ class Res {
 
 		// TODO: cache?
 		$newcontents = file_get_contents( $filename );
-		
-		$offset = 0;
-		$lastOffset = 0;
-		
-		while( ($offset = strpos($newcontents, '@import', $lastOffset)) !== false) {						
-			$length = strcspn($newcontents, ";\n", $offset);
-			$statement = substr($newcontents, $offset, $length);
-			
-			$source .= substr($newcontents, $lastOffset, $offset - $lastOffset);
-			
-			$lastOffset = $offset + $length + 1;
-			
-			if (!preg_match('/@import (["\'])([^\1]+)\1/', $statement, $matches)) {
-				throw new Exception('Invalid import statement found: ' . $statement);
-			}
-			
 
-			// skip imports without extension, as those should be passed on to scss/less/etc
-			$ext = pathinfo($matches[2], PATHINFO_EXTENSION);
+		if($parseImports){
+			$offset     = 0;
+			$lastOffset = 0;
 
-			if ($ext === '') { 
-				$source .= $statement;
-				continue;
-			}
+			while ( ( $offset = strpos( $newcontents, '@import', $lastOffset ) ) !== false ) {
+				$length    = strcspn( $newcontents, ";\n", $offset );
+				$statement = substr( $newcontents, $offset, $length );
 
+				$source .= substr( $newcontents, $lastOffset, $offset - $lastOffset );
 
+				$lastOffset = $offset + $length + 1;
 
-			$fn = Filename::getPathInsideWebrootWithLocalDir($matches[2], dirname($filename));
-			
-			if ($inline) {
-				$rp = realpath($fn);
-				
-				if (!isset($handledFiles[$rp])) {
-					$inlinedFileMTime = self::handleImports($rp, $handledFiles, $source);
-
-					if ($inlinedFileMTime > $newestFileMTime) {
-						$newestFileMTime = $inlinedFileMTime;
-					}
+				if ( ! preg_match( '/@import (["\'])([^\1]+)\1/', $statement, $matches ) ) {
+					throw new Exception( 'Invalid import statement found: ' . $statement );
 				}
-			} else {
-				// TODO: do we need to call parseCSS on imports?
-				
-				$source .= '@import "/res?file=' . Filename::getPathWithoutWebroot($fn) . '";';
-			}
-		}
 
-		if ($lastOffset === 0) {
-			$source .= $newcontents; // save substr call and thus copying potentially very large string
-		} else {	
-			$source .= substr($newcontents, $lastOffset);
+
+				// skip imports without extension, as those should be passed on to scss/less/etc
+				$ext = pathinfo( $matches[ 2 ], PATHINFO_EXTENSION );
+
+				if ( $ext === '' ) {
+					$source .= $statement;
+					continue;
+				}
+
+
+				$fn = Filename::getPathInsideWebrootWithLocalDir( $matches[ 2 ], dirname( $filename ) );
+
+				if ( $inline ) {
+					$rp = realpath( $fn );
+
+					if ( ! isset( $handledFiles[ $rp ] ) ) {
+						$inlinedFileMTime = self::handleImports( $rp, $handledFiles, $source );
+
+						if ( $inlinedFileMTime > $newestFileMTime ) {
+							$newestFileMTime = $inlinedFileMTime;
+						}
+					}
+				} else {
+					// TODO: do we need to call parseCSS on imports?
+
+					$source .= '@import "/res?file=' . Filename::getPathWithoutWebroot( $fn ) . '";';
+				}
+			}
+
+			if ( $lastOffset === 0 ) {
+				$source .= $newcontents; // save substr call and thus copying potentially very large string
+			} else {
+				$source .= substr( $newcontents, $lastOffset );
+			}
+		} else {
+			$source = $newcontents;
 		}
 
 		return $newestFileMTime;
