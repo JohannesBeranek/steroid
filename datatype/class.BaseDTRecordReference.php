@@ -66,23 +66,23 @@ abstract class BaseDTRecordReference extends DataType {
 
 		return $values;
 	}
-	
+
 	public function cleanup() {
 		$foreignFieldName = $this->getForeignFieldName();
 
 		$value = $this->value;
 		$this->value = NULL;
-		
+
 		if ( $value !== NULL ) {
 			$value->unloadField( $foreignFieldName );
 		}
-		
+
 		unset($value);
 
 		unset($this->lastPersistentRealValue);
-		
+
 		parent::cleanup();
-		
+
 		$this->lastRawValue = NULL;
 	}
 
@@ -120,7 +120,7 @@ abstract class BaseDTRecordReference extends DataType {
 			if ( !$skipReal ) {
 				if ($data !== $this->value) {
 					$this->value = $data;
-	
+
 					if ($loaded) {
 						$this->lastPersistentRealValue = $this->value;
 					}
@@ -138,7 +138,7 @@ abstract class BaseDTRecordReference extends DataType {
 // FIXME: only allow upgrade to not dirty in case record is the same
 					if ((bool)$loaded === $this->isDirty) {
 						$this->isDirty = !$loaded;
-						
+
 						if (!$loaded && $dirtyTracking !== NULL) {
 							$dirtyTracking[$path] = true;
 						}
@@ -165,27 +165,27 @@ abstract class BaseDTRecordReference extends DataType {
 					if ($this->value !== NULL && isset($data[Record::FIELDNAME_PRIMARY]) && isset($this->value->{Record::FIELDNAME_PRIMARY}) && $this->value->{Record::FIELDNAME_PRIMARY} === (int)$data[Record::FIELDNAME_PRIMARY]) {
 						// set data on current value
 						$this->value->setValues( $data, $loaded, $path, $dirtyTracking );
-						
+
 						// dirty does not change here, as the value stays the same (we don't vare if it's fields change)
 					} else {
 						// synthesize new record
 						$this->value = $foreignRecordClass::get( $this->storage, $data, $loaded ? $loaded : Record::TRY_TO_LOAD, $path, $dirtyTracking );
-						
+
 						if ($loaded) {
 							$this->lastPersistentRealValue = $this->value;
-						} 
-						
-						
+						}
+
+
 						if ((bool)$loaded === $this->isDirty) {
 							$this->isDirty = !$loaded;
-							
+
 							if (!$loaded && $dirtyTracking !== NULL) {
 								$dirtyTracking[$path] = true;
 							}
 						}
 					}
-					
-				
+
+
 				}
 
 				if ( !$skipRaw ) {
@@ -201,14 +201,14 @@ abstract class BaseDTRecordReference extends DataType {
 					} else {
 						// only synthesize record in case it's different from the current one
 						$this->value = $foreignRecordClass::get( $this->storage, array( Record::FIELDNAME_PRIMARY => $data ), $loaded ? $loaded : Record::TRY_TO_LOAD, $path, $dirtyTracking );
-						
+
 						if ($loaded) {
-							$this->lastPersistentRealValue = $this->value;							
+							$this->lastPersistentRealValue = $this->value;
 						}
-						
+
 						if ((bool)$loaded === $this->isDirty) {
 							$this->isDirty = !$loaded;
-							
+
 							if (!$loaded && $dirtyTracking !== NULL) {
 								$dirtyTracking[$path] = true;
 							}
@@ -288,7 +288,7 @@ abstract class BaseDTRecordReference extends DataType {
 			// need to remove last pathPart as we already have our fieldName appended
 			$pathParts = explode('.', $path);
 			array_pop($pathParts);
-			
+
 			$this->record->setValues( array( $this->fieldName => $values ), $loaded, implode('.', $path), $dirtyTracking );
 		}
 	}
@@ -342,7 +342,7 @@ abstract class BaseDTRecordReference extends DataType {
 	protected function getForeignFieldName() {
 		return $this->fieldName . ':' . get_class( $this->record );
 	}
-	
+
 	final public static function getForeignFieldNameStatically( $fieldName, $recordClass ) {
 		return $fieldName . ':' . $recordClass;
 	}
@@ -354,22 +354,23 @@ abstract class BaseDTRecordReference extends DataType {
 	 */
 	public function beforeDelete( ) {
 		if ( $this->record->{$this->fieldName} ) { // support lazy loading
+			if ($this->value !== NULL && Record::$basket !== NULL ) {
+				Record::$basketRollbackSet[] = array( 'record' => $this->record, 'fieldName' => $this->fieldName, 'value' => $this->value);
+			}
+
 			$this->value->notifyReferenceRemoved( $this->record, $this->getForeignFieldName(), __FUNCTION__ );
 
 			if ($this->value !== NULL) { // null check is needed for circular function calling
-				if ( $this->deleteValueOnBeforeDelete()) { 
+				if ( $this->deleteValueOnBeforeDelete()) {
 					if ( !$this->value instanceof IRecord ) {
-						throw new exception( debug::getstringrepresentation( $this->value ) . " = \$this->value, not instanceof IRecord!" );
+						throw new exception( Debug::getStringRepresentation( $this->value ) . " = \$this->value, not instanceof IRecord!" );
 					}
 
 					$this->value->delete();
 				}
 
+
 				// help with gc
-				if ( Record::$basket !== NULL ) {
-					Record::$basketRollbackSet[] = array( 'record' => $this->record, 'fieldName' => $this->fieldName, 'value' => $this->value);
-				}
-				
 				$this->value = NULL;
 			}
 		}
@@ -463,11 +464,11 @@ abstract class BaseDTRecordReference extends DataType {
 		$val = $this->record->getFieldValue( $this->fieldName );
 
 		if ( $val && ( isset( $changes[ 'live' ] ) || isset( $changes[ 'language' ] ) ) ) {
-			if ( ( $copiedVal = $val->getCopiedRecord() ) !== NULL ) { 
+			if ( ( $copiedVal = $val->getCopiedRecord() ) !== NULL ) {
 				$val = $copiedVal;
 			} else {
 				$mayCopyReferenced = $this->mayCopyReferenced();
-				
+
 				if ( $mayCopyReferenced ) {
 					$nval = $val->copy( $changes, $missingReferences, $originRecords, $copiedRecords, NULL, $values, $this->fieldName );
 
@@ -478,11 +479,11 @@ abstract class BaseDTRecordReference extends DataType {
 					$val->setMeta( 'missing', false );
 					$val->setMeta( 'copied', $nval );
 				} else if ( $mayCopyReferenced === 0 ) {
-					// $mayCopyRefenced should not return 0 unless requireForeign is false 
+					// $mayCopyRefenced should not return 0 unless requireForeign is false
 					$nval = NULL;
 				} else if ( $val->isDirty( true ) || ( ( $nval = $val->getFamilyMember( $changes ) ) && !$nval->exists() ) ) {
 					// might exist from an old published record, in which case we would still want to copy
-				
+
 					if ( $val->getMeta( 'missing' ) !== false ) {
 						$val->setMeta( 'missing', true );
 
@@ -495,7 +496,7 @@ abstract class BaseDTRecordReference extends DataType {
 						$missingReferences[ ] = $val;
 					}
 				} else {
-					// 
+					//
 				}
 
 				$val = $nval;
@@ -545,9 +546,9 @@ abstract class BaseDTRecordReference extends DataType {
 				}
 
 				$this->record->wrapReindex( $this->fieldName, function() {
-					$this->_setValue( NULL, false );	
+					$this->_setValue( NULL, false );
 				});
-					
+
 				if ( isset( $lastRawValue ) ) {
 					$this->lastRawValue = $lastRawValue;
 				}
@@ -566,26 +567,26 @@ abstract class BaseDTRecordReference extends DataType {
 			$this->_setValue( $originRecord, false );
 		});
 	}
-	
+
 	public function unload() {
 		// loop guard
 		if ( $this->value !== NULL ) {
 			$foreignFieldName = $this->getForeignFieldName();
-			
+
 			$value = $this->value;
 			$this->value = NULL;
-			
+
 			$value->unloadField( $foreignFieldName );
-			
+
 			unset($value);
 
 			// might be needed for delete afterwards, so we don't unset it here
 			// $this->lastRawValue = NULL;
-			
+
 			parent::unload();
-		}		
+		}
 	}
-	
+
 	protected static function getRequiredPermissions( $fieldDef, $fieldName, $currentForeignPerms, $permissions, $owningRecordClass ) {
 		$owningRecordPerms = $permissions[ $owningRecordClass ];
 

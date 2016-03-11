@@ -15,7 +15,8 @@ class DTMenuItemForeignReference extends BaseDTForeignReference {
 		return array(
 			'dataType' => get_called_class(),
 			'nullable' => true,
-			'requireSelf' => true
+			'requireSelf' => true,
+			'constraints' => array( 'min' => 0 )
 		);
 	}
 
