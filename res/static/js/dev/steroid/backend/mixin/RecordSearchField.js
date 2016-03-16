@@ -38,12 +38,15 @@ define([
 		moduleApplySelectAspect: null,
 		item: null,
 		recordSelector: null,
+		searchDelay: 500,
 		// queryExpr: "${0}*", // default value, keep this here for documentation purposes
 
 
 		// override search method, count the input length
 		_startSearch: function (/*String*/key) {
 			var me = this;
+
+			console.debug(me.searchDelay);
 
 			if (!key || key.length < me.minKeyCount) {
 				me.closeDropDown();

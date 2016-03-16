@@ -121,6 +121,8 @@ class UHBackend implements IURLHandler {
 	protected $isAjaxRequest;
 	protected $isBackendUser;
 
+	protected static $searchFieldLimitCount = 50;
+
 	public function __construct() {
 		$this->userConfig = array();
 		$this->config = array();
@@ -1999,16 +2001,21 @@ class UHBackend implements IURLHandler {
 		$limitStart = $this->requestInfo->getPostParam( self::PARAM_LIMIT_START );
 		$limitCount = $this->requestInfo->getPostParam( self::PARAM_LIMIT_COUNT );
 
+		$isSearchField = $this->requestInfo->getPostParam(self::PARAM_IS_SEARCH_FIELD);
+
 		if ( !$limitCount || $limitCount == 'Infinity' ) {
 			$limitCount = NULL;
+		}
+
+		if($isSearchField){
+			$limitStart = 0;
+			$limitCount = self::$searchFieldLimitCount;
 		}
 
 		$sorting = json_decode( $this->requestInfo->getPostParam( self::PARAM_SORT ), true );
 		$filter = json_decode( $this->requestInfo->getPostParam( self::PARAM_FILTER ), true );
 		$filter = is_array( $filter ) ? $filter : array();
 		$exclude = json_decode( $this->requestInfo->getPostParam( self::PARAM_EXCLUDE ), true );
-
-		$isSearchField = $this->requestInfo->getPostParam( self::PARAM_IS_SEARCH_FIELD );
 
 		$mainRecord = json_decode( $this->requestInfo->getPostParam( self::PARAM_MAIN_RECORD ), true );
 		$requestFieldName = $this->requestInfo->getPostParam( self::PARAM_REQUESTING_FIELDNAME );
@@ -2085,7 +2092,7 @@ class UHBackend implements IURLHandler {
 			$res = $this->storage->select( $recordClassName, $queryStruct, $limitStart, $limitCount, true, NULL, NULL, true );
 			$total = $this->storage->getFoundRecords();
 		} else {
-			$res = $this->storage->select( $recordClassName, $queryStruct, NULL, NULL, NULL, NULL, NULL, true );
+			$res = $this->storage->select( $recordClassName, $queryStruct, $limitStart, $limitCount, NULL, NULL, NULL, true );
 		}
 
 		$records = $this->createFilteredRecords( $res, $recordClassName, $mainRecordClass, $requestingRecordClass, $requestFieldName, $parent, $displayHierarchic );
