@@ -561,7 +561,7 @@ abstract class BaseDTForeignReference extends DataType {
 	 * if datatype has been configured with requireSelf = true, it will delete all records of the configured recordClass which reference the datatype's record
 	 */
 	public function beforeDelete( ) {
-		$foreignRecords = $this->hasBeenSet() ? $this->value : $this->getForeignRecords();
+		$foreignRecords = ($this->hasBeenSet() && !$this->isDirty) ? $this->value : $this->getForeignRecords();
 
 		$this->oldValue = $foreignRecords;
 
