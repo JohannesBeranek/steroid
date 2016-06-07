@@ -28,7 +28,7 @@ class DTUrlRewrite extends BaseDTRecordReference {
 		);
 	}
 	
-	private static function getNewUrl( IRBStorage $storage, RCPage $page, $prefix = NULL, $suffix = NULL, $liveState = NULL ) {		
+	private static function getNewUrl( IRBStorage $storage, RCPage $page, $prefix = NULL, $suffix = NULL, $liveState = NULL, $acceptUrl = NULL ) {
 		$ct = 0;
 		$urlLast = ( $prefix === NULL ? '' : $prefix ) . ( $suffix === NULL ? '' : $suffix );
 		
@@ -65,7 +65,7 @@ class DTUrlRewrite extends BaseDTRecordReference {
 		
 			
 			$ct++;
-		} while ( $urlRow );
+		} while ( $urlRow && $acceptUrl !== $newUrl );
 		
 		return $newUrl;
 	}
@@ -98,11 +98,27 @@ class DTUrlRewrite extends BaseDTRecordReference {
 			$urlRecord = $rewriteUrlRecordReturn->getFieldValue('url');
 			
 			if ($urlRecord !== NULL) {
+				$compareUrl = self::getNewUrl($storage, $page, $rewriteTitlePrefix, $rewriteTitleSuffix, $page->live, $urlRecord->url);
+
+				if($compareUrl !== $urlRecord->url){
+					$tx = $storage->startTransaction();
+
+					try{
+						$urlRecord->url = $compareUrl;
+						$urlRecord->save();
+
+						$tx->commit();
+					} catch(Exception $e){
+						$tx->rollback();
+						throw($e);
+					}
+				}
+
 				$url = $urlRecord->url;
 			}
-		} 
+		}
 		
-		if (!isset($url)) {			
+		if (!isset($url)) {
 			// try to fetch rewriteUrlRecord for other live status 
 			// to check if it has an url record attached
 			
@@ -159,14 +175,14 @@ class DTUrlRewrite extends BaseDTRecordReference {
 										// other rewrite record is already connected to url
 										// this should not happen
 										
-										// try to safe the situation by deleting the other
-										// record, it should be dynamically recreated anyway
-										Log::write('Need to reconnect already connected rewrite record:', $foreignRewrite->rewrite, 'for url:', $urlRecord->url);
-										
-						
-										// TODO: connect foreignRewrite to different url
-						
-										throw new Exception();
+										// if it still happens, we try to take over the existing rewrite
+										if($foreignRewrite->getReferenceCount() === 0){
+											$foreignRewrite->url = NULL;
+											$foreignRewrite->delete();
+										} else {
+											// if the existing rewrite is still in use (referenced), fail.
+											throw new Exception('UrlRewrite with primary ' . $foreignRewrite->{Record::FIELDNAME_PRIMARY} . ' already exists and is in use');
+										}
 									}
 								} else {
 									$pageUrlEntries = $urlRecord->{'url:RCPageUrl'};
@@ -296,7 +312,7 @@ class DTUrlRewrite extends BaseDTRecordReference {
 					$rewriteOwningRecord->{$rewriteField} = $rewriteUrlRecordReturn;
 					
 					$url = self::provideRewriteUrl( $rewriteField, $storage, $page, $params, $rewriteOwningRecord, $rewriteTitlePrefix, $rewriteTitleSuffix, $rewriteUrlRecordReturn );
-				
+
 					// will trigger chain save for rewriteRecord and urlRecord
 					$rewriteOwningRecord->save();
 				
@@ -308,6 +324,25 @@ class DTUrlRewrite extends BaseDTRecordReference {
 				}
 				
 			} else {
+				// check if original url changed
+				$originalUrl = $page->getUrlForPage($page, $params, false, true);
+
+				if($rewriteFieldValue->rewrite !== $originalUrl){
+					$tx = $storage->startTransaction();
+
+					try{
+						$rewriteFieldValue->rewrite = $originalUrl;
+
+						$rewriteFieldValue->save();
+
+						$tx->commit();
+					} catch(Exception $e) {
+						$tx->rollback();
+
+						throw $e;
+					}
+				}
+
 				// rewriteRecord exists 
 				$rewriteUrlRecordReturn = $rewriteFieldValue;
 				

@@ -366,16 +366,22 @@ class STWeb extends ST {
 	/**
 	 * @return int
 	 */
-	protected function getLiveValue() {
-		$previewSecret = $this->requestInfo->getQueryParam( RCPreviewSecret::URL_PARAM );
+	protected function getLiveValue(){
+		static $isPreviewMode;
 
-		// TODO: permissions ?
+		if($isPreviewMode === NULL){
+			$previewSecret = $this->requestInfo->getQueryParam(RCPreviewSecret::URL_PARAM);
 
-		if ( RCPreviewSecret::validate( $this->storage, $previewSecret ) ) {
-			return self::LIVEMODE_PREVIEW;
+			// TODO: permissions ?
+
+			if(RCPreviewSecret::validate($this->storage, $previewSecret)){
+				$isPreviewMode = self::LIVEMODE_PREVIEW;
+			}else{
+				$isPreviewMode = self::LIVEMODE_LIVE;
+			}
 		}
 
-		return self::LIVEMODE_LIVE;
+		return $isPreviewMode;
 	}
 
 

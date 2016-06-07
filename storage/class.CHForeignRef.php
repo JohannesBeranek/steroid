@@ -18,19 +18,22 @@ class CHForeignref extends CLIHandler {
 
 	protected $widgetsOnly = false;
 	protected $rcs = array();
+	protected $recordPrimary = NULL;
 
 	public function performCommand( $called, $command, array $params ) {
 
 		foreach($params as $param) {
-			switch ( $param ) {
-				case '-w':
-				case '--widgetsonly':
-					$this->widgetsOnly = true;
-					break;
-				default:
-					$this->rcs[] = $param;
-					break;
+			if($param === '-w' || $param === '--widgetsonly'){
+				$this->widgetsOnly = true;
+				continue;
 			}
+
+			if(is_numeric($param)){
+				$this->recordPrimary = $param;
+				continue;
+			}
+
+			$this->rcs[] = $param;
 		}
 
 		if(!empty($this->rcs)){
@@ -46,15 +49,54 @@ class CHForeignref extends CLIHandler {
 			$rcs = ClassFinder::getAll( ClassFinder::CLASSTYPE_RECORD, true );
 		}
 
-		foreach ( $rcs as $rc => $def ) {
-			if ( $this->widgetsOnly && $rc::BACKEND_TYPE !== Record::BACKEND_TYPE_WIDGET ) {
-				continue;
-			}
+		if(count($rcs) === 1 && $this->recordPrimary !== NULL){
+			$this->outputSingleRecordReferences(array_shift($this->rcs));
+		} else {
+			foreach($rcs as $rc => $def){
+				if($this->widgetsOnly && $rc::BACKEND_TYPE !== Record::BACKEND_TYPE_WIDGET){
+					continue;
+				}
 
-			$this->output($rc);
+				$this->output($rc);
+			}
 		}
 
 		return EXIT_SUCCESS;
+	}
+
+	protected function outputSingleRecordReferences($rc){
+		$refs = $rc::getForeignReferences();
+
+		if(empty($refs)){
+			return;
+		}
+
+		$this->storage->init();
+
+		echo CLIHandler::COLOR_CLASSNAME . $rc . " " . $this->recordPrimary . ":\n" . CLIHandler::COLOR_DEFAULT;
+
+		$originRecord = $rc::get($this->storage, array(Record::FIELDNAME_PRIMARY => $this->recordPrimary), Record::TRY_TO_LOAD);
+
+		foreach($refs as $ref){
+			$class = $ref['recordClass'];
+
+			$foreignFieldName = $class::getDatatypeFieldName('DTUrlRewrite');
+
+			$foreignRecords = $this->storage->selectRecords($class, array('where' => array($foreignFieldName, '=', array($this->recordPrimary))));
+
+			$primaryFields = $class::getPrimaryKeyFields();
+
+			foreach($foreignRecords as $foreignRec){
+				echo CLIHandler::USAGE_ARGUMENT_INDENT . CLIHandler::USAGE_ARGUMENT_INDENT . $class . " -> ";
+				$output = array();
+
+				foreach($primaryFields as $field){
+					$output[] = $field . " -> " . $foreignRec->{$field}->{Record::FIELDNAME_PRIMARY};
+				}
+
+				echo implode(',', $output) . "\n";
+			}
+		}
 	}
 
 	protected function output($rc) {
