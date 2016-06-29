@@ -84,7 +84,9 @@ class CHPubDateCron extends CLIHandler {
 				$tx->commit();
 
 			} catch ( Exception $e ) {
-				$this->_createErrorMessages( $do, $rec, $e );
+				if($rec !== NULL){
+					$this->_createErrorMessages($do, $rec, $e);
+				}
 
 				$tx->rollback();
 			}
