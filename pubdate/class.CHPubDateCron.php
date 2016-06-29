@@ -84,9 +84,7 @@ class CHPubDateCron extends CLIHandler {
 				$tx->commit();
 
 			} catch ( Exception $e ) {
-				if($rec !== NULL){
-					$this->_createErrorMessages($do, $rec, $e);
-				}
+				$this->_createErrorMessages($do, $rec, $e);
 
 				$tx->rollback();
 			}
@@ -102,6 +100,10 @@ class CHPubDateCron extends CLIHandler {
 	}
 
 	protected function _createErrorMessages( $do, $rec, $error ) {
+		if($rec === NULL || $rec->{$rec::getDataTypeFieldName('DTSteroidDomainGroup')} === NULL){
+			return;
+		}
+		
 		try {
 			$msg = RCMessageBox::get(
 				$this->storage,
