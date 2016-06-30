@@ -230,11 +230,23 @@ define([
 
 			me.inherited(arguments);
 
+			var itemCount = me.permissionEntities.length;
+
 			for (var i = 0, item; item = me.permissionEntities[i]; i++) {
 				item.addInitListener(function (entityWithValue) {
 					entityWithValue.updateSubmitName('permission:RCPermissionPermissionEntity[' + i + '][permissionEntity]');
-				});
+					itemCount--;
 
+					if(!itemCount){
+						me.addChangeWatches();
+					}
+				});
+			}
+		},
+		addChangeWatches: function(){
+			var me = this;
+
+			for (var i = 0, item; item = me.permissionEntities[i]; i++) {
 				item.addValueSetListenerOnce(function (permEnt) {
 					me.changeWatches.push(permEnt.watch('STValue', function (name, oldValue, newValue) {
 						me.set('STValue', me.get('value'));
