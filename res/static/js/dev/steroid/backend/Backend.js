@@ -497,7 +497,7 @@ define([
 			me.STMenuBar.addChild(me.STBTLogout);
 		},
 		showModule: function (recordClass) {
-			return (recordClass.mayWrite || recordClass.listOnly) && recordClass.hasPrimaryField && !recordClass.isDependency;
+			return recordClass.hasPrimaryField && !recordClass.isDependency;
 		},
 		showModuleGroup: function (type) {
 			return !(type == 'widget' || type == 'system');
