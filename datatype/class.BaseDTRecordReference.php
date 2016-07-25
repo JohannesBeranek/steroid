@@ -361,7 +361,7 @@ abstract class BaseDTRecordReference extends DataType {
 			$this->value->notifyReferenceRemoved( $this->record, $this->getForeignFieldName(), __FUNCTION__ );
 
 			if ($this->value !== NULL) { // null check is needed for circular function calling
-				if ( $this->deleteValueOnBeforeDelete()) {
+				if ( !$this->value->isDeleted() && $this->deleteValueOnBeforeDelete()) {
 					if ( !$this->value instanceof IRecord ) {
 						throw new exception( Debug::getStringRepresentation( $this->value ) . " = \$this->value, not instanceof IRecord!" );
 					}
