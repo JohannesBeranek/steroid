@@ -36,7 +36,7 @@ define([
 			me.timePicker.startup();
 			me.domNode.appendChild(me.timePicker.domNode);
 
-			me.addValueSetListener(function () {
+			me.addValueSetListenerOnce(function () {
 				me.dateWatch = me.datePicker.watch('value', function (name, oldValue, newValue) {
 					me.valueChanged();
 				});
