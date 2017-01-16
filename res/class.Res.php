@@ -295,7 +295,7 @@ class Res {
 				$source .= substr( $newcontents, $lastOffset );
 			}
 		} else {
-			$source = $newcontents;
+			$source .= $newcontents;
 		}
 
 		return $newestFileMTime;
