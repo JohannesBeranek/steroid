@@ -204,7 +204,7 @@ class STWeb extends ST {
 							$pagePath = $this->requestInfo->getPagePath();
 
 							if ($pagePath && $pagePath !== '/') {
-								$redirectTarget = rtrim($redirectTarget, '/') . '/' . ltrim($pagePath);
+								$redirectTarget = rtrim($redirectTarget, '/') . '/' . ltrim($pagePath, '/');
 							} 
 
 							Responder::sendHSTSHeader();
