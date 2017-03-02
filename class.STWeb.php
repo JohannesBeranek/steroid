@@ -180,32 +180,39 @@ class STWeb extends ST {
 
 						$domainRecord = $this->getDomainRecordFromRequest();
 
+						$redirectTarget = null;
+
 						if ( $domainRecord->redirectToUrl ) {
-							Responder::sendHSTSHeader();
-
-							Responder::sendReturnCodeHeader( 302 );
-
-							Responder::sendLocationHeader( UrlUtil::getRedirectUrl( $domainRecord->redirectToUrl ) );
-							
-							return;
+							$redirectTarget = UrlUtil::getRedirectUrl( $domainRecord->redirectToUrl );							
 						} else if ( $domainRecord->redirectToPage ) {
 							// TODO: STWeb should not need to know about live states
 							$targetPage = $domainRecord->redirectToPage->getFamilyMember( array( 'live' => 1 ) );
 							
 							if ( $targetPage && $targetPage->live ) {
-								Responder::sendHSTSHeader();
-
-								Responder::sendReturnCodeHeader( 302 );
-
-								Responder::sendLocationHeader( $targetPage->getUrlForPage( RCPage::ABSOLUTE_NO_PROTOCOL ) );
-								
-								return;
+								$redirectTarget = $targetPage->getUrlForPage( RCPage::ABSOLUTE_NO_PROTOCOL );								
 							}
 
 						} else if ( ! RequestInfo::getCurrent()->getServerInfo( RequestInfo::PROXY_SAFE_IS_HTTPS ) && !Config::key('web', 'disableHTTPS') && 
 							( ( ( $domainMatch = Config::key( 'web', 'preferHTTPS') ) && preg_match( $domainMatch, $domainRecord->domain ) ) || ( ( $hstsMatchList = Config::key( 'web', 'domainsHSTS' ) ) && Match::multiDN( $domainRecord->domain, $hstsMatchList ) ) ) ) {
 							$this->redirectToHTTPS();
 							
+							return;
+						}
+
+						if ($redirectTarget) {
+							// JB 02.03.2017 see if we have a pagePath to add
+							$pagePath = $this->requestInfo->getPagePath();
+
+							if ($pagePath && $pagePath !== '/') {
+								$redirectTarget = rtrim($redirectTarget, '/') . '/' . ltrim($pagePath);
+							} 
+
+							Responder::sendHSTSHeader();
+
+							Responder::sendReturnCodeHeader( 302 );
+
+							Responder::sendLocationHeader( $redirectTarget );
+
 							return;
 						}
 
