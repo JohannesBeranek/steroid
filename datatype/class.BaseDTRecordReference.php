@@ -366,7 +366,8 @@ abstract class BaseDTRecordReference extends DataType {
 						throw new exception( Debug::getStringRepresentation( $this->value ) . " = \$this->value, not instanceof IRecord!" );
 					}
 
-					$this->value->delete();
+					if (!$this->value->isDeleted())
+						$this->value->delete();
 				}
 
 
