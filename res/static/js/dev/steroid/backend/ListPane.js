@@ -19,7 +19,7 @@ define([
         "dojox/grid/enhanced/plugins/Filter", 
         "dgrid/OnDemandGrid", 
         "dgrid/Selection", 
-        "dgrid/tree", 
+        "dgrid/Tree", 
         "dojo/dom-style", 
         "dgrid/extensions/ColumnHider", 
         "dgrid/extensions/ColumnReorder", 
